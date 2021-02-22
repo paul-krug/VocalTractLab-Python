@@ -44,6 +44,7 @@ import os, sys, ctypes
 import pandas as pd
 import numpy as np
 from scipy.io import wavfile
+import matplotlib.pyplot as plt
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -135,7 +136,6 @@ class VTL():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_version( self ):
-		#version = ctypes.c_char_p( b'                                ' )
 		version = ctypes.c_char_p( ( ' ' * 32 ).encode() )
 		self.API.vtlGetVersion( version )
 		if self.params.verbose == True:
@@ -158,7 +158,6 @@ class VTL():
 		'n_tract_params': numVocalTractParams.value,
 		'n_glottis_params': numGlottisParams.value,
 		}
-		#print(constants)
 		return constants
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_param_info( self, params: str ):
@@ -180,42 +179,28 @@ class VTL():
 			self.API.vtlGetGlottisParamInfo( names, ctypes.byref( paramMin ), ctypes.byref( paramMax ), ctypes.byref( paramNeutral ) )
 		df = pd.DataFrame( np.array( [ paramMin, paramMax, paramNeutral ] ).T, columns = [ 'min', 'max', 'neutral' ] )
 		df.index = names.value.decode().strip( ' ' ).split( ' ' )
-		print( df )
+		#print( df )
 		return df
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-#	def get_tract_param_info( self ):
-#		names, paramMin, paramMax, paramNeutral = get_param_info( key = 'tract' )
-#		self.API.vtlGetTractParamInfo( ctypes.byref( names ), ctypes.byref( paramMin ), ctypes.byref( paramMax ), ctypes.byref( paramNeutral ) )
-#		return
-##---------------------------------------------------------------------------------------------------------------------------------------------------#
-#	def get_glottis_param_info( self ):
-#		names, paramMin, paramMax, paramNeutral = get_param_info( key = 'glottis' )
-#		self.API.vtlGetGlottisParamInfo( ctypes.byref( names ), ctypes.byref( paramMin ), ctypes.byref( paramMax ), ctypes.byref( paramNeutral ) )
-#		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_tract_params_from_shape( self, shape: str ): #Todo: glottis shapes as well
 		shapeName = ctypes.c_char_p( shape.encode() )
 		constants = self.get_constants()
 		param = ( ctypes.c_double * constants[ 'n_tract_params' ] )()
 		self.API.vtlGetTractParams( shapeName, ctypes.byref( param ) )
-		#print( np.array( param ) )
 		return np.array( param )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def synth_block( self, tract_params, glottis_params, verbose = False, state_samples = None ):
-		self.API.vtlSynthesisReset()
 		constants = self.get_constants()
 		if state_samples == None:
 			state_samples = self.params.state_samples
-		#tractParams = ctypes.c_double( tract_params )()
-		#glottisParams = ctypes.c_double( tract_params )()
 		if len( tract_params ) != len( glottis_params ):
 			print( 'TODO: Warning: Length of tract_params and glottis_params do not match. Will modify glottis_params to match.')
 			# Todo: Match length
 		numFrames = ctypes.c_int( len( tract_params ) )
 		#print( numFrames.value )
 		tractParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_tract_params' ] ))()
-		glottisParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_glottis_params' ] ))()
 		tractParams[:] = tract_params.T.ravel('F')
+		glottisParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_glottis_params' ] ))()
 		glottisParams[:] = glottis_params.T.ravel('F')
 		#print( 'shape: {}'.format( np.array(tractParams).shape ) )
 		#stop
@@ -227,77 +212,88 @@ class VTL():
 		#print( return_val )
 		return np.array( audio )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-'''
-	def export_tract_svg(double *tractParams, const char *fileName):
-		return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def tract_params_to_tube_data(double* tractParams,
-  double* tubeLength_cm, double* tubeArea_cm2, int* tubeArticulator,
-  double* incisorPos_cm, double* tongueTipSideElevation, double* velumOpening_cm2):
-		return
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def vtl_get_transfer_function(double *tractParams, int numSpectrumSamples,
-  double *magnitude, double *phase_rad):
-		return
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def vtl_synthesis_reset():
-		vtl.vtlSynthesisReset()
-		return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def vtlSynthesisAddTube(int numNewSamples, double *audio,
-  double *tubeLength_cm, double *tubeArea_cm2, int *tubeArticulator,
-  double incisorPos_cm, double velumOpening_cm2, double tongueTipSideElevation,
-  double *newGlottisParams):
-		return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def vtlSynthesisAddTract(int numNewSamples, double *audio,
-  double *tractParams, double *glottisParams):
-		return
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def synth_block( self, tract_params, glottis_params, verbose = False, state_samples = None ):
+	def export_tract_svg( self, tract_params, file_path ):
 		constants = self.get_constants()
-		if state_samples == None:
-			state_samples = self.params.state_samples
-		#tractParams = ctypes.c_double( tract_params )()
-		#glottisParams = ctypes.c_double( tract_params )()
-		if len( tract_params ) != len( glottis_params ):
-			print( 'TODO: Warning: Length of tract_params and glottis_params do not match. Will modify glottis_params to match.')
-			# Todo: Match length
-		numFrames = ctypes.c_int( len( tract_params ) )
-		tractParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_tract_params' ] ))()
-		glottisParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_glottis_params' ] ))()
-		tractParams[:] = tract_params.ravel('F')
-		glottisParams[:] = glottis_params.ravel('F')
-		frameStep_samples = ctypes.c_int( state_samples )
-		audio = (ctypes.c_double * int( len( tract_params ) * self.params.samplerate_internal * self.params.samplerate_audio ) )()
-		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
-		self.API.vtlSynthBlock( tractParams, glottisParams, numFrames, frameStep_samples, audio, enableConsoleOutput )
+		for index, state in enumerate( tract_params ):
+			tractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+			tractParams[:] = state.T.ravel('F')
+			fileName = ctypes.c_char_p( ( file_path + '_{}.svg'.format( index ) ).encode() )
+			self.API.vtlExportTractSvg( ctypes.byref( tractParams ), fileName )
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def tract_params_to_tube_data( self, tract_params ):
+		constants = self.get_constants()
+		tube_data = []
+		for state in tract_params:
+			tractParams = ( ctypes.c_double * ( len( tract_params ) * constants[ 'n_tract_params' ] ) )()
+			tractParams[:] = tract_params.T.ravel('F')
+			tubeLength_cm = ( ctypes.c_double * ( constants[ 'n_tube_sections' ] ) )()
+			tubeArea_cm2  = ( ctypes.c_double * ( constants[ 'n_tube_sections' ] ) )()
+			tubeArticulator  = ( ctypes.c_int * ( constants[ 'n_tube_sections' ] ) )()
+			incisorPos_cm = ctypes.c_double( 0 )
+			tongueTipSideElevation = ctypes.c_double( 0 )
+			velumOpening_cm2 = ctypes.c_double( 0 )
+			self.API.vtlTractToTube( ctypes.byref( tractParams ), 
+			                                   ctypes.byref( tubeLength_cm ), 
+											   ctypes.byref( tubeArea_cm2 ),
+											   ctypes.byref( tubeArticulator ), 
+											   ctypes.byref( incisorPos_cm ),
+											   ctypes.byref( tongueTipSideElevation),
+											   ctypes.byref( velumOpening_cm2 )
+											 )
+			tube_data.append( [ np.array( tubeLength_cm ), 
+			np.array( tubeArea_cm2 ), 
+			np.array( tubeArticulator ), 
+			incisorPos_cm.value, 
+			tongueTipSideElevation.value, 
+			velumOpening_cm2.value ] )
+		df = pd.DataFrame( tube_data, columns = [ 'tube_length_cm', 'tube_area_cm2', 'tube_articulator', 'incisor_pos_cm', 'tongue_tip_side_elevation', 'velum_opening_cm2' ])
+		return df
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_transfer_function( self, tract_params, n_spectrum_samples: int = 2048): # TODO, raw magnitude spec to freq spec, + formant extraction
+		constants = self.get_constants()
+		numSpectrumSamples = ctypes.c_int( n_spectrum_samples )
+		transfer_function_data = []
+		for state in tract_params:
+			tractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+			tractParams[:] = state.T.ravel('F')
+			magnitude = ( ctypes.c_double * ( n_spectrum_samples ) )()
+			phase_rad = ( ctypes.c_double * ( n_spectrum_samples ) )()
+			self.API.vtlGetTransferFunction( ctypes.byref( tractParams ), numSpectrumSamples, ctypes.byref( magnitude ), ctypes.byref( phase_rad ) )
+			transfer_function_data.append( [ np.array( magnitude ), np.array( phase_rad ) ] )
+		df = pd.DataFrame( transfer_function_data, columns = [ 'magnitude', 'phase_rad' ] )
+		return df
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def synthesis_reset( self ):
+		self.API.vtlSynthesisReset()
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#	def vtlSynthesisAddTube(int numNewSamples, double *audio,
+#  double *tubeLength_cm, double *tubeArea_cm2, int *tubeArticulator,
+#  double incisorPos_cm, double velumOpening_cm2, double tongueTipSideElevation,
+#  double *newGlottisParams):
+#		return
+#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def synthesis_add_state( self, tract_state, glottis_state, n_new_samples ): # Inefficient in Python, for larger synthesis use synth_block
+		constants = self.get_constants()
+		numNewSamples = ctypes.c_int( n_new_samples )
+		audio = (ctypes.c_double * int( n_new_samples ) )()
+		tractParams = (ctypes.c_double * ( constants[ 'n_tract_params' ] ))()
+		tractParams[:] = tract_state.T.ravel('F')
+		glottisParams = (ctypes.c_double * ( constants[ 'n_glottis_params' ] ))()
+		glottisParams[:] = glottis_state.T.ravel('F')
+		self.API.vtlSynthesisAddTract( numNewSamples, ctypes.byref( audio ), ctypes.byref( tractParams ), ctypes.byref( glottisParams ) )
+		if n_new_samples > 0:
+			return np.array( audio )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def test( self ): # Run without calling initialize. Completely useless function basically
+		speakerFileName = ctypes.c_char_p( self.params.speaker_file_name.encode() )
+		audio = (ctypes.c_double * int( self.params.samplerate_audio ) )()
+		numSamples = ctypes.c_int(0)
+		self.API.vtlApiTest( speakerFileName, ctypes.byref( audio ), ctypes.byref( numSamples ) )
 		return np.array( audio )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-
-vtlApiTest(const char *speakerFileName, double *audio, int *numSamples);
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-
-number_frames = int(duration * frame_rate)
-		# Initialize VocalTractLab library
-		audio = (ctypes.c_double * int(duration * VTL.Samplerate.value))()
-		number_audio_samples = ctypes.c_int(0)
-
-tract_params = (ctypes.c_double * (number_frames * VTL.N_VTP.value))()
-		glottis_params = (ctypes.c_double * (number_frames * VTL.N_GP.value))()
-		tube_areas = (ctypes.c_double * (number_frames * VTL.N_Tube_Sections.value))()
-		tube_articulators = ctypes.c_char_p(b' ' * number_frames * VTL.N_Tube_Sections.value)
-		# pass values to the C array
-		#print(tract_params)
-		tract_params[:] = tract_params_list.ravel('F')
-		glottis_params[:] = glottis_params_list.ravel('F')
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-vtlTractSequenceToAudio(const char* tractSequenceFileName,
-  const char* wavFileName, double* audio, int* numSamples);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -415,5 +411,3 @@ vtlTractSequenceToAudio(const char* tractSequenceFileName,
 		print('Wav file saved.')
 		return
 #####################################################################################################################################################
-
-'''
