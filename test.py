@@ -1,5 +1,5 @@
 #import PyVTL
-from PyVTL.PyVTL import VTL
+from PyVTL.core import VTL
 import numpy as np
 import matplotlib.pyplot as plt
 
