@@ -33,7 +33,7 @@
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-
+import PyVTL
 from PyVTL.core import VTL
 import numpy as np
 import matplotlib.pyplot as plt
@@ -49,6 +49,8 @@ glottis_states = np.array( [ df_glottis[ 'neutral' ] for x in range( 0, 500 ) ] 
 
 print( tract_states.shape )
 print( glottis_states.shape )
+
+stop
 
 audio_synth_block = vtl.synth_block( tract_states, glottis_states, verbose=True )
 #plt.plot( audio )

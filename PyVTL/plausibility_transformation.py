@@ -36,7 +36,7 @@
 import joblib
 from scipy.spatial.distance import cosine
 
-model = joblib.load( 'Models/PCA_nc_10.joblib' )
+model = joblib.load( './PyVTL/Models/PCA_nc_10.joblib' )
 
 def encode_decode( features ):
 	encode = model.transform( features )
