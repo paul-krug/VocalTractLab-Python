@@ -294,13 +294,10 @@ class VTL():
 		self.API.vtlApiTest( speakerFileName, ctypes.byref( audio ), ctypes.byref( numSamples ) )
 		return np.array( audio )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def segment_sequence_to_gestural_score( self, segFilePath, gesFilePath ):
 		segFileName = ctypes.c_char_p( segFilePath.encode() )
 		gesFileName = ctypes.c_char_p( gesFilePath.encode() )
-		VTL.vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
+		self.API.vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
 		if self.params.verbose:
 			print('Created gestural score from file: {}'.format( segFilePath ))
 		return
@@ -310,7 +307,7 @@ class VTL():
 		if tractFilePath in (None, ''):
 			tractFilePath = gesFilePath.split('.')[0] + '_tractSeq.txt'
 		tractSequenceFileName = ctypes.c_char_p( tractFilePath.encode() )
-		VTL.vtlGesturalScoreToTractSequence( gesFileName, tractSequenceFileName )
+		self.API.vtlGesturalScoreToTractSequence( gesFileName, tractSequenceFileName )
 		if self.params.verbose:
 			print('Created TractSeq of file: {}'.format( gesFilePath ))
 		if return_Sequence:
@@ -323,7 +320,7 @@ class VTL():
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
 		audio = (ctypes.c_double * int( self.get_ges_score_length( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
 		numSamples = ctypes.c_int(0)
-		VTL.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
+		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
 		if self.params.verbose:
 			print( 'Audio generated from file: {}'.format( ges_file_path ) )
 		#if audio_file_path != '':
@@ -335,7 +332,7 @@ class VTL():
 		tractSequenceFileName = ctypes.c_char_p( TractSeq_Filename.encode() )
 		audio = (ctypes.c_double * int( self.Get_Tract_Seq_Len(TractSeq_Filename) * self.params.state_duration * self.params.samplerate_audio ))()
 		numSamples = ctypes.c_int(0)
-		VTL.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
+		self.API.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
 		if self.params.verbose:
 			print('Audio generated: {}'.format(TractSeq_Filename))
 		return np.array(audio)

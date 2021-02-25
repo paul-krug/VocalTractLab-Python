@@ -1,11 +1,10 @@
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-#	- This file is a part of the supplementary material for the scientific paper 'Modelling microprosodic effects leads to an audible improvement in 
-#	  articulatory synthesis', see https://github.com/TUD-STKS/Microprosody
+#	- This file is a part of the Python module PyVTL, see https://github.com/TUD-STKS/PyVTL
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #
 #	- Copyright (C) 2021, Paul Konstantin Krug, Dresden, Germany
-#	- https://github.com/TUD-STKS/Microprosody
+#	- https://github.com/TUD-STKS/PyVTL
 #	- Author: Paul Konstantin Krug, TU Dresden
 #
 #	- License:
@@ -30,6 +29,7 @@
 #	- python 3 (tested with version 3.7)
 #	- numpy    (tested with version 1.19.5)
 #	- pandas   (tested with version 1.2.1)
+#	- scipy    (tested with version 1.6.0)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
