@@ -225,8 +225,8 @@ class VTL():
 		constants = self.get_constants()
 		tube_data = []
 		for state in tract_params:
-			tractParams = ( ctypes.c_double * ( len( tract_params ) * constants[ 'n_tract_params' ] ) )()
-			tractParams[:] = tract_params.T.ravel('F')
+			tractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+			tractParams[:] = state.T.ravel('F')
 			tubeLength_cm = ( ctypes.c_double * ( constants[ 'n_tube_sections' ] ) )()
 			tubeArea_cm2  = ( ctypes.c_double * ( constants[ 'n_tube_sections' ] ) )()
 			tubeArticulator  = ( ctypes.c_int * ( constants[ 'n_tube_sections' ] ) )()
@@ -255,6 +255,8 @@ class VTL():
 		numSpectrumSamples = ctypes.c_int( n_spectrum_samples )
 		transfer_function_data = []
 		for state in tract_params:
+			#print( state )
+			#print( state.shape )
 			tractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
 			tractParams[:] = state.T.ravel('F')
 			magnitude = ( ctypes.c_double * ( n_spectrum_samples ) )()
@@ -408,3 +410,7 @@ class VTL():
 		print('Wav file saved.')
 		return
 #####################################################################################################################################################
+
+
+	def tract_state_is_voiced( self, state ):
+		return
