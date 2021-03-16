@@ -82,7 +82,7 @@ class vtl_params():
 		self.samplerate_internal = self.samplerate_audio / self.state_samples # Internal tract samplerate (ca. 400.9090... default)
 		self.state_duration = 1 / self.samplerate_internal  # Processrate in VTL (time), currently 2.49433... ms
 		self.verbose = True
-		self.speaker_file_path = './PyVTL/Speaker/'
+		self.speaker_file_path = os.path.join( os.path.dirname(__file__), 'Speaker/' )
 		self.speaker_file_name = self.speaker_file_path + 'JD2.speaker' # Default speaker file
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -107,7 +107,7 @@ class VTL():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def load_API( self ):
-		rel_path_to_vtl = './PyVTL/API/VocalTractLabApi'
+		rel_path_to_vtl = os.path.join( os.path.dirname(__file__), 'API/VocalTractLabApi' )
 		# Load the VocalTractLab binary 'VocalTractLabApi.dll' if you use Windows or 'VocalTractLabApi.so' if you use Linux:
 		try:
 			if sys.platform == 'win32':
@@ -191,6 +191,8 @@ class VTL():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def synth_block( self, tract_params, glottis_params, verbose = False, state_samples = None ):
 		constants = self.get_constants()
+		#print(constants[ 'n_tract_params' ])
+		#print(constants[ 'n_glottis_params' ])
 		if state_samples == None:
 			state_samples = self.params.state_samples
 		if len( tract_params ) != len( glottis_params ):
@@ -199,6 +201,7 @@ class VTL():
 		numFrames = ctypes.c_int( len( tract_params ) )
 		#print( numFrames.value )
 		tractParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_tract_params' ] ))()
+		#print( len(tractParams) )
 		tractParams[:] = tract_params.T.ravel('F')
 		glottisParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_glottis_params' ] ))()
 		glottisParams[:] = glottis_params.T.ravel('F')
@@ -394,20 +397,20 @@ class VTL():
 			print('Tract Sequence saved as: "{}"'.format( outFilePath ))
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def Normalise_Wav(self, Input_Wav, normalisation = -1 ): #normalisation in dB
+	def normalize_wav(self, Input_Wav, normalisation = -1 ): #normalisation in dB
 		norm_factor = 10**( -1 * normalisation * 0.05 ) -1
 		#print(np.max(np.abs(Input_Wav),axis=0))
 		norm_max = np.max(np.abs(Input_Wav),axis=0)
 		Input_Wav /= ( norm_max + ( norm_max * norm_factor ) )
-		print('Wav file normalised.')
+		#print('Wav file normalised.')
 		return Input_Wav
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def Write_Wav(self, Input_Wav, Output_Path, Samplerate = None ):
+	def write_wav(self, Input_Wav, Output_Path, Samplerate = None ):
 		if Samplerate == None:
 			Samplerate = self.params.samplerate_audio
 		wav_int = np.int16(Input_Wav * (2**15 - 1))
 		wavfile.write(Output_Path, Samplerate, wav_int)
-		print('Wav file saved.')
+		#print('Wav file saved.')
 		return
 #####################################################################################################################################################
 
