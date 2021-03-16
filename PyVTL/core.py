@@ -307,7 +307,7 @@ class VTL():
 			print('Created gestural score from file: {}'.format( segFilePath ))
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def gestural_score_to_tract_sequence( self, gesFilePath: str,  tractFilePath: str = '', return_Sequence: bool = False):
+	def gestural_score_to_tract_sequence( self, gesFilePath: str,  tractFilePath: str = '', return_Sequence: bool = False ):
 		gesFileName = ctypes.c_char_p( gesFilePath.encode() )
 		if tractFilePath in (None, ''):
 			tractFilePath = gesFilePath.split('.')[0] + '_tractSeq.txt'
@@ -319,13 +319,14 @@ class VTL():
 			return self.tract_seq_to_df( tractFilePath )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def gestural_score_to_audio( self, ges_file_path: str,  audio_file_path: str = '' ):
+	def gestural_score_to_audio( self, ges_file_path: str,  audio_file_path: str = '', verbose = False ):
 		#wavFileName = ctypes.c_char_p(b'')
 		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
 		audio = (ctypes.c_double * int( self.get_ges_score_length( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
 		numSamples = ctypes.c_int(0)
-		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
+		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
+		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples), enableConsoleOutput )
 		if self.params.verbose:
 			print( 'Audio generated from file: {}'.format( ges_file_path ) )
 		#if audio_file_path != '':
