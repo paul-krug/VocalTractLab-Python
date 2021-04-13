@@ -83,7 +83,10 @@ class vtl_params():
 		self.state_duration = 1 / self.samplerate_internal  # Processrate in VTL (time), currently 2.49433... ms
 		self.verbose = True
 		self.speaker_file_path = os.path.join( os.path.dirname(__file__), 'Speaker/' )
-		self.speaker_file_name = self.speaker_file_path + 'JD2.speaker' # Default speaker file
+		self.speaker_file_name = self.set_speaker_file( 'JD2.speaker' ) # Default speaker file
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def set_speaker_file( self, speaker_file_name ):
+		return self.speaker_file_path + speaker_file_name
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -118,6 +121,17 @@ class VTL():
 		except:
 			print( 'Could not load the VocalTractLab API, does the path "{}" exist?'.format( rel_path_to_vtl ) )
 		return API
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def load_speaker_file( self, speaker_file_name ):
+		self.params.set_speaker_file( speaker_file_name )
+		self.initialize()
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def automatic_calculation_of_TRX_and_TRY( self, state = True ):
+		#ToDO:
+		#Check speakerfile if var is one or zero
+		#write a new speakerfile based on answer
+		#load that new file
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def initialize( self ):
 		speaker_file_path = ctypes.c_char_p( self.params.speaker_file_name.encode() )
