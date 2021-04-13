@@ -355,28 +355,36 @@ class VTL():
 		else:
 			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def tract_sequence_to_audio( self, TractSeq_Filename: str ):
-		wavFileName = ctypes.c_char_p(b'')
-		tractSequenceFileName = ctypes.c_char_p( TractSeq_Filename.encode() )
-		audio = (ctypes.c_double * int( self.Get_Tract_Seq_Len(TractSeq_Filename) * self.params.state_duration * self.params.samplerate_audio ))()
-		numSamples = ctypes.c_int(0)
+	def tract_sequence_to_audio( self, tract_seq_path: str, audio_file_path: str = '', return_audio = True, return_n_samples = False, verbose = False ):
+		if audio_file_path == '' and return_audio == False:
+			print( 'Warning! Function can not return anything.' )
+		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
+		tractSequenceFileName = ctypes.c_char_p( tract_seq_path.encode() )
+		if return_audio:
+			audio = (ctypes.c_double * int( self.get_tract_seq_len( tract_seq_path ) * self.params.state_duration * self.params.samplerate_audio ))()
+		else:
+			audio = None
+		numSamples = None # TODO: add if return_n_samples
 		self.API.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
 		if self.params.verbose:
 			print('Audio generated: {}'.format(TractSeq_Filename))
-		return np.array(audio)
+		if return_audio:
+			return np.array(audio)
+		else:
+			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_gestural_score_duration( self, ges_file_path, return_samples =True ):
+	def get_gestural_score_duration( self, ges_file_path, return_samples =True ): # Must be modified, currently dangerous implementation
 		return 5000
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def Get_Tract_Seq_Len( self, Input_Filename ):
-		with open(Input_Filename) as file:
-			for index, line in enumerate(file):
+	def get_tract_seq_len( self, tract_seq_path ):
+		with open( tract_seq_path ) as file:
+			for index, line in enumerate( file ):
 				if index == 7:
-					TractSeq_Len = int(line.strip())
+					tract_seq_len = int( line.strip() )
 					break
 		if self.params.verbose:
-			print('Entries in Tract Sequence file: {}'.format(TractSeq_Len))
-		return TractSeq_Len
+			print( 'Entries in Tract Sequence file: {}'.format( tract_seq_len ) )
+		return tract_seq_len
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def tract_seq_to_df( self, tractFilePath ):
 		# Skip rows from based on condition like skip every 3rd line
