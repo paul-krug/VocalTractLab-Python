@@ -373,7 +373,7 @@ class VTL():
 		else:
 			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_gestural_score_duration( self, ges_file_path, return_samples =True ): # Must be modified, currently dangerous implementation
+	def get_gestural_score_duration( self, ges_file_path, return_samples = True ): # Must be modified, currently dangerous implementation
 		return 5000
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_tract_seq_len( self, tract_seq_path ):
