@@ -125,6 +125,7 @@ class VTL():
 	def load_speaker_file( self, speaker_file_name ):
 		self.params.set_speaker_file( speaker_file_name )
 		self.initialize()
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def automatic_calculation_of_TRX_and_TRY( self, state = True ):
 		#ToDO:
@@ -333,19 +334,26 @@ class VTL():
 			return self.tract_seq_to_df( tractFilePath )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def gestural_score_to_audio( self, ges_file_path: str,  audio_file_path: str = '', verbose = False ):
-		#wavFileName = ctypes.c_char_p(b'')
+	def gestural_score_to_audio( self, ges_file_path: str,  audio_file_path: str = '', return_audio = True, return_n_samples = False, verbose = False ):
+		if audio_file_path == '' and return_audio == False:
+			print( 'Warning! Function can not return anything.' )
 		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
-		audio = (ctypes.c_double * int( self.get_gestural_score_duration( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
-		numSamples = ctypes.c_int(0)
+		if return_audio:
+			audio = (ctypes.c_double * int( self.get_gestural_score_duration( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
+		else:
+			audio = None
+		numSamples = None # TODO: add if return_n_samples
 		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
 		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples), enableConsoleOutput )
 		if self.params.verbose:
 			print( 'Audio generated from file: {}'.format( ges_file_path ) )
 		#if audio_file_path != '':
 		#	self.Write_Wav( self.Normalise_Wav(audio), audio_file_path )
-		return np.array(audio)
+		if return_audio:
+			return np.array(audio)
+		else:
+			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def tract_sequence_to_audio( self, TractSeq_Filename: str ):
 		wavFileName = ctypes.c_char_p(b'')
