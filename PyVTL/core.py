@@ -83,10 +83,11 @@ class vtl_params():
 		self.state_duration = 1 / self.samplerate_internal  # Processrate in VTL (time), currently 2.49433... ms
 		self.verbose = True
 		self.speaker_file_path = os.path.join( os.path.dirname(__file__), 'Speaker/' )
-		self.speaker_file_name = self.set_speaker_file( 'JD2.speaker' ) # Default speaker file
+		self.set_speaker_file( 'JD2.speaker' ) # Default speaker file
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def set_speaker_file( self, speaker_file_name ):
-		return self.speaker_file_path + speaker_file_name
+		self.speaker_file_name = self.speaker_file_path + speaker_file_name
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -123,6 +124,7 @@ class VTL():
 		return API
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def load_speaker_file( self, speaker_file_name ):
+		self.close()
 		self.params.set_speaker_file( speaker_file_name )
 		self.initialize()
 		return
@@ -136,6 +138,7 @@ class VTL():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def initialize( self ):
 		speaker_file_path = ctypes.c_char_p( self.params.speaker_file_name.encode() )
+		print( self.params.speaker_file_name )
 		failure = self.API.vtlInitialize( speaker_file_path )
 		if failure != 0:
 			raise ValueError('Error in vtlInitialize! Errorcode: %i' % failure)
