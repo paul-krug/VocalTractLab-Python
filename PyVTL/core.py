@@ -389,35 +389,86 @@ class VTL():
 			print( 'Entries in Tract Sequence file: {}'.format( tract_seq_len ) )
 		return tract_seq_len
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_tube_seq_len( self, tube_seq_path ):
+		with open( tube_seq_path ) as file:
+			for index, line in enumerate( file ):
+				if index == 11:
+					tube_seq_len = int( line.strip() )
+					break
+		if self.params.verbose:
+			print( 'Entries in Tract Sequence file: {}'.format( tube_seq_len ) )
+		return tube_seq_len
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def tract_seq_to_df( self, tractFilePath ):
-		# Skip rows from based on condition like skip every 3rd line
-		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.Read_Tract_Seq_GLP(x) , header = None )
-		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.Read_Tract_Seq_VTP(x) , header = None )
+		# Skip rows from based on condition
+		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_GLP(x) , header = None )
+		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_VTP(x) , header = None )
 		if self.params.verbose:
 			print('Tract Sequence opened: {}'.format( tractFilePath ))
 		return df_GLP, df_VTP
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def Read_Tract_Seq_GLP(self, index):
+	def tube_seq_to_df( self, tractFilePath ):
+		# Skip rows from based on condition
+		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_GLP(x) , header = None )
+		df_tube_param  = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_param(x) , header = None )
+		df_tube_area   = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_area(x) , header = None )
+		df_tube_length = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_length(x) , header = None )
+		df_tube_art    = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_art(x) , header = None )
+		if self.params.verbose:
+			print('Tract Sequence opened: {}'.format( tractFilePath ))
+		return df_GLP, df_tube_param, df_tube_area, df_tube_length, df_tube_art
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def read_tract_seq_GLP(self, index):
 		if (index > 7) and (index % 2 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def Read_Tract_Seq_VTP(self, index):
+	def read_tract_seq_VTP(self, index):
 		if (index > 7) and ((index-1) % 2 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def df_to_tract_seq( self, outFilePath, df_GLP, df_VTP ):
-		f= open( outFilePath, "w+" )
+	def read_tube_seq_GLP(self, index):
+		if (index > 11) and (index % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def read_tract_seq_param(self, index):
+		if (index > 11) and ((index-1) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def read_tube_seq_area(self, index):
+		if (index > 11) and ((index-2) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def read_tract_seq_length(self, index):
+		if (index > 11) and ((index-3) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def read_tract_seq_art(self, index):
+		if (index > 11) and ((index-4) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def df_to_tract_seq( self, tract_file_path, df_GLP, df_VTP, glottis_model = 'Geometric glottis' ):
+		f= open( tract_file_path, "w+" )
 		f.write("""# The first two lines (below the comment lines) indicate the name of the vocal fold model and the number of states.\n""")
 		f.write("""# The following lines contain the control parameters of the vocal folds and the vocal tract (states)\n""")
 		f.write("""# in steps of 110 audio samples (corresponding to about 2.5 ms for the sampling rate of 44100 Hz).\n""")
 		f.write("""# For every step, there is one line with the vocal fold parameters followed by\n""")
 		f.write("""# one line with the vocal tract parameters.\n""")
 		f.write("""# \n""")
-		f.write("""Geometric glottis\n""")
+		f.write("""{}\n""".format( glottis_model ) )
 		f.write("""{}\n""".format(len(df_GLP)))
 		for index, row in enumerate(df_GLP.index):
 			for index2, column in enumerate(df_GLP.columns):
@@ -428,7 +479,42 @@ class VTL():
 			f.write('\n')
 		f.close()
 		if self.params.verbose:
-			print('Tract Sequence saved as: "{}"'.format( outFilePath ))
+			print('Tract Sequence saved as: "{}"'.format( tract_file_path ))
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def df_to_tube_seq( self, tube_file_path, df_GLP, df_param, df_area, df_length, df_tube_art, glottis_model = 'Geometric glottis' ):
+		f= open( tube_file_path, "w+" )
+		f.write("""# The first two lines (below the comment lines) indicate the name of the vocal fold model and the number of states.\n""")
+		f.write("""# The following lines contain a sequence of states of the vocal folds and the tube geometry\n""")
+		f.write("""# in steps of 110 audio samples (corresponding to about 2.5 ms for the sampling rate of 44100 Hz).\n""")
+		f.write("""# Each state is represented in terms of five lines:\n""")
+		f.write("""# Line 1: glottis_param_0 glottis_param_1 ...\n""")
+		f.write("""# Line 2: incisor_position_in_cm, velo_pharyngeal_opening_in_cm^2, tongue_tip_side_elevation[-1...1]\n""")
+		f.write("""# Line 3: area0 area1 area2 area3 ... (Areas of the tube sections in cm^2 from glottis to mouth)\n""")
+		f.write("""# Line 4: length0 length1 length2 length3 ... (Lengths of the tube sections in cm from glottis to mouth)\n""")
+		f.write("""# Line 5: artic0 artic1 artic2 artic3 ... (Articulators of the tube sections between glottis and lips : 1 = tongue; 2 = lower incisors; 3 = lower lip; 4 = other)\n""")
+		f.write("""# \n""")
+		f.write("""{}\n""".format( glottis_model ) )
+		f.write("""{}\n""".format( len(df_GLP) ) )
+		for index, row in enumerate(df_GLP.index):
+			for index2, column in enumerate(df_GLP.columns):
+				f.write('{} '.format(df_GLP.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_param.columns):
+				f.write('{} '.format(df_param.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_area.columns):
+				f.write('{} '.format(df_area.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_length.columns):
+				f.write('{} '.format(df_length.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_art.columns):
+				f.write('{} '.format(df_art.iloc[index,index2]))
+			f.write('\n')
+		f.close()
+		if self.params.verbose:
+			print('Tract Sequence saved as: "{}"'.format( tube_file_path ))
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def normalize_wav(self, Input_Wav, normalisation = -1 ): #normalisation in dB
