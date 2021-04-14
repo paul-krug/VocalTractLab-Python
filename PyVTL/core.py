@@ -404,18 +404,18 @@ class VTL():
 		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_GLP(x) , header = None )
 		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_VTP(x) , header = None )
 		if self.params.verbose:
-			print('Tract Sequence opened: {}'.format( tractFilePath ))
+			print( 'Tract sequence opened: {}'.format( tractFilePath ) )
 		return df_GLP, df_VTP
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def tube_seq_to_df( self, tractFilePath ):
+	def tube_seq_to_df( self, tube_file_path ):
 		# Skip rows from based on condition
-		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_GLP(x) , header = None )
-		df_tube_param  = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_param(x) , header = None )
-		df_tube_area   = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_area(x) , header = None )
-		df_tube_length = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_length(x) , header = None )
-		df_tube_art    = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_art(x) , header = None )
+		df_GLP = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_GLP(x) , header = None )
+		df_tube_param  = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_param(x) , header = None )
+		df_tube_area   = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_area(x) , header = None )
+		df_tube_length = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_length(x) , header = None )
+		df_tube_art    = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self.read_tube_seq_art(x) , header = None )
 		if self.params.verbose:
-			print('Tract Sequence opened: {}'.format( tractFilePath ))
+			print( 'Tube sequence opened: {}'.format( tube_file_path ) )
 		return df_GLP, df_tube_param, df_tube_area, df_tube_length, df_tube_art
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def read_tract_seq_GLP(self, index):
@@ -430,31 +430,31 @@ class VTL():
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def read_tube_seq_GLP(self, index):
+	def read_tube_seq_length(self, index):
 		if (index > 11) and (index % 5 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def read_tract_seq_param(self, index):
+	def read_tube_seq_art(self, index):
 		if (index > 11) and ((index-1) % 5 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def read_tube_seq_area(self, index):
+	def read_tube_seq_GLP(self, index):
 		if (index > 11) and ((index-2) % 5 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def read_tract_seq_length(self, index):
+	def read_tube_seq_param(self, index):
 		if (index > 11) and ((index-3) % 5 == 0):
 			return False
 		else:
 			return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def read_tract_seq_art(self, index):
+	def read_tube_seq_area(self, index):
 		if (index > 11) and ((index-4) % 5 == 0):
 			return False
 		else:
@@ -482,7 +482,7 @@ class VTL():
 			print('Tract Sequence saved as: "{}"'.format( tract_file_path ))
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def df_to_tube_seq( self, tube_file_path, df_GLP, df_param, df_area, df_length, df_tube_art, glottis_model = 'Geometric glottis' ):
+	def df_to_tube_seq( self, tube_file_path, df_GLP, df_param, df_area, df_length, df_art, glottis_model = 'Geometric glottis' ):
 		f= open( tube_file_path, "w+" )
 		f.write("""# The first two lines (below the comment lines) indicate the name of the vocal fold model and the number of states.\n""")
 		f.write("""# The following lines contain a sequence of states of the vocal folds and the tube geometry\n""")
