@@ -78,7 +78,7 @@ class vtl_params():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self, *args ):
 		#self.API_name = 'VocalTractLabApi_FEAT_exp_glottis'
-		self.API_name = 'VocalTractLabApi'
+		self.API_name = 'VocalTractLabApi_old'
 		#self.API_name = 'VocalTractLabApi_D_v2.3.1b'
 		#self.API_name = 'VocalTractLabApi_R_v2.3'
 		self.API_dir = 'API/'
