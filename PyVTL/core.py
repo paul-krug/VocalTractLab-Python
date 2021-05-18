@@ -77,6 +77,11 @@ class vtl_params():
 	"""PyVTL Parameters""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self, *args ):
+		#self.API_name = 'VocalTractLabApi_FEAT_exp_glottis'
+		self.API_name = 'VocalTractLabApi'
+		#self.API_name = 'VocalTractLabApi_D_v2.3.1b'
+		#self.API_name = 'VocalTractLabApi_R_v2.3'
+		self.API_dir = 'API/'
 		self.state_samples  = 110     # Processrate in VTL (samples), currently 1 vocal tract state evaluation per 110 audio samples
 		self.samplerate_audio = 44100 # Global audio samplerate (44100 Hz default)
 		self.samplerate_internal = self.samplerate_audio / self.state_samples # Internal tract samplerate (ca. 400.9090... default)
@@ -111,7 +116,7 @@ class VTL():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def load_API( self ):
-		rel_path_to_vtl = os.path.join( os.path.dirname(__file__), 'API/VocalTractLabApi' )
+		rel_path_to_vtl = os.path.join( os.path.dirname(__file__), self.params.API_dir + self.params.API_name )
 		# Load the VocalTractLab binary 'VocalTractLabApi.dll' if you use Windows or 'VocalTractLabApi.so' if you use Linux:
 		try:
 			if sys.platform == 'win32':
@@ -345,18 +350,27 @@ class VTL():
 		if return_audio:
 			audio = (ctypes.c_double * int( self.get_gestural_score_duration( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
 		else:
-			audio = None
-		numSamples = None # TODO: add if return_n_samples
+			audio = ctypes.POINTER(ctypes.c_int)() # Null pointer
+		numSamples = ctypes.POINTER(ctypes.c_int)() # TODO: add if return_n_samples
 		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
 		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples), enableConsoleOutput )
 		if self.params.verbose:
-			print( 'Audio generated from file: {}'.format( ges_file_path ) )
+			print( 'Audio generated from gestural score file: {}'.format( ges_file_path ) )
 		#if audio_file_path != '':
 		#	self.Write_Wav( self.Normalise_Wav(audio), audio_file_path )
 		if return_audio:
 			return np.array(audio)
 		else:
 			return None
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def gestural_score_to_glottis_signals( self, ges_file_path: str,  sig_file_path: str ):
+		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
+		glottisSignalsFileName = ctypes.c_char_p( sig_file_path.encode() )
+		print( 'run glottis function' )
+		self.API.vtlGesturalScoreToGlottisSignals( gesFileName, glottisSignalsFileName )
+		if self.params.verbose:
+			print( 'Glottis signals file generated from gestural score file: {}'.format( ges_file_path ) )
+		return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def tract_sequence_to_audio( self, tract_seq_path: str, audio_file_path: str = '', return_audio = True, return_n_samples = False, verbose = False ):
 		if audio_file_path == '' and return_audio == False:
@@ -366,8 +380,8 @@ class VTL():
 		if return_audio:
 			audio = (ctypes.c_double * int( self.get_tract_seq_len( tract_seq_path ) * self.params.state_duration * self.params.samplerate_audio ))()
 		else:
-			audio = None
-		numSamples = None # TODO: add if return_n_samples
+			audio = ctypes.POINTER(ctypes.c_int)()
+		numSamples = ctypes.POINTER(ctypes.c_int)() # TODO: add if return_n_samples
 		self.API.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
 		if self.params.verbose:
 			print('Audio generated: {}'.format(TractSeq_Filename))
