@@ -78,7 +78,8 @@ class vtl_params():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self, *args ):
 		#self.API_name = 'VocalTractLabApi_FEAT_exp_glottis'
-		self.API_name = 'VocalTractLabApi_old'
+		self.API_name = 'VocalTractLabApi_FEAT_ges_duration'
+		#self.API_name = 'VocalTractLabApi_old'
 		#self.API_name = 'VocalTractLabApi_D_v2.3.1b'
 		#self.API_name = 'VocalTractLabApi_R_v2.3'
 		self.API_dir = 'API/'
@@ -303,7 +304,7 @@ class VTL():
 #		return
 #
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def synthesis_add_state( self, tract_state, glottis_state, n_new_samples ): # Inefficient in Python, for larger synthesis use synth_block
+	def synthesis_add_tract_state( self, tract_state, glottis_state, n_new_samples ): # Inefficient in Python, for larger synthesis use synth_block
 		constants = self.get_constants()
 		numNewSamples = ctypes.c_int( n_new_samples )
 		audio = (ctypes.c_double * int( n_new_samples ) )()
@@ -348,7 +349,7 @@ class VTL():
 		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
 		if return_audio:
-			audio = (ctypes.c_double * int( self.get_gestural_score_duration( ges_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
+			audio = (ctypes.c_double * int( self.get_gestural_score_audio_duration( ges_file_path, return_samples = True ) ))()
 		else:
 			audio = ctypes.POINTER(ctypes.c_int)() # Null pointer
 		numSamples = ctypes.POINTER(ctypes.c_int)() # TODO: add if return_n_samples
@@ -366,7 +367,7 @@ class VTL():
 	def gestural_score_to_glottis_signals( self, ges_file_path: str,  sig_file_path: str ):
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
 		glottisSignalsFileName = ctypes.c_char_p( sig_file_path.encode() )
-		print( 'run glottis function' )
+		#print( 'run glottis function' )
 		self.API.vtlGesturalScoreToGlottisSignals( gesFileName, glottisSignalsFileName )
 		if self.params.verbose:
 			print( 'Glottis signals file generated from gestural score file: {}'.format( ges_file_path ) )
@@ -390,8 +391,27 @@ class VTL():
 		else:
 			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_gestural_score_duration( self, ges_file_path, return_samples = True ): # Must be modified, currently dangerous implementation
-		return 5000
+	def get_gestural_score_audio_duration( self, ges_file_path: str, return_samples = True):
+		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
+		audioFileDuration = ctypes.c_int(0)
+		gesFileDuration = ctypes.POINTER(ctypes.c_int)()
+		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( audioFileDuration ), ctypes.byref( gesFileDuration ) )
+		n_samples = audioFileDuration.value
+		if return_samples: # returning number of audio samples
+			return n_samples
+		else: # returning time in seconds
+			return n_samples / self.params.samplerate_audio
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_gestural_score_duration( self, ges_file_path: str, return_samples = True):
+		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
+		audioFileDuration = ctypes.POINTER(ctypes.c_int)()
+		gesFileDuration = ctypes.c_int(0)
+		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( audioFileDuration ), ctypes.byref( gesFileDuration ) )
+		n_samples = gesFileDuration.value
+		if return_samples: # returning number of audio samples
+			return n_samples
+		else: # returning time in seconds
+			return n_samples / self.params.samplerate_audio
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_tract_seq_len( self, tract_seq_path ):
 		with open( tract_seq_path ) as file:
