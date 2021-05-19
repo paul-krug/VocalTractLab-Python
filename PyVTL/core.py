@@ -393,10 +393,10 @@ class VTL():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_gestural_score_audio_duration( self, ges_file_path: str, return_samples = True):
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
-		audioFileDuration = ctypes.c_int(0)
-		gesFileDuration = ctypes.POINTER(ctypes.c_int)()
-		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( audioFileDuration ), ctypes.byref( gesFileDuration ) )
-		n_samples = audioFileDuration.value
+		numAudioSamples = ctypes.c_int(0)
+		numGestureSamples = ctypes.POINTER(ctypes.c_int)()
+		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( numAudioSamples ), ctypes.byref( numGestureSamples ) )
+		n_samples = numAudioSamples.value
 		if return_samples: # returning number of audio samples
 			return n_samples
 		else: # returning time in seconds
@@ -404,10 +404,10 @@ class VTL():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_gestural_score_duration( self, ges_file_path: str, return_samples = True):
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
-		audioFileDuration = ctypes.POINTER(ctypes.c_int)()
-		gesFileDuration = ctypes.c_int(0)
-		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( audioFileDuration ), ctypes.byref( gesFileDuration ) )
-		n_samples = gesFileDuration.value
+		numAudioSamples = ctypes.POINTER(ctypes.c_int)()
+		numGestureSamples = ctypes.c_int(0)
+		self.API.vtlGetGesturalScoreDuration( gesFileName, ctypes.byref( numAudioSamples ), ctypes.byref( numGestureSamples ) )
+		n_samples = numGestureSamples.value
 		if return_samples: # returning number of audio samples
 			return n_samples
 		else: # returning time in seconds
