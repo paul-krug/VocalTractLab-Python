@@ -44,8 +44,8 @@
 import os
 import numpy as np
 import pandas as pd
-from boundaries import Boundaries
-from phonemes import Phoneme
+from PyVTL.boundaries import Boundaries
+from PyVTL.phonemes import Phoneme
 
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -64,17 +64,32 @@ class Segment_Sequence():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
-	def from_audio_file( self, audio_file_path, phonemes = None, text = None, optimize = False, language = 'de' ): #'TODO'
+	def from_audio_file( cls, audio_file_path, phonemes = None, text = None, optimize = False, language = 'de' ): #'TODO'
 		if phonemes == None:
 			if text == None:
 				text = ASR( audio_file_path )
 			phonemes = G2P.text_to_sampa( text, language )
-		boundary_times = self._get_boundary_times( file_path = audio_file_path, n_phonemes = len( phonemes ) )
-		boundaries = Boundaries( boundary_times )
+		boundaries = Boundaries.uniform_from_audio_file( audio_file_path = audio_file_path, n_phonemes = len( phonemes ) )
 		return cls( phonemes, boundaries )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_seg_file( self, seg_file_path ): #'TODO'
+		phonemes = []
+		durations = []
+		boundary_times = []
+		with open( seg_file_path ) as file:
+			for line in file:
+				if len(line.strip()) != 0 :
+					items = line.strip().split(';')
+					for item in [x for x in items if x]:
+						label = item.split('=')[0].strip()
+						value = item.split('=')[1].strip()
+						#print('Label: {}'.format(label))
+						#print('Value: {}'.format(value))
+						if label =='name' and (value not in [None," ", ""]):
+							phonemes.append( value )
+						if label == 'duration_s':
+							durations.append( float( value ) )
 		return cls( phonemes, boundaries )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __del__( self ):
@@ -133,8 +148,25 @@ class Segment_Sequence():
 		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.silence_offset ) )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_variants( self, account_for_effects = 'on' ):
+		assert len( self._phonemes ) == len( self._boundaries.times ) - 1, 'Lengths do not match'
+
+		phonemes = []
+		boundary_times = []
+		for index, phoneme in enumerate( self._phonemes ):
+			if self.effect[ index ] != 'elision':
+				if self.effect[ index ] != None and self.effect[ index ] != 'elision':
+					phonemes.append( self.effect[ index ] )
+				else:
+					phonemes.append( phoneme.name )
+			boundary_times.append( self._boundaries.times[ index ] )
+
+		return [ self, Segment_Sequence( phonemes, Boundaries( boundary_times ) ) ]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def import_seg( self, file_path ):
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_phoneme_names( self, ):
+		return [ phoneme.name for phoneme in self._phonemes ]
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################

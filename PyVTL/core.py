@@ -78,8 +78,10 @@ class vtl_params():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self, *args ):
 		#self.API_name = 'VocalTractLabApi_FEAT_exp_glottis'
-		self.API_name = 'VocalTractLabApi_FEAT_ges_duration'
-		#self.API_name = 'VocalTractLabApi_old'
+		#self.API_name = 'VocalTractLabApi_FEAT_ges_duration'
+		#self.API_name = 'VocalTractLabApi_FEAT_tract_to_tract'
+		#self.API_name = 'VocalTractLabApi_FEAT_tract_restricted'
+		self.API_name = 'VocalTractLabApi'
 		#self.API_name = 'VocalTractLabApi_D_v2.3.1b'
 		#self.API_name = 'VocalTractLabApi_R_v2.3'
 		self.API_dir = 'API/'
@@ -135,11 +137,9 @@ class VTL():
 		self.initialize()
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def automatic_calculation_of_TRX_and_TRY( self, state = True ):
-		#ToDO:
-		#Check speakerfile if var is one or zero
-		#write a new speakerfile based on answer
-		#load that new file
+	def automatic_calculation_of_TRX_and_TRY( self, automatic_calculation = True ):
+		automaticCalculation = ctypes.c_bool( automatic_calculation )
+		self.API.vtlCalcTongueRootAutomatically( automatic_calculation )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def initialize( self ):
@@ -302,6 +302,18 @@ class VTL():
 #  double incisorPos_cm, double velumOpening_cm2, double tongueTipSideElevation,
 #  double *newGlottisParams):
 #		return
+#	def synthesis_add_tube_state( self, tube_length_state, tube_area_state, tube_articulator_state, incisor_position,
+#	                              velum_opening, tongue_tip_side_elevation, glottis_state, n_new_samples ): 
+#		constants = self.get_constants()
+#		numNewSamples = ctypes.c_int( n_new_samples )
+#		audio = (ctypes.c_double * int( n_new_samples ) )()
+#		tractParams = (ctypes.c_double * ( constants[ 'n_tract_params' ] ))()
+#		tractParams[:] = tract_state.T.ravel('F')
+#		glottisParams = (ctypes.c_double * ( constants[ 'n_glottis_params' ] ))()
+#		glottisParams[:] = glottis_state.T.ravel('F')
+#		self.API.vtlSynthesisAddTract( numNewSamples, ctypes.byref( audio ), ctypes.byref( tractParams ), ctypes.byref( glottisParams ) )
+#		if n_new_samples > 0:
+#			return np.array( audio )
 #
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def synthesis_add_tract_state( self, tract_state, glottis_state, n_new_samples ): # Inefficient in Python, for larger synthesis use synth_block
@@ -390,6 +402,21 @@ class VTL():
 			return np.array(audio)
 		else:
 			return None
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def tract_state_to_limited_tract_state( self, tract_params ):
+		constants = self.get_constants()
+		tract_param_data = []
+		for state in tract_params:
+			#print( state )
+			#print( state.shape )
+			inTractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+			inTractParams[:] = state.T.ravel('F')
+			outTractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+
+			self.API.vtlInputTractToLimitedTract( ctypes.byref( inTractParams ), ctypes.byref( outTractParams ) )
+			tract_param_data.append( [ np.array( outTractParams ) ] )
+		df = pd.DataFrame( tract_param_data, columns = [ 'tract_state' ] )
+		return df
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_gestural_score_audio_duration( self, ges_file_path: str, return_samples = True):
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )

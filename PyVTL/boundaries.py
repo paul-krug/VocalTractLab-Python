@@ -1,4 +1,8 @@
 import numpy as np
+import pandas as pd
+import librosa
+
+from PyVTL import voice_activity_detection as vad
 
 
 #####################################################################################################################################################
@@ -12,6 +16,31 @@ class Boundaries():
 		self.initial_intervals = self.get_intervals( self.initial_times )
 		self.times, self.degenerated_intervals = self.get_regularized_times( self.initial_times )
 		self.intervals = self.get_intervals( self.times )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_durations( cls, boundary_durations ): #TODO
+		return cls( boundary_times )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def uniform_from_audio_file( cls, audio_file_path: str, number_phonemes: int ):
+		data, samplerate = librosa.load( audio_file_path, 44100 )
+		onset, offset = vad.detect_onset_and_offset( audio_file_path )
+		#duration = len( data )
+		start = onset
+		end =  offset
+		print( 'num phon: {}'.format(number_phonemes) )
+		print( 'onset: {}'.format( onset ) )
+		print( 'offset: {}'.format( offset ) )
+		boundary_times = [ x for x in np.arange( start, end, (end-start)/(number_phonemes) ) ] #+1*round( (end-start)/number_phonemes)
+		boundary_times.append( offset )
+		print( 'returning {} boundaries'.format(len(boundary_times)) )
+		return cls( boundary_times )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self ):
+		time = self.times
+		interval = self.intervals
+		data = [ [ time[index], time[index+1], interval[index] ] for index, _ in enumerate( self.intervals ) ]
+		return str( pd.DataFrame( data, columns=[ 'onset', 'offset', 'duration'] ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_intervals( self, boundary_times ):
 		return [ boundary_times[ index + 1 ] - boundary_times[ index ] for index in range( 0, len( boundary_times ) - 1 ) ]
