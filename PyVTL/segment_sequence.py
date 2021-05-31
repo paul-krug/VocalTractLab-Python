@@ -159,12 +159,21 @@ class Segment_Sequence():
 					phonemes.append( self.effect[ index ] )
 				else:
 					phonemes.append( phoneme.name )
-			start = self._boundaries.times[ 0 ]
-			end = self._boundaries.times[ -1 ]
-			boundary_times = [ x for x in np.arange( start, end, (end-start)/( len(phonemes) ) ) ]
-			boundary_times.append( end )
+		start = self._boundaries.times[ 0 ]
+		end = self._boundaries.times[ -1 ]
+		boundary_times = [ x for x in np.arange( start, end, (end-start)/( len(phonemes) ) ) ]
+		boundary_times.append( end )
 
 		return [ self, Segment_Sequence( phonemes, Boundaries( boundary_times ) ) ]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_seg_file( self, seg_file_path ):
+		assert len( self._phonemes ) == len( self._boundaries.times ) - 1, 'Lengths do not match' # TODO check earlier in __init__()
+		out_file = open( seg_file_path, 'w+' )
+		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.silence_onset ) )
+		for index, phoneme in enumerate( self._phonemes ):
+			out_file.write( 'name = {}; duration_s = {};\n'.format( phoneme.name, self._boundaries.times[index+1] - self._boundaries.times[index] ) ) #Could replace times with .intervals
+		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.silence_offset ) )
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def import_seg( self, file_path ):
 		return
