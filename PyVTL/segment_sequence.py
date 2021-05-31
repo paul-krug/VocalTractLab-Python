@@ -152,14 +152,17 @@ class Segment_Sequence():
 		assert len( self._phonemes ) == len( self._boundaries.times ) - 1, 'Lengths do not match'
 
 		phonemes = []
-		boundary_times = []
+		#boundary_times = []
 		for index, phoneme in enumerate( self._phonemes ):
 			if self.effect[ index ] != 'elision':
 				if self.effect[ index ] != None and self.effect[ index ] != 'elision':
 					phonemes.append( self.effect[ index ] )
 				else:
 					phonemes.append( phoneme.name )
-			boundary_times.append( self._boundaries.times[ index ] )
+			start = self._boundaries.times[ 0 ]
+			end = self._boundaries.times[ -1 ]
+			boundary_times = [ x for x in np.arange( start, end, (end-start)/( len(phonemes) ) ) ]
+			boundary_times.append( end )
 
 		return [ self, Segment_Sequence( phonemes, Boundaries( boundary_times ) ) ]
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
