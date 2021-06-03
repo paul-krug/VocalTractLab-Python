@@ -278,6 +278,38 @@ class VTL():
 		return df
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_transfer_function( self, tract_params, n_spectrum_samples: int = 2048): # TODO, raw magnitude spec to freq spec, + formant extraction
+		class TransferFunctionOptions( ctypes.Structure ):
+			_fields_ = [
+			("spectrumType", ctypes.c_int),
+			("radiationType", ctypes.c_int),
+		    ("boundaryLayer", ctypes.c_bool),
+		    ("heatConduction", ctypes.c_bool),
+		    ("softWalls", ctypes.c_bool),
+		    ("hagenResistance", ctypes.c_bool),
+		    ("innerLengthCorrections", ctypes.c_bool),
+		    ("lumpedElements", ctypes.c_bool),
+		    ("paranasalSinuses", ctypes.c_bool),
+		    ("piriformFossa", ctypes.c_bool),
+			("staticPressureDrops", ctypes.c_bool)
+			]
+		opts = TransferFunctionOptions()
+		self.API.vtlGetDefaultTransferFunctionOptions( ctypes.byref( opts ) )
+		constants = self.get_constants()
+		numSpectrumSamples = ctypes.c_int( n_spectrum_samples )
+		transfer_function_data = []
+		for state in tract_params:
+			#print( state )
+			#print( state.shape )
+			tractParams = ( ctypes.c_double * ( constants[ 'n_tract_params' ] ) )()
+			tractParams[:] = state.T.ravel('F')
+			magnitude = ( ctypes.c_double * ( n_spectrum_samples ) )()
+			phase_rad = ( ctypes.c_double * ( n_spectrum_samples ) )()
+			self.API.vtlGetTransferFunction( ctypes.byref( tractParams ), numSpectrumSamples, ctypes.byref( opts ), ctypes.byref( magnitude ), ctypes.byref( phase_rad ) )
+			transfer_function_data.append( [ np.array( magnitude ), np.array( phase_rad ) ] )
+		df = pd.DataFrame( transfer_function_data, columns = [ 'magnitude', 'phase_rad' ] )
+		return df
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_transfer_function_( self, tract_params, n_spectrum_samples: int = 2048): # TODO, raw magnitude spec to freq spec, + formant extraction
 		constants = self.get_constants()
 		numSpectrumSamples = ctypes.c_int( n_spectrum_samples )
 		transfer_function_data = []
