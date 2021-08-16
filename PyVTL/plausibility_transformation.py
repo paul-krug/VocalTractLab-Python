@@ -37,7 +37,7 @@ import os
 import joblib
 from scipy.spatial.distance import cosine
 
-model = joblib.load( os.path.join( os.path.dirname(__file__),'Models/PCA_nc_10.joblib') )
+#model = joblib.load( os.path.join( os.path.dirname(__file__),'Models/PCA_nc_10.joblib') )
 #print( os.path.dirname(__file__) )
 #model = joblib.load( model_path )
 

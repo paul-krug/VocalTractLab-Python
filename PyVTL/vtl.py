@@ -43,10 +43,10 @@
 import os, sys, ctypes
 import multiprocessing as mp
 import warnings
-import logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.INFO)
 import itertools #import groupby
+import PyVTL.core
+import PyVTL.function_tools as ft
+import tqdm
 
 import pandas as pd
 import numpy as np
@@ -75,43 +75,355 @@ except:
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 '''
-
-
+api = PyVTL.core.VTL_API()
+#print( 'sheesh' )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+class VTL():
+	def __init__( self, ):
+		pass
+		#global api
+		#self.api = PyVTL.core.VTL_API()
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+#
+#	User functions:
+#
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-class vtl_params():
+	def gestural_score_to_audio(	self, 
+									ges_file_path_list: list,
+									audio_file_path: list = '',
+									return_audio: bool = True,
+									return_n_samples: bool = False,
+									verbose: bool = False
+								):
+		ges_file_path_list, audio_file_path_list = ft.check_if_input_lists_are_valid( [ges_file_path_list, audio_file_path_list], [str, str] )
+		args =  [ [ges_file_path, audio_file_path, return_audio, return_n_samples, verbose]
+			for ges_file_path, audio_file_path in itertools.zip_longest( ges_file_path_list, audio_file_path_list ) ]
+		audio_data_list = self._run_multiprocessing( '_gestural_score_to_audio', args )
+		return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	"""PyVTL Parameters""" 
+	def gestural_score_to_tract_sequence(	self,
+											ges_file_path_list: list,  
+											tract_file_path_list: list = '', 
+											return_sequence: bool = False 
+										):
+		ges_file_path_list, tract_file_path_list = ft.check_if_input_lists_are_valid( [ges_file_path_list, tract_file_path_list], [str, str] )
+		args = [ [ges_file_path, tract_file_path, return_sequence]
+			for ges_file_path, tract_file_path in itertools.zip_longest( ges_file_path_list, tract_file_path_list ) ]
+		df_tract_sequence_list = self._run_multiprocessing( '_gestural_score_to_tract_sequence', args )
+		return df_tract_sequence_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, *args ):
-		#self.API_name = 'VocalTractLabApi_FEAT_exp_glottis'
-		#self.API_name = 'VocalTractLabApi_FEAT_ges_duration'
-		#self.API_name = 'VocalTractLabApi_FEAT_tract_to_tract'
-		#self.API_name = 'VocalTractLabApi_FEAT_tract_restricted'
-		self.API_name = 'VocalTractLabApi'
-		#self.API_name = 'VocalTractLabApi_D_v2.3.1b'
-		#self.API_name = 'VocalTractLabApi_R_v2.3'
-		self.API_dir = 'API/'
-		self.state_samples  = 110     # Processrate in VTL (samples), currently 1 vocal tract state evaluation per 110 audio samples
-		self.samplerate_audio = 44100 # Global audio samplerate (44100 Hz default)
-		self.samplerate_internal = self.samplerate_audio / self.state_samples # Internal tract samplerate (ca. 400.9090... default)
-		self.state_duration = 1 / self.samplerate_internal  # Processrate in VTL (time), currently 2.49433... ms
-		self.verbose = True
-		self.speaker_file_path = os.path.join( os.path.dirname(__file__), 'Speaker/' )
-		self.set_speaker_file( 'JD2.speaker' ) # Default speaker file
-		self.workers = mp.cpu_count()
+	def segment_sequence_to_gestural_score(	self,
+											seg_file_path_list,
+											ges_file_path_list,
+										):
+	seg_file_path_list, ges_file_path_list = ft.check_if_input_lists_are_valid( [seg_file_path_list, ges_file_path_list], [str, str] )
+	args = [ [] 
+		for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list) ]
+	self._run_multiprocessing( '_segment_sequence_to_gestural_score', args )
+	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def set_speaker_file( self, speaker_file_name ):
-		self.speaker_file_name = self.speaker_file_path + speaker_file_name
+	def tract_sequence_to_audio(	self,
+									tract_file_path_list: list,
+									audio_file_path_list: list = '',
+									return_audio = True,
+									return_n_samples = False,
+									verbose = False
+								):
+		tract_file_path_list, audio_file_path_list = ft.check_if_input_lists_are_valid( [tract_file_path_list, audio_file_path_list], [str, str] )
+		args = [ [tract_file_path, audio_file_path, return_audio, return_n_samples] 
+			for tract_file_path, audio_file_path in itertools.zip_longest( tract_file_path_list, audio_file_path_list ) ]
+		audio_data_list = self._run_multiprocessing( '_tract_sequence_to_audio', args )
+		return audio_data_list
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+
+
+
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+#
+#	Internal functions:
+#
+#####################################################################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+# 		input argument related functions
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+'''
+	def _check_if_input_lists_are_valid( self, input_lists, instances_list ):
+		valid_lists = []
+		for input_list, instance in zip( input_lists, instances_list ):
+			valid_lists.append( self._check_if_list_is_valid( input_list, instance ) )
+		return valid_lists
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_lengths_of_input_lists( self, input_lists ):
+		list_lengths = [ len( input_list ) for input_list in input_lists ]
+		if not self._check_if_all_elements_are_equal( list_lengths ):
+			warnings.warn( 'input list do not have the same lengths, shorter lists will be padded with "None".' )
+			max_length = max( list_lengths )
+			#print( max_length )
+			for input_list in input_lists:
+				while len( input_list ) < max_length:
+					input_list.append( None )
+			#print( input_list )
+		return input_lists
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_object_is_iterable( self, query ):
+		try:
+			iter( query )
+		except TypeError:
+			return False
+		return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_list_is_valid( self, input_list, instance ):
+		is_iterable = self._check_if_object_is_iterable( input_list )
+		if isinstance( input_list, str ) or is_iterable == False:
+			warnings.warn( 'input is either not iterable or a single string. The input gets turned into a list now.' )
+			input_list = [ input_list ]
+		if input_list and all( isinstance( x, instance ) for x in input_list ):
+			return input_list
+		else:
+			raise TypeError( 'a list containing a non-{} type object was passed, but list of {} was expected.'.format( instance, instance ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_all_elements_are_equal( self, iterable ):
+		g = itertools.groupby(iterable)
+		return next(g, True) and not next(g, False)
+'''
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+# 		tract sequence related functions
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _df_to_tract_seq( self, tract_file_path, df_GLP, df_VTP, glottis_model = 'Geometric glottis' ):
+		f= open( tract_file_path, "w+" )
+		f.write("""# The first two lines (below the comment lines) indicate the name of the vocal fold model and the number of states.\n""")
+		f.write("""# The following lines contain the control parameters of the vocal folds and the vocal tract (states)\n""")
+		f.write("""# in steps of 110 audio samples (corresponding to about 2.5 ms for the sampling rate of 44100 Hz).\n""")
+		f.write("""# For every step, there is one line with the vocal fold parameters followed by\n""")
+		f.write("""# one line with the vocal tract parameters.\n""")
+		f.write("""# \n""")
+		f.write("""{}\n""".format( glottis_model ) )
+		f.write("""{}\n""".format(len(df_GLP)))
+		for index, row in enumerate(df_GLP.index):
+			for index2, column in enumerate(df_GLP.columns):
+				f.write('{} '.format(df_GLP.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_VTP.columns):
+				f.write('{} '.format(df_VTP.iloc[index,index2]))
+			f.write('\n')
+		f.close()
+		if self.params.verbose:
+			print('Tract Sequence saved as: "{}"'.format( tract_file_path ))
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-#####################################################################################################################################################
+	def _get_tract_seq_len( self, tract_seq_path ):
+		with open( tract_seq_path ) as file:
+			for index, line in enumerate( file ):
+				if index == 7:
+					tract_seq_len = int( line.strip() )
+					break
+		if self.params.verbose:
+			print( 'Entries in Tract Sequence file: {}'.format( tract_seq_len ) )
+		return tract_seq_len
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tract_seq_GLP(self, index):
+		if (index > 7) and (index % 2 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tract_seq_VTP(self, index):
+		if (index > 7) and ((index-1) % 2 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _tract_seq_to_df( self, tractFilePath ):
+		# Skip rows from based on condition
+		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self._read_tract_seq_GLP(x) , header = None )
+		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self._read_tract_seq_VTP(x) , header = None )
+		#if self.params.verbose:
+		#	print( 'Tract sequence opened: {}'.format( tractFilePath ) )
+		return df_GLP, df_VTP
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+# 		tube sequence related functions
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _df_to_tube_seq( self, tube_file_path, df_GLP, df_param, df_area, df_length, df_art, glottis_model = 'Geometric glottis' ):
+		f= open( tube_file_path, "w+" )
+		f.write("""# The first two lines (below the comment lines) indicate the name of the vocal fold model and the number of states.\n""")
+		f.write("""# The following lines contain a sequence of states of the vocal folds and the tube geometry\n""")
+		f.write("""# in steps of 110 audio samples (corresponding to about 2.5 ms for the sampling rate of 44100 Hz).\n""")
+		f.write("""# Each state is represented in terms of five lines:\n""")
+		f.write("""# Line 1: glottis_param_0 glottis_param_1 ...\n""")
+		f.write("""# Line 2: incisor_position_in_cm, velo_pharyngeal_opening_in_cm^2, tongue_tip_side_elevation[-1...1]\n""")
+		f.write("""# Line 3: area0 area1 area2 area3 ... (Areas of the tube sections in cm^2 from glottis to mouth)\n""")
+		f.write("""# Line 4: length0 length1 length2 length3 ... (Lengths of the tube sections in cm from glottis to mouth)\n""")
+		f.write("""# Line 5: artic0 artic1 artic2 artic3 ... (Articulators of the tube sections between glottis and lips : 
+			1 = tongue; 2 = lower incisors; 3 = lower lip; 4 = other)\n""")
+		f.write("""# \n""")
+		f.write("""{}\n""".format( glottis_model ) )
+		f.write("""{}\n""".format( len(df_GLP) ) )
+		for index, row in enumerate(df_GLP.index):
+			for index2, column in enumerate(df_GLP.columns):
+				f.write('{} '.format(df_GLP.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_param.columns):
+				f.write('{} '.format(df_param.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_area.columns):
+				f.write('{} '.format(df_area.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_length.columns):
+				f.write('{} '.format(df_length.iloc[index,index2]))
+			f.write('\n')
+			for index2, column in enumerate(df_art.columns):
+				f.write('{} '.format(df_art.iloc[index,index2]))
+			f.write('\n')
+		f.close()
+		if self.params.verbose:
+			log.info( 'Tube sequence file was saved at: "{}"'.format( tube_file_path ))
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _get_tube_seq_len( self, tube_seq_path ):
+		with open( tube_seq_path ) as file:
+			for index, line in enumerate( file ):
+				if index == 11:
+					tube_seq_len = int( line.strip() )
+					break
+		if self.params.verbose:
+			print( 'Entries in Tract Sequence file: {}'.format( tube_seq_len ) )
+		return tube_seq_len
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _tube_seq_to_df( self, tube_file_path ):
+		# Skip rows from based on condition
+		df_GLP = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self._read_tube_seq_GLP(x) , header = None )
+		df_tube_param  = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self._read_tube_seq_param(x) , header = None )
+		df_tube_area   = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self._read_tube_seq_area(x) , header = None )
+		df_tube_length = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self._read_tube_seq_length(x) , header = None )
+		df_tube_art    = pd.read_csv( tube_file_path, delim_whitespace = True, skiprows= lambda x: self._read_tube_seq_art(x) , header = None )
+		if self.params.verbose:
+			print( 'Tube sequence opened: {}'.format( tube_file_path ) )
+		return df_GLP, df_tube_param, df_tube_area, df_tube_length, df_tube_art
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tube_seq_length(self, index):
+		if (index > 11) and (index % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tube_seq_art(self, index):
+		if (index > 11) and ((index-1) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tube_seq_GLP(self, index):
+		if (index > 11) and ((index-2) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tube_seq_param(self, index):
+		if (index > 11) and ((index-3) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _read_tube_seq_area(self, index):
+		if (index > 11) and ((index-4) % 5 == 0):
+			return False
+		else:
+			return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _run_multiprocessing( self, function, args ):
+		pool = mp.Pool( api.params.workers )
+		tasks = ( ( function, x ) for x in args)
+		#pbar = tqdm(total=len(tasks))
+		data = []
+		for x in tqdm.tqdm( pool.imap( worker, tasks ), total=len( args ) ):
+			data.append( x )
+		#data = pool.map( worker, ( ( function, x ) for x in args) )
+		pool.close()
+		pool.join()
+		return data
+	def prepare_call(self, name, args):  # creates a 'remote call' package for each argument
+		for arg in args:
+			yield [self.__class__.__name__, self.__dict__, name, arg]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#	def worker( self, args ):
+#		self.api._gestural_score_to_tract_sequence( args )
+#		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_input_lists_are_valid( self, input_lists, instances_list ):
+		valid_lists = []
+		for input_list, instance in zip( input_lists, instances_list ):
+			valid_lists.append( self._check_if_list_is_valid( input_list, instance ) )
+		return valid_lists
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_lengths_of_input_lists( self, input_lists ):
+		list_lengths = [ len( input_list ) for input_list in input_lists ]
+		if not self._check_if_all_elements_are_equal( list_lengths ):
+			warnings.warn( 'input list do not have the same lengths, shorter lists will be padded with "None".' )
+			max_length = max( list_lengths )
+			#print( max_length )
+			for input_list in input_lists:
+				while len( input_list ) < max_length:
+					input_list.append( None )
+			#print( input_list )
+		return input_lists
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_object_is_iterable( self, query ):
+		try:
+			iter( query )
+		except TypeError:
+			return False
+		return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_list_is_valid( self, input_list, instance ):
+		is_iterable = self._check_if_object_is_iterable( input_list )
+		if isinstance( input_list, str ) or is_iterable == False:
+			warnings.warn( 'input is either not iterable or a single string. The input gets turned into a list now.' )
+			input_list = [ input_list ]
+		if input_list and all( isinstance( x, instance ) for x in input_list ):
+			return input_list
+		else:
+			raise TypeError( 'a list containing a non-{} type object was passed, but list of {} was expected.'.format( instance, instance ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _check_if_all_elements_are_equal( self, iterable ):
+		g = itertools.groupby(iterable)
+		return next(g, True) and not next(g, False)
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def worker( args ):
+	global api
+	function, arg = args
+	return getattr( api, function )( arg )
+	#function( args )
+	#function, arg= args
+	#return getattr( api, function ) 
 
+
+def parallel_call(params):  # a helper for calling 'remote' instances
+	cls = getattr(sys.modules[__name__], params[0])  # get our class type
+	instance = cls.__new__(cls)  # create a new instance without invoking __init__
+	instance.__dict__ = params[1]  # apply the passed state to the new instance
+	method = getattr(instance, params[2])  # get the requested method
+	args = params[3] if isinstance(params[3], (list, tuple)) else [params[3]]
+	return method(*args)  # expand arguments, call our method and return the result
+
+
+'''
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-class VTL_API():
+class VTL():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""A Python wrapper for VocalTractLab""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -136,7 +448,7 @@ class VTL_API():
 				rel_path_to_vtl += '.so'
 			API = ctypes.CDLL( rel_path_to_vtl )
 		except:
-			raise FileNotFoundError( 'Could not load the VocalTractLab API, does the path "{}" exist?'.format( rel_path_to_vtl ) )
+			print( 'Could not load the VocalTractLab API, does the path "{}" exist?'.format( rel_path_to_vtl ) )
 		return API
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def load_speaker_file( self, speaker_file_name ):
@@ -152,27 +464,27 @@ class VTL_API():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def initialize( self ):
 		speaker_file_path = ctypes.c_char_p( self.params.speaker_file_name.encode() )
-		log.info( self.params.speaker_file_name )
-		value = self.API.vtlInitialize( speaker_file_path )
-		if value != 0:
-			raise ValueError('Error in vtlInitialize! Errorcode: %i' % value)
+		print( self.params.speaker_file_name )
+		failure = self.API.vtlInitialize( speaker_file_path )
+		if failure != 0:
+			raise ValueError('Error in vtlInitialize! Errorcode: %i' % failure)
 		else:
 			if self.params.verbose:
-				log.info( 'VTL successfully initialized.' )
+				print('VTL successfully initialized.')
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def close( self ):
 		self.API.vtlClose()
 		if self.params.verbose:
-			log.info( 'VTL successfully closed.' )
+			print('VTL successfully closed.')
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_version( self ):
 		version = ctypes.c_char_p( ( ' ' * 32 ).encode() )
 		self.API.vtlGetVersion( version )
 		if self.params.verbose == True:
-			log.info( 'Compile date of the library: "%s"' % version.value.decode() )
-		return version.value.decode()
+			print('Compile date of the library: "%s"' % version.value.decode() )
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_constants( self ):
 		audioSamplingRate = ctypes.c_int(0)
@@ -194,7 +506,7 @@ class VTL_API():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_param_info( self, params: str ):
 		if params not in [ 'tract', 'glottis' ]:
-			log.warning( 'Unknown key in "get_param_info". Key must be "tract" or "glottis". Returning "tract" infos now.' )
+			print( 'Unknown key in "get_param_info". Key must be "tract" or "glottis". Returning "tract" infos now.' )
 			params = 'tract'
 		if params == 'tract':
 			key = 'n_tract_params'
@@ -375,52 +687,20 @@ class VTL_API():
 		self.API.vtlApiTest( speakerFileName, ctypes.byref( audio ), ctypes.byref( numSamples ) )
 		return np.array( audio )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def _gestural_score_to_audio( self, args ):
-		ges_file_path, audio_file_path, save_file, return_audio, return_n_samples, normalize_audio, verbose = args
-		if not os.path.exists( ges_file_path ):
-			warnings.warn( 'the specified gestural score file path does not exist: {}. API call will be skipped.'.format( ges_file_path ) )
-			return
-		if save_file == False and return_audio == False:
-			warnings.warn( 'save_file and return_audio were both set to false! API call will be skipped.' )
-			return
-		if save_file:
-			if audio_file_path in (None, ''):
-				audio_file_path = ges_file_path.rsplit('.')[0] + '.wav'
-				log.info( 'No output file path for audio file was specified, saving file to {}'.format( audio_file_path ) )
-			if not os.path.exists( os.path.dirname( audio_file_path ) ):
-				os.mkdir( os.path.dirname( audio_file_path ) )
-				log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( audio_file_path ) ) )
-		if save_file and normalize_audio != None:
-			save_file = False
-		if save_file == False:
-			wavFileName = ctypes.c_char_p( ''.encode() )
-		else:
-			wavFileName = ctypes.c_char_p( audio_file_path.encode() )
-		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
-		if return_audio:
-			audio = (ctypes.c_double * int( self.get_gestural_score_audio_duration( ges_file_path, return_samples = True ) ))()
-		else:
-			audio = ctypes.POINTER(ctypes.c_int)() # Null pointer
-		if return_n_samples:
-			numSamples = ctypes.c_int(1)
-		else:
-			numSamples = ctypes.POINTER(ctypes.c_int)() # Null pointer
-		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
-		value = self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples), enableConsoleOutput )
-		if value != 0:
-			raise ValueError('VTL API function vtlGesturalScoreToAudio returned the Errorcode: {}  (See API doc for info.) \
-				while processing gestural score file (input): {}, audio file (output): {}'.format(value, ges_file_path, audio_file_path) )
+	def segment_sequence_to_gestural_score( self, segFilePath, gesFilePath ):
+		segFileName = ctypes.c_char_p( segFilePath.encode() )
+		gesFileName = ctypes.c_char_p( gesFilePath.encode() )
+		self.API.vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
 		if self.params.verbose:
-			log.info( 'Audio generated from gestural score file: {}'.format( ges_file_path ) )
-		audio = np.array( audio )
-		if normalize_audio != None:
-			audio = AT.normalize( audio, normalize_audio )
-			if audio_file_path != '':
-				AT.write( audio, audio_file_path )
-		if return_audio:
-			return audio
-		else:
-			return None
+			print('Created gestural score from file: {}'.format( segFilePath ))
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def gestural_score_to_tract_sequence( self, ges_file_path_list: list,  tract_file_path_list: list = '', return_sequence: bool = False ):
+		ges_file_path_list, trac_file_path_list = self._check_if_input_lists_are_valid( [ges_file_path_list, tract_file_path_list], [str, str] )
+		args = ( (ges_file_path, tract_file_path, return_sequence) 
+			for ges_file_path, tract_file_path in itertools.zip_longest(ges_file_path_list, tract_file_path_list) )
+		df_tract_sequence_list = self._run_multiprocessing( self._gestural_score_to_tract_sequence, args )
+		return df_tract_sequence_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _gestural_score_to_tract_sequence( self, args ):
 		ges_file_path, tract_file_path, return_sequence = args
@@ -429,42 +709,38 @@ class VTL_API():
 			return
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
 		if tract_file_path in (None, ''):
-			tract_file_path = ges_file_path.rsplit('.')[0] + '_tractSeq.txt'
-			log.info( 'No output file path for tract sequence was specified, saving file to {}'.format( tract_file_path ) )
-		if not os.path.exists( os.path.dirname( tract_file_path ) ):
-			os.mkdir( os.path.dirname( tract_file_path ) )
-			log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( tract_file_path ) ) )
+			tract_file_path = ges_file_path.split('.')[0] + '_tractSeq.txt'
+			logging.info( 'No output file path for tract sequence was specified, saving file to {}'.format( tract_file_path ) )
 		tractSequenceFileName = ctypes.c_char_p( tract_file_path.encode() )
 		value = self.API.vtlGesturalScoreToTractSequence( gesFileName, tractSequenceFileName )
-		if value != 0:
-			raise ValueError('VTL API function vtlGesturalScoreToTractSequence returned the Errorcode: {}  (See API doc for info.) \
-				while processing gestural score file (input): {}, tract sequence file (output): {}'.format(value, ges_file_path, tract_file_path) )
+		if failure != 0:
+			raise ValueError('VTL API function vtlGesturalScoreToTractSequence returned the Errorcode: {}. See API doc for more info.'.format(value) )
 		if self.params.verbose:
 			logging.info( 'Created tractsequence file {} from gestural score file: {}'.format( tract_file_path, ges_file_path ) )
 		if return_sequence:
 			return self.tract_seq_to_df( tract_file_path )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def _segment_sequence_to_gestural_score( self, args ):
-		seg_file_path, ges_file_path = args
-		if not os.path.exists( seg_file_path ):
-			warnings.warn( 'the specified segment sequence file path does not exist: {}. API call will be skipped.'.format( seg_file_path ) )
-			return
-		if ges_file_path in (None, ''):
-			ges_file_path = seg_file_path.rsplit('.')[0] + '.ges'
-			log.info( 'No output file path for audio file was specified, saving file to {}'.format( ges_file_path ) )
-		if not os.path.exists( os.path.dirname( ges_file_path ) ):
-			os.mkdir( os.path.dirname( ges_file_path ) )
-			log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( ges_file_path ) ) )
-		segFileName = ctypes.c_char_p( seg_file_path.encode() )
+	def gestural_score_to_audio( self, ges_file_path: str,  audio_file_path: str = '', return_audio = True, return_n_samples = False, verbose = False ):
+		if audio_file_path == '' and return_audio == False:
+			print( 'Warning! Function can not return anything.' )
+		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
-		value = self.API.vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
-		if value != 0:
-			raise ValueError('VTL API function vtlSegmentSequenceToGesturalScore returned the Errorcode: {}  (See API doc for info.) \
-				while processing segment sequence file (input): {}, gestural score file (output): {}'.format(value, seg_file_path, ges_file_path) )
+		if return_audio:
+			audio = (ctypes.c_double * int( self.get_gestural_score_audio_duration( ges_file_path, return_samples = True ) ))()
+		else:
+			audio = ctypes.POINTER(ctypes.c_int)() # Null pointer
+		numSamples = ctypes.POINTER(ctypes.c_int)() # TODO: add if return_n_samples
+		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
+		self.API.vtlGesturalScoreToAudio( gesFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples), enableConsoleOutput )
 		if self.params.verbose:
-			log.info( 'Created gestural score from segment sequence file: {}'.format( seg_file_path ) )
-		return
+			print( 'Audio generated from gestural score file: {}'.format( ges_file_path ) )
+		#if audio_file_path != '':
+		#	self.Write_Wav( self.Normalise_Wav(audio), audio_file_path )
+		if return_audio:
+			return np.array(audio)
+		else:
+			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def gestural_score_to_glottis_signals( self, ges_file_path: str,  sig_file_path: str ):
 		gesFileName = ctypes.c_char_p( ges_file_path.encode() )
@@ -475,50 +751,21 @@ class VTL_API():
 			print( 'Glottis signals file generated from gestural score file: {}'.format( ges_file_path ) )
 		return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def _tract_sequence_to_audio( self, args ):
-		tract_file_path, audio_file_path, save_file, return_audio, return_n_samples, normalize_audio, verbose = args
-		if not os.path.exists( tract_file_path ):
-			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
-			return
-		if save_file == False and return_audio == False:
-			warnings.warn( 'save_file and return_audio were both set to false! API call will be skipped.' )
-			return
-		if save_file:
-			if audio_file_path in (None, ''):
-				audio_file_path = tract_file_path.rsplit('.')[0] + '.wav'
-				log.info( 'No output file path for audio file was specified, saving file to {}'.format( audio_file_path ) )
-			if not os.path.exists( os.path.dirname( audio_file_path ) ):
-				os.mkdir( os.path.dirname( audio_file_path ) )
-				log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( audio_file_path ) ) )
-		if save_file and normalize_audio != None:
-			save_file = False
-		if save_file == False:
-			wavFileName = ctypes.c_char_p( ''.encode() )
-		else:
-			wavFileName = ctypes.c_char_p( audio_file_path.encode() )
-		tractSequenceFileName = ctypes.c_char_p( tract_file_path.encode() )
+	def tract_sequence_to_audio( self, tract_seq_path: str, audio_file_path: str = '', return_audio = True, return_n_samples = False, verbose = False ):
+		if audio_file_path == '' and return_audio == False:
+			print( 'Warning! Function can not return anything.' )
+		wavFileName = ctypes.c_char_p( audio_file_path.encode() )
+		tractSequenceFileName = ctypes.c_char_p( tract_seq_path.encode() )
 		if return_audio:
-			audio = (ctypes.c_double * int( self.get_tract_seq_len( tract_file_path ) * self.params.state_duration * self.params.samplerate_audio ))()
+			audio = (ctypes.c_double * int( self.get_tract_seq_len( tract_seq_path ) * self.params.state_duration * self.params.samplerate_audio ))()
 		else:
-			audio = ctypes.POINTER(ctypes.c_int)() # Null pointer
-		if return_n_samples:
-			numSamples = ctypes.c_int(1)
-		else:
-			numSamples = ctypes.POINTER(ctypes.c_int)() # Null pointer
-		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
-		value = self.API.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
-		if value != 0:
-			raise ValueError('VTL API function vtlTractSequenceToAudio returned the Errorcode: {}  (See API doc for info.) \
-				while processing tract sequence file (input): {}, audio file (output): {}'.format(value, tract_file_path, audio_file_path) )
+			audio = ctypes.POINTER(ctypes.c_int)()
+		numSamples = ctypes.POINTER(ctypes.c_int)() # TODO: add if return_n_samples
+		self.API.vtlTractSequenceToAudio( tractSequenceFileName, wavFileName, ctypes.byref(audio), ctypes.byref(numSamples) )
 		if self.params.verbose:
-			log.info( 'Audio generated from tract sequence file: {}'.format( tract_file_path ) )
-		audio = np.array( audio )
-		if normalize_audio != None:
-			audio = AT.normalize( audio, normalize_audio )
-			if audio_file_path != '':
-				AT.write( audio, audio_file_path )
+			print('Audio generated: {}'.format(TractSeq_Filename))
 		if return_audio:
-			return audio
+			return np.array(audio)
 		else:
 			return None
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -713,12 +960,9 @@ class VTL_API():
 		#print('Wav file saved.')
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def _run_multiprocessing( self, args ):
-		global working_func
-		from PyVTL.defs import worker
-		working_func = worker
+	def _run_multiprocessing( self, function, args ):
 		pool = mp.Pool( self.params.workers )
-		data = pool.map( working_func, ( (self._gestural_score_to_tract_sequence, x) for x in args) )
+		data = pool.map( function, ( (x) for x in args) )
 		pool.close()
 		pool.join()
 		return data
@@ -771,7 +1015,4 @@ class VTL_API():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #if __name__ == '__main__':
 #	freeze_support()
-#def worker( args ):
-#	vtl, arg = args
-#	vtl._gestural_score_to_tract_sequence( args )
-#	return
+'''
