@@ -118,11 +118,11 @@ class VTL():
 											seg_file_path_list,
 											ges_file_path_list,
 										):
-	seg_file_path_list, ges_file_path_list = ft.check_if_input_lists_are_valid( [seg_file_path_list, ges_file_path_list], [str, str] )
-	args = [ [] 
-		for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list) ]
-	self._run_multiprocessing( '_segment_sequence_to_gestural_score', args )
-	return
+		seg_file_path_list, ges_file_path_list = ft.check_if_input_lists_are_valid( [seg_file_path_list, ges_file_path_list], [str, str] )
+		args = [ [ seg_file_path, ges_file_path ] 
+			for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list) ]
+		self._run_multiprocessing( '_segment_sequence_to_gestural_score', args )
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def tract_sequence_to_audio(	self,
 									tract_file_path_list: list,
@@ -137,7 +137,7 @@ class VTL():
 		audio_data_list = self._run_multiprocessing( '_tract_sequence_to_audio', args )
 		return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-
+	def synth_block( self, tract_params, glottis_params, verbose = False, state_samples = None ):
 
 
 

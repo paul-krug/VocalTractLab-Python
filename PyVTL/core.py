@@ -221,7 +221,27 @@ class VTL_API():
 		self.API.vtlGetTractParams( shapeName, ctypes.byref( param ) )
 		return np.array( param )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def synth_block( self, tract_params, glottis_params, verbose = False, state_samples = None ):
+	def _synth_block( self, args):
+		tract_sequence, verbose, state_samples = args
+		constants = self.get_constants()
+		if state_samples == None:
+			state_samples = self.params.state_samples
+		#if len( tract_params ) != len( glottis_params ):
+		#	print( 'TODO: Warning: Length of tract_params and glottis_params do not match. Will modify glottis_params to match.')
+		#	# Todo: Match length
+		numFrames = ctypes.c_int( len( tract_params ) )
+		tractParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_tract_params' ] ))()
+		tractParams[:] = tract_params.T.ravel('F')
+		glottisParams = (ctypes.c_double * ( numFrames.value * constants[ 'n_glottis_params' ] ))()
+		glottisParams[:] = glottis_params.T.ravel('F')
+		frameStep_samples = ctypes.c_int( state_samples )
+		audio = (ctypes.c_double * int( len( tract_params ) / self.params.samplerate_internal * self.params.samplerate_audio ) )()
+		enableConsoleOutput = ctypes.c_int(1) if verbose == True else ctypes.c_int(0)
+		value = self.API.vtlSynthBlock( tractParams, glottisParams, numFrames, frameStep_samples, audio, enableConsoleOutput )
+		#print( return_val )
+		return np.array( audio )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def synth_block_old( self, tract_params, glottis_params, verbose = False, state_samples = None ):
 		constants = self.get_constants()
 		#print(constants[ 'n_tract_params' ])
 		#print(constants[ 'n_glottis_params' ])

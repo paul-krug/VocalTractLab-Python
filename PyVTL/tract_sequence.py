@@ -54,6 +54,69 @@ import matplotlib.pyplot as plt
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
+
+
+#####################################################################################################################################################
+class Tract_Sequence():
+	def __init__( self, tract_states: np.array, glottis_states: np.array, api: PyVTL.core.VTL_API = None ):
+		if api == None:
+			warnings.warn( """No api was passed. Using the default settings now to create tract sequence object.
+								This object may be incompatible with your current settings""" )
+			api = PyVTL.core.VTL_API()
+		self.constants = api.get_constants()
+
+		if len( tract_states.shape ) != 2 or len( glottis_state ):
+
+		if not isinstance( tract_state, Tract_State ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_state, Tract_State ) )
+		if not isinstance( glottis_state, Glottis_State ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( glottis_state, Glottis_State ) )
+		self.tract = tract_state
+		self.glottis = glottis_state
+#####################################################################################################################################################
+
+
+
+
+
+
+#####################################################################################################################################################
+class Supra_Glottal_Sequence():
+	def __init__( self, states: np.array, api: PyVTL.core.VTL_API = None ):
+		if api == None:
+			warnings.warn( """No api was passed. Using the default settings now to create tract sequence object.
+								This object may be incompatible with your current settings""" )
+			api = PyVTL.core.VTL_API()
+		self.constants = api.get_constants()
+
+		if len( states.shape ) != 2:
+			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
+
+
+
+		if not isinstance( tract_state, Tract_State ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_state, Tract_State ) )
+		if not isinstance( glottis_state, Glottis_State ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( glottis_state, Glottis_State ) )
+		self.tract = tract_state
+		self.glottis = glottis_state
+#####################################################################################################################################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #####################################################################################################################################################
 class Synthesis_State():
 	def __init__( self, tract_state, glottis_state ):
@@ -64,6 +127,7 @@ class Synthesis_State():
 		self.tract = tract_state
 		self.glottis = glottis_state
 #####################################################################################################################################################
+
 
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
