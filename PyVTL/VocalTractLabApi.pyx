@@ -21,9 +21,9 @@ from cpython.pycapsule cimport *
 #from cpython cimport array
 #from libc.stdlib cimport malloc, free
 
-import tract_sequence as ts
-import audio_tools as AT
-import function_tools as FT
+import PyVTL.tract_sequence as ts
+import PyVTL.audio_tools as AT
+import PyVTL.function_tools as FT
 import librosa
 import multiprocessing as mp
 import tqdm
@@ -501,7 +501,7 @@ def _worker( args ):
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 atexit.register( _close )
-_initialize( 'JD2.speaker' )
+_initialize( os.path.join( os.path.dirname(__file__), 'Speaker/JD2.speaker' ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 

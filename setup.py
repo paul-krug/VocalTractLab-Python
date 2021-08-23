@@ -51,7 +51,7 @@ except:
 # Build extension modules 
 EXT_MODULES = cythonize(
     [
-        Extension( 'VocalTractLabApi',
+        Extension( 'PyVTL.VocalTractLabApi',
               ['PyVTL/VocalTractLabApi.pyx'],
               language="c",  
               libraries=['PyVTL/VocalTractLabApi'],
@@ -104,9 +104,11 @@ setup_args = dict(
     classifiers = [_f for _f in CLASSIFIERS.split('\n') if _f],
     keywords=[ 'text-to-speech', 'speech synthesis', 'articulatory synthesis', 'vocal tract' ],
     ext_modules=EXT_MODULES,
+    include_dirs=np.get_include(),
     packages=find_packages(),
-    package_dir={'PyVTL': 'PyVTL'},
+    #package_dir={'PyVTL': 'PyVTL'},
     #package_data= {'PyVTL': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
+    package_data= {'PyVTL': ['Speaker/*', './*' ]},
     include_package_data = True,
     install_requires=DEPENDENCIES,
     #zip_safe= False,
@@ -118,42 +120,3 @@ setup_args = dict(
 
 
 setup(**setup_args)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-from setuptools import setup
-
-setup(
-name='PyVTL',
-version='0.1.1',
-author='Paul Konstantin Krug',
-author_email='paul_konstantin.krug@tu-dresden.de',
-packages=['PyVTL'],
-#scripts=['PyVTL/Models/PCA_nc_10.joblib'],
-#data_files = ['./PyVTL/Models/PCA_nc_10.joblib'],
-package_dir={'PyVTL': 'PyVTL'},
-package_data= {'PyVTL': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
-include_package_data = True,
-url='http://pypi.python.org/pypi/PackageName/',
-license='LICENSE.txt',
-description='Articulatory (text-to-) speech synthesis for Python',
-long_description=open('README.md').read(),
-install_requires=[],
-#zip_safe= False,
-)
