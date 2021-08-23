@@ -1,3 +1,4 @@
+import os
 import itertools
 import warnings
 
@@ -41,8 +42,22 @@ def check_if_list_is_valid( input_list, instance ):
 	else:
 		raise TypeError( 'a list containing a non-{} type object was passed, but list of {} was expected.'.format( instance, instance ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def check_if_all_elements_are_equal( iterable ):
-		g = itertools.groupby(iterable)
-		return next(g, True) and not next(g, False)
+def check_if_all_elements_are_equal( iterable ):
+	g = itertools.groupby(iterable)
+	return next(g, True) and not next(g, False)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def make_output_path( query_path, output_path ):
+	if '.' not in file_path:
+		raise ValueError( 'The path: {} is not valid because it does not specify the file extension!'.format( output_path ) )
+	if query_path in (None, ''):
+		file_extension = file_path.rsplit('.')[1]
+		index = 0
+		while os.path.exists( output_path ):
+			index += 1
+			output_path = output_path.replace( file_extension, '_{}.{}'.format( index, file_extension ) )
+		log.info( 'No output file path for audio file was specified, saving file to {}'.format( audio_file_path ) )
+	if not os.path.exists( os.path.dirname( output_path ) ) and  os.path.dirname( output_path ) not in ( '', ' ', None ):
+		os.mkdir( os.path.dirname( output_path ) )
+		log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( output_path ) ) )
+	return output_path
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
