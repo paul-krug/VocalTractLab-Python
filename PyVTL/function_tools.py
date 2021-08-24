@@ -1,6 +1,11 @@
 import os
 import itertools
 import warnings
+import logging
+
+logging.basicConfig()
+log = logging.getLogger(__name__)
+log.setLevel(logging.WARNING)
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -47,15 +52,16 @@ def check_if_all_elements_are_equal( iterable ):
 	return next(g, True) and not next(g, False)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def make_output_path( query_path, output_path ):
-	if '.' not in file_path:
-		raise ValueError( 'The path: {} is not valid because it does not specify the file extension!'.format( output_path ) )
+	if '.' not in output_path:
+		raise ValueError( 'The output path: {} is not valid because it does not specify the file extension!'.format( output_path ) )
 	if query_path in (None, ''):
-		file_extension = file_path.rsplit('.')[1]
+		query_path = output_path
+		file_extension = query_path.rsplit('.')[1]
 		index = 0
 		while os.path.exists( output_path ):
 			index += 1
 			output_path = output_path.replace( file_extension, '_{}.{}'.format( index, file_extension ) )
-		log.info( 'No output file path for audio file was specified, saving file to {}'.format( audio_file_path ) )
+	log.info( 'No output file path for file was specified, saving file to {}'.format( output_path ) )
 	if not os.path.exists( os.path.dirname( output_path ) ) and  os.path.dirname( output_path ) not in ( '', ' ', None ):
 		os.mkdir( os.path.dirname( output_path ) )
 		log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( output_path ) ) )

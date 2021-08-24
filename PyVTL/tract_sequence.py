@@ -57,21 +57,22 @@ import matplotlib.pyplot as plt
 
 #####################################################################################################################################################
 class Sub_Glottal_Sequence():
-	def __init__( self, states: np.array ):
+	def __init__( self, states: np.array, name: str = 'sequence.sub_glottal' ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
 			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
 		if states.shape[ 1 ] != self.constants[ 'n_glottis_params' ]:
 			raise ValueError( "Dimension of features is {}, but should be {}.".format( states.shape[ 1 ], self.constants[ 'n_glottis_params' ] ) )
 		self.param_info = vtl.get_param_info( 'glottis' )
+		self.name = name
 		self.glottis = pd.DataFrame( states, columns = self.param_info.index )
 		self.length = len( self.glottis.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
-		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_GLP(x) , header = None )
-		return cls( df_GLP.to_numpy() )
+		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
+		return cls( df_GLP.to_numpy(), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self, ):
 		return str( self.glottis )
@@ -81,21 +82,22 @@ class Sub_Glottal_Sequence():
 
 #####################################################################################################################################################
 class Supra_Glottal_Sequence():
-	def __init__( self, states: np.array ):
+	def __init__( self, states: np.array, name: str = 'sequence.supra_glottal' ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
 			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
 		if states.shape[ 1 ] != self.constants[ 'n_tract_params' ]:
 			raise ValueError( "Dimension of features is {}, but should be {}.".format( states.shape[ 1 ], self.constants[ 'n_tract_params' ] ) )
 		self.param_info = vtl.get_param_info( 'tract' )
+		self.name = name
 		self.tract = pd.DataFrame( states, columns = self.param_info.index )
 		self.length = len( self.tract.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
-		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_VTP(x) , header = None )
-		return cls( df_VTP.to_numpy() )
+		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
+		return cls( df_VTP.to_numpy(), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self, ):
 		return str( self.tract )
@@ -108,7 +110,7 @@ class Supra_Glottal_Sequence():
 
 #####################################################################################################################################################
 class Tract_Sequence():
-	def __init__( self, tract_states: Supra_Glottal_Sequence, glottis_states: Sub_Glottal_Sequence ):
+	def __init__( self, tract_states: Supra_Glottal_Sequence, glottis_states: Sub_Glottal_Sequence, name: str = 'sequence.tract' ):
 		if not isinstance( tract_states, Supra_Glottal_Sequence ):
 			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_states, Supra_Glottal_Sequence ) )
 		if not isinstance( glottis_states, Sub_Glottal_Sequence ):
@@ -117,6 +119,7 @@ class Tract_Sequence():
 			if tract_states.constants[ key ] != glottis_states.constants[ key ]:
 				raise ValueError( 'API constant {} is different for supra and sub glottal state sequence.'.format( key ) )
 		self.param_info = { 'tract': tract_states.param_info, 'glottis': glottis_states.param_info }
+		self.name = name
 		self.tract = tract_states.tract
 		self.glottis = glottis_states.glottis
 		lengths_difference = np.abs( tract_states.length - glottis_states.length )
@@ -143,9 +146,9 @@ class Tract_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
-		df_GLP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_GLP(x) , header = None )
-		df_VTP = pd.read_csv( tractFilePath, delim_whitespace = True, skiprows= lambda x: self.read_tract_seq_VTP(x) , header = None )
-		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP ).to_numpy() )
+		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
+		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
+		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self, ):
 		return str( pd.concat( [ self.tract, self.glottis ], axis = 1 ) )

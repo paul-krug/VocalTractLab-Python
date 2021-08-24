@@ -1,0 +1,216 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{d753fba2-8de6-4793-9a30-3c037ccaae57}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AudioFile.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Constants.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Dsp.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="F0EstimatorYin.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="GeometricGlottis.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Geometry.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="GesturalScore.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Glottis.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="IirFilter.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="ImpulseExcitation.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="LfPulse.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix2x2.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="PoleZeroPlan.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Sampa.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="SegmentSequence.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Signal.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundLib.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Splines.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="StaticPhone.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Surface.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Synthesizer.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TdsModel.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TimeFunction.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TlModel.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TriangularGlottis.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="Tube.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TubeSequence.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="TwoMassModel.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VocalTract.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VocalTractLabApi.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VoiceQualityEstimator.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="VowelLf.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlHelper.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="XmlNode.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+    <ClInclude Include="AnatomyParams.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="VocalTractLabApi.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Glottis.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="IirFilter.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ImpulseExcitation.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="LfPulse.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Matrix2x2.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PoleZeroPlan.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Sampa.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="SegmentSequence.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Signal.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundLib.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Splines.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="StaticPhone.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Surface.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Synthesizer.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TdsModel.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TimeFunction.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TlModel.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TriangularGlottis.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Tube.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TwoMassModel.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VocalTract.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VocalTractLabApi.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VoiceQualityEstimator.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="VowelLf.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlHelper.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="XmlNode.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="AnatomyParams.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Dsp.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="F0EstimatorYin.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="GeometricGlottis.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Geometry.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="GesturalScore.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

@@ -246,6 +246,9 @@ def gestural_score_to_tract_sequence(	ges_file_path_list,
 	ges_file_path_list, tract_file_path_list = FT.check_if_input_lists_are_valid( [ges_file_path_list, tract_file_path_list], [str, str] )
 	args = [ [ges_file_path, tract_file_path, return_data ]
 		for ges_file_path, tract_file_path in itertools.zip_longest( ges_file_path_list, tract_file_path_list ) ]
+	print(ges_file_path_list)
+	print(tract_file_path_list)
+	print( 'run mp:')
 	tract_sequence_list = _run_multiprocessing( _gestural_score_to_tract_sequence, args, return_data, workers )
 	return tract_sequence_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -282,6 +285,19 @@ def tract_sequence_to_limited_tract_sequence(	tract_sequence: ts.Tract_Sequence,
 	args = [ [state] for state in tract_sequence.tract.to_numpy() ]
 	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
 	return ts.Supra_Glottal_Sequence( tract_param_data )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def tract_sequence_to_svg(	tract_sequence_list,
+							svg_dir_list = '',
+							fps: int = 60,
+							save_video = False,
+							workers: int = None,
+						):
+	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [tract_sequence_list, svg_dir_list],
+		[str, str] ) #inclde ts.Target_Sequence ts.Tract_Sequence
+	args = [ [tract_sequence, svg_dir, fps ]
+	for tract_sequence, svg_dir in itertools.zip_longest( tract_sequence_list, svg_dir_list ) ]
+	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
+	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -460,6 +476,42 @@ def _tract_state_to_limited_tract_state( args ):
 	vtlInputTractToLimitedTract( &inTractParams[0], &outTractParams[0] )
 	return outTractParams
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _tract_sequence_to_svg( args ):
+	tract_sequence, svg_dir, fps = args
+	if isinstance( tract_sequence, str ) :
+		tract_file_path = tract_sequence
+		if not os.path.exists( tract_file_path ) :
+			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
+			return
+		tract_sequence = ts.Tract_Sequence.from_tract_file( tract_file_path )
+	#elif isinstance( tract_sequence, ts.Target_Sequence ) :
+	#	target_sequence = tract_sequence
+	#	tract_sequence = target_sequence.to_tract_sequence()
+	#else:
+	#	#pass
+	#	#tract_sequence = tract_sequence_data
+	if svg_dir in ( None, '', ' ' ):
+		svg_dir = './' + tract_sequence.name.rsplit('.')[0] + '_svg'
+		log.info( 'No output file path for svg files was specified, saving files to {}'.format( svg_dir ) )
+	if not os.path.exists( svg_dir ) :
+		os.mkdir( svg_dir )
+		log.info( 'Output directory {} did not exist and was created.'.format( svg_dir ) )
+
+	constants = get_constants()
+	cdef np.ndarray[np.float64_t, ndim = 1] tractParams = np.zeros( constants['n_tract_params'], dtype = 'float64' )
+	resampled_index = [ round(index * (44100 / 110) / fps) for index in range( 0, tract_sequence.length ) ]
+	resampled_tract_states = [ [ index, tract_state ] for index, tract_state in enumerate( tract_sequence.tract.to_numpy() ) if index in resampled_index ]
+	for pair in resampled_tract_states:
+		index, tract_state = pair
+		tractParams = tract_state.ravel()
+		fileName = ( svg_dir + '/tract_{}.svg'.format( index ) ).encode()
+		vtlExportTractSvg( &tractParams[0], fileName )
+	return
+
+
+
+
+
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

@@ -1,11 +1,52 @@
 #!/usr/bin/env python
 
+import os, sys
 import logging
-import sys
-import pprint
+import subprocess
+import shutil
+
 from setuptools import setup, find_packages
+from setuptools.command.build_py import build_py
 from setuptools.extension import Extension
+
 import numpy as np
+from Cython.Build import cythonize
+import cmake
+
+
+WORKING_PATH = os.getcwd()
+
+class Build_VTL(build_py):
+    """Build VocalTractLab API"""
+    def run( self ):
+        print( 'Building VocalTractLab API using cmake:' )
+        os.chdir( 'PyVTL/src' )
+        #with TemporaryDirectory() as tmpdir:
+        #    os.chdir(tmpdir)
+        subprocess.check_call( [ 'cmake', '.' ] )
+        subprocess.check_call( [ 'cmake', '--build', '.' ] )
+        vtl_api_name = 'VocalTractLabApi'
+        if sys.platform == 'win32':
+            file_extension = '.dll'
+        else:
+            file_extension = '.so'
+        shutil.move( os.path.join( 'Debug', vtl_api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Debug', vtl_api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        #shutil.move( os.path.join( '', vtl_api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        print( ' chir dir: ' )
+        print( os.listdir( os.getcwd() ) )
+        os.chdir( WORKING_PATH )
+        print( 'working dir:' )
+        print( os.listdir( os.getcwd() ) )
+        print( 'PyVTL dir:' )
+        print( os.listdir( os.getcwd()+'/PyVTL' ) )
+        build_py.run( self )
+
+
+
+
+
+
 
 # Set up the logging environment
 logging.basicConfig()
@@ -28,13 +69,13 @@ with open('PyVTL/__init__.py') as f:
 #    f.write(version)
 
 # Use Cython if available
-try:
-    from Cython.Build import cythonize
-except:
-    log.critical(
-        'Cython.Build.cythonize not found. '
-        'Cython is required to build from a repo.')
-    sys.exit(1)
+#try:
+#    from Cython.Build import cythonize
+#except:
+#    log.critical(
+#        'Cython.Build.cythonize not found. '
+#        'Cython is required to build from a repo.')
+#    sys.exit(1)
 
 
 # Extension options
@@ -81,7 +122,6 @@ Programming Language :: Python
 Programming Language :: Python :: 3
 Programming Language :: Python :: 3.8
 Programming Language :: Python :: 3.9
-Programming Language :: Python :: 3.10
 Programming Language :: Python :: Implementation :: CPython
 Topic :: Software Development
 Topic :: Scientific/Engineering
@@ -104,11 +144,12 @@ setup_args = dict(
     classifiers = [_f for _f in CLASSIFIERS.split('\n') if _f],
     keywords=[ 'text-to-speech', 'speech synthesis', 'articulatory synthesis', 'vocal tract' ],
     ext_modules=EXT_MODULES,
+    cmdclass = {"build_py": Build_VTL},
     include_dirs=np.get_include(),
     packages=find_packages(),
-    #package_dir={'PyVTL': 'PyVTL'},
+    package_dir={'PyVTL': 'PyVTL'},
     #package_data= {'PyVTL': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
-    package_data= {'PyVTL': ['Speaker/*', './*' ]},
+    package_data= {'PyVTL': [ os.path.join( WORKING_PATH, 'PyVTL/Speaker/*'), os.path.join( WORKING_PATH,'./PyVTL/*' ) ]},
     include_package_data = True,
     install_requires=DEPENDENCIES,
     #zip_safe= False,

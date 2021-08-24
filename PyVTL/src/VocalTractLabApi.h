@@ -43,8 +43,6 @@ extern "C"{ /* start extern "C" */
   #define C_EXPORT
 #endif  // WIN32
 
-typedef enum { false, true } bool;
-
 // ****************************************************************************
 // The exported C-compatible functions.
 // IMPORTANT: 
