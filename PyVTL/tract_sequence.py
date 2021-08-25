@@ -144,17 +144,33 @@ class Tract_Sequence():
 		self.length = len( self.tract.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self, ):
+		return str( pd.concat( [ self.tract, self.glottis ], axis = 1 ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
 		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
 		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
 		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( pd.concat( [ self.tract, self.glottis ], axis = 1 ) )
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def apply_biomechanical_constraints():
+	def apply_biomechanical_constraints( self, ):
 		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def insert( self, parameter, values, value_sr, start, end, time_axis ):
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, n_params = 19 ):
+		figure, axs = plt.subplots( 19, sharex=True, gridspec_kw = {'hspace': 0} )
+		#figure.suptitle( 'Sharing both axes' )
+		for index, parameter in enumerate( self.tract.columns ):
+			axs[ index ].plot( self.tract.loc[ :, parameter ] )
+			axs[ index ].set( ylabel = parameter )
+		plt.xlabel( 'Tract state' )
+		for ax in axs:
+		    ax.label_outer()
+		figure.align_ylabels( axs[:] )
+		plt.show()
+		return
 #####################################################################################################################################################
 
 
@@ -191,14 +207,17 @@ class Target_Sequence():
 		self.length = len( self.tract.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self, ):
+		return str( self.tract )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
 		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
 		return cls( df_VTP.to_numpy(), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( self.tract )
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def apply_biomechanical_constraints():
 		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot():
+		return str( self.tract )
 #####################################################################################################################################################
