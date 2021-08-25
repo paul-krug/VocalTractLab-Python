@@ -159,10 +159,11 @@ class Tract_Sequence():
 	def insert( self, parameter, values, value_sr, start, end, time_axis ):
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, n_params = 19 ):
-		figure, axs = plt.subplots( 19, sharex=True, gridspec_kw = {'hspace': 0} )
+	def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
+		figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
 		#figure.suptitle( 'Sharing both axes' )
-		for index, parameter in enumerate( self.tract.columns ):
+		#parameters = self.tract.columns
+		for index, parameter in enumerate( parameters ):
 			axs[ index ].plot( self.tract.loc[ :, parameter ] )
 			axs[ index ].set( ylabel = parameter )
 		plt.xlabel( 'Tract state' )
