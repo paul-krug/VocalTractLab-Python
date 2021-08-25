@@ -6,6 +6,7 @@ import pandas as pd
 import ctypes
 import os
 import warnings
+import time
 
 from libcpp cimport bool
 
@@ -232,7 +233,9 @@ def gestural_score_to_audio(	ges_file_path_list,
 								workers: int = None,
 								verbose: bool = False,
 							):
-	ges_file_path_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ges_file_path_list, audio_file_path_list], [str, str] )
+	ges_file_path_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ ges_file_path_list, audio_file_path_list ], 
+                                                                                  [ str, ( str, type(None) ) ],
+	                                                                            )
 	args =  [ [ges_file_path, audio_file_path, save_file, normalize_audio, sr, verbose]
 		for ges_file_path, audio_file_path in itertools.zip_longest( ges_file_path_list, audio_file_path_list ) ]
 	audio_data_list = _run_multiprocessing( _gestural_score_to_audio, args, return_data, workers )
@@ -243,20 +246,21 @@ def gestural_score_to_tract_sequence(	ges_file_path_list,
 										return_data: bool = False,
 										workers: int = None,
 									):
-	ges_file_path_list, tract_file_path_list = FT.check_if_input_lists_are_valid( [ges_file_path_list, tract_file_path_list], [str, str] )
+	ges_file_path_list, tract_file_path_list = FT.check_if_input_lists_are_valid( [ ges_file_path_list, tract_file_path_list ], 
+	                                                                              [ str, ( str, type(None) ) ],
+	                                                                            )
 	args = [ [ges_file_path, tract_file_path, return_data ]
 		for ges_file_path, tract_file_path in itertools.zip_longest( ges_file_path_list, tract_file_path_list ) ]
-	print(ges_file_path_list)
-	print(tract_file_path_list)
-	print( 'run mp:')
 	tract_sequence_list = _run_multiprocessing( _gestural_score_to_tract_sequence, args, return_data, workers )
 	return tract_sequence_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def segment_sequence_to_gestural_score(	seg_file_path_list,
-										ges_file_path_list,
+										ges_file_path_list = None,
 										workers: int = None,
 									):
-	seg_file_path_list, ges_file_path_list = FT.check_if_input_lists_are_valid( [seg_file_path_list, ges_file_path_list], [str, str] )
+	seg_file_path_list, ges_file_path_list = FT.check_if_input_lists_are_valid( [ seg_file_path_list, ges_file_path_list ], 
+	                                                                            [ str, ( str, type(None) ) ] 
+	                                                                          )
 	args = [ [ seg_file_path, ges_file_path ] 
 		for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list ) ]
 	_run_multiprocessing( _segment_sequence_to_gestural_score, args, False, workers )
@@ -271,8 +275,11 @@ def tract_sequence_to_audio(	tract_sequence_list,
 								workers: int = None,
 								verbose: bool = False,
 							):
-	tract_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [tract_sequence_list, audio_file_path_list], 
-																		           [ [str, ts.Tract_Sequence, ts.Target_Sequence], str] )
+	tract_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, audio_file_path_list ], 
+																		           [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
+	                                                                                 ( str, type(None) ),
+	                                                                               ]
+	                                                                             )
 	args = [ [tract_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
 		for tract_sequence, audio_file_path in itertools.zip_longest( tract_sequence_list, audio_file_path_list ) ]
 	audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
@@ -287,13 +294,16 @@ def tract_sequence_to_limited_tract_sequence(	tract_sequence: ts.Tract_Sequence,
 	return ts.Supra_Glottal_Sequence( tract_param_data )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def tract_sequence_to_svg(	tract_sequence_list,
-							svg_dir_list = '',
+							svg_dir_list = None,
 							fps: int = 60,
 							save_video = False,
 							workers: int = None,
 						):
-	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [tract_sequence_list, svg_dir_list],
-		[str, str] ) #inclde ts.Target_Sequence ts.Tract_Sequence
+	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, svg_dir_list ],
+	                                                                       [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
+	                                                                         ( str, type(None) ),
+	                                                                       ]
+	                                                                     )
 	args = [ [tract_sequence, svg_dir, fps ]
 	for tract_sequence, svg_dir in itertools.zip_longest( tract_sequence_list, svg_dir_list ) ]
 	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
@@ -318,16 +328,18 @@ def tract_sequence_to_svg(	tract_sequence_list,
 # 		constructor / destructor functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _initialize( str speaker_file_path ):
-	#py_byte_str = speaker_file_path.encode('UTF-8')
-	#cdef const char *speakerFileName = py_byte_str
 	speakerFileName = speaker_file_path.encode()
 	value = vtlInitialize( speakerFileName )
-	log.info( value )
+	if value != 0:
+		raise ValueError('VTL API function vtlInitialize returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
+	#log.info( 'VTL API initialized.' )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _close():
 	value = vtlClose()
-	log.info( value )
+	if value != 0:
+		raise ValueError('VTL API function vtlClose returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
+	#log.info( 'VTL API closed.' )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
@@ -335,18 +347,19 @@ def _close():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # 		multiprocessing worker functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def _export_tract_svg( args ):
-	tract_state, out_file_path = args
-	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_state
-	fileName = out_file_path.encode()
-	constants = get_constants()
-	value = vtlExportTractSvg( &tractParams[0], fileName )
-	if value != 0:
-		raise ValueError('VTL API function vtlExportTractSvg returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
-	return
+#def _export_tract_svg( args ):
+#	tract_state, out_file_path = args
+#	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_state
+#	fileName = out_file_path.encode()
+#	constants = get_constants()
+#	value = vtlExportTractSvg( &tractParams[0], fileName )
+#	if value != 0:
+#		raise ValueError('VTL API function vtlExportTractSvg returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
+#	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _gestural_score_to_audio( args ):
 	# Note that returning the number of samples via numSamples is deprecated, use getGesturalScoreAudioDuration instead!
+	time_start = time.time()
 	ges_file_path, audio_file_path, save_file, normalize_audio, sr, verbose = args
 	constants = get_constants()
 	if sr == None:
@@ -367,7 +380,11 @@ def _gestural_score_to_audio( args ):
 	cdef np.ndarray[ np.float64_t, ndim=1 ] audio
 	cdef int enableConsoleOutput = 1 if verbose == True else 0
 	audio = np.zeros( get_gestural_score_audio_duration( ges_file_path, return_samples = True ), dtype='float64' )
-	value = vtlGesturalScoreToAudio( gesFileName, wavFileName, &audio[0], NULL, enableConsoleOutput )
+	time_synth_start = time.time()
+	cdef int numS = 0
+	value = vtlGesturalScoreToAudio( gesFileName, wavFileName, &audio[0], &numS, enableConsoleOutput )
+	time_synth_end = time.time()
+	print( 'elapsed synthesis time {}'.format( time_synth_end-time_synth_start ) )
 	if value != 0:
 		raise ValueError('VTL API function vtlGesturalScoreToAudio returned the Errorcode: {}  (See API doc for info.) \
 			while processing gestural score file (input): {}, audio file (output): {}'.format(value, ges_file_path, audio_file_path) )
@@ -379,6 +396,8 @@ def _gestural_score_to_audio( args ):
 		log.info( 'Audio generated from gestural score file: {}'.format( ges_file_path ) )
 	if save_file == False and audio_file_path not in ( None, '' ):
 		AT.write( audio, audio_file_path, sr )
+	time_end = time.time()
+	print( 'elapsed total time {}'.format( time_end-time_start ) )
 	return audio
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _gestural_score_to_tract_sequence( args ):
@@ -387,12 +406,7 @@ def _gestural_score_to_tract_sequence( args ):
 		warnings.warn( 'the specified gestural score file path does not exist: {}. API call will be skipped.'.format( ges_file_path ) )
 		return
 	gesFileName = ges_file_path.encode()
-	if tract_file_path in (None, ''):
-		tract_file_path = ges_file_path.rsplit('.')[0] + '_tractSeq.txt'
-		log.info( 'No output file path for tract sequence was specified, saving file to {}'.format( tract_file_path ) )
-	if not os.path.exists( os.path.dirname( tract_file_path ) ):
-		os.mkdir( os.path.dirname( tract_file_path ) )
-		log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( tract_file_path ) ) )
+	tract_file_path = FT.make_output_path( tract_file_path, ges_file_path.rsplit('.')[0] + '.tract' )
 	tractSequenceFileName = tract_file_path.encode()
 	value = vtlGesturalScoreToTractSequence( gesFileName, tractSequenceFileName )
 	if value != 0:
@@ -400,7 +414,7 @@ def _gestural_score_to_tract_sequence( args ):
 			while processing gestural score file (input): {}, tract sequence file (output): {}'.format(value, ges_file_path, tract_file_path) )
 	log.info( 'Created tractsequence file {} from gestural score file: {}'.format( tract_file_path, ges_file_path ) )
 	if return_sequence:
-		return ts.Tract_Sequence.from_file( tract_file_path )
+		return ts.Tract_Sequence.from_tract_file( tract_file_path )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _segment_sequence_to_gestural_score( args ):
@@ -408,12 +422,7 @@ def _segment_sequence_to_gestural_score( args ):
 	if not os.path.exists( seg_file_path ):
 		warnings.warn( 'the specified segment sequence file path does not exist: {}. API call will be skipped.'.format( seg_file_path ) )
 		return
-	if ges_file_path in (None, ''):
-		ges_file_path = seg_file_path.rsplit('.')[0] + '.ges'
-		log.info( 'No output file path for audio file was specified, saving file to {}'.format( ges_file_path ) )
-	if not os.path.exists( os.path.dirname( ges_file_path ) ):
-		os.mkdir( os.path.dirname( ges_file_path ) )
-		log.info( 'Output directory {} did not exist and was created.'.format( os.path.dirname( ges_file_path ) ) )
+	ges_file_path = FT.make_output_path( ges_file_path, seg_file_path.rsplit('.')[0] + '.ges' )
 	segFileName = seg_file_path.encode()
 	gesFileName = ges_file_path.encode()
 	value = vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
@@ -453,7 +462,7 @@ def _tract_sequence_to_audio( args ):
 		tract_sequence = target_sequence.to_tract_sequence()
 	else:
 		tract_sequence = tract_sequence_data
-	audio = _synth_block( tract_sequence, None, verbose )
+	audio = _synth_block( ( tract_sequence, None, verbose ) )
 	constants = get_constants()
 	if sr == None:
 		sr = constants[ 'samplerate' ]
@@ -490,13 +499,7 @@ def _tract_sequence_to_svg( args ):
 	#else:
 	#	#pass
 	#	#tract_sequence = tract_sequence_data
-	if svg_dir in ( None, '', ' ' ):
-		svg_dir = './' + tract_sequence.name.rsplit('.')[0] + '_svg'
-		log.info( 'No output file path for svg files was specified, saving files to {}'.format( svg_dir ) )
-	if not os.path.exists( svg_dir ) :
-		os.mkdir( svg_dir )
-		log.info( 'Output directory {} did not exist and was created.'.format( svg_dir ) )
-
+	svg_dir = FT.make_output_dir( svg_dir, tract_sequence.name.rsplit('.')[0] + '_svg' )
 	constants = get_constants()
 	cdef np.ndarray[np.float64_t, ndim = 1] tractParams = np.zeros( constants['n_tract_params'], dtype = 'float64' )
 	resampled_index = [ round(index * (44100 / 110) / fps) for index in range( 0, tract_sequence.length ) ]

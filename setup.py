@@ -24,14 +24,14 @@ class Build_VTL(build_py):
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
         subprocess.check_call( [ 'cmake', '.' ] )
-        subprocess.check_call( [ 'cmake', '--build', '.' ] )
+        subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
         vtl_api_name = 'VocalTractLabApi'
         if sys.platform == 'win32':
             file_extension = '.dll'
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'Debug', vtl_api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( 'Debug', vtl_api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Release', vtl_api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Release', vtl_api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
         #shutil.move( os.path.join( '', vtl_api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
         print( ' chir dir: ' )
         print( os.listdir( os.getcwd() ) )

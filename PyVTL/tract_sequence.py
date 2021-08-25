@@ -174,3 +174,31 @@ def read_tract_seq_VTP( index ):
 	else:
 		return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+
+
+
+#####################################################################################################################################################
+class Target_Sequence():
+	def __init__( self, states: np.array, name: str = 'sequence.supra_glottal' ):
+		self.constants = vtl.get_constants()
+		if len( states.shape ) != 2:
+			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
+		if states.shape[ 1 ] != self.constants[ 'n_tract_params' ]:
+			raise ValueError( "Dimension of features is {}, but should be {}.".format( states.shape[ 1 ], self.constants[ 'n_tract_params' ] ) )
+		self.param_info = vtl.get_param_info( 'tract' )
+		self.name = name
+		self.tract = pd.DataFrame( states, columns = self.param_info.index )
+		self.length = len( self.tract.index )
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_tract_file( cls, tract_file_path ):
+		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
+		return cls( df_VTP.to_numpy(), tract_file_path )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self, ):
+		return str( self.tract )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def apply_biomechanical_constraints():
+		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
+#####################################################################################################################################################
