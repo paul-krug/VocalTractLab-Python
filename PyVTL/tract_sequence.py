@@ -45,7 +45,10 @@ import warnings
 import pandas as pd
 import numpy as np
 import PyVTL.VocalTractLabApi as vtl
+import PyVTL.function_tools as FT
 import matplotlib.pyplot as plt
+from  itertools import chain
+import math
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -156,7 +159,35 @@ class Tract_Sequence():
 	def apply_biomechanical_constraints( self, ):
 		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def insert( self, parameter, values, value_sr, start, end, time_axis ):
+	def insert( self, parameter, trajectory, trajectory_sr = None, start = 0, time_axis = 'samples', padding = None, smooth = True ):
+		if parameter in self.tract.columns:
+			feature = self.tract
+		elif parameter in self.glottis.columns:
+			feature = self.glottis
+		else:
+			#if parameter not in chain( *[ self.tract.columns, self.glottis.columns ] ):
+			raise ValueError( 'The specified parameter: {} is neither a supra glottal nor a sub glottal parameter!'.format( parameter ) )
+		if time_axis not in [ 'seconds', 'samples' ]:
+			raise ValueError( 'Argument "time_axis" must be "seconds" or "samples", not "{}"!'.format( time_axis ) )
+		trajectory = FT.check_if_list_is_valid( trajectory, (int, float) )
+		state_sr = 44100/110
+		if trajectory_sr != None:
+			trajectory = resample_trajectory( trajectory, trajectory_sr, state_sr )
+		if time_axis == 'seconds':
+			start = round( state_sr * start )
+		if padding == 'same':
+			trajectory = [ trajectory[0] for _ in range(0, start) ] + trajectory + [ trajectory[-1] for _ in range( start + len( trajectory ), len(feature[parameter]) ) ] 
+			plt.plot(trajectory)
+			plt.show()
+			feature[ parameter ] = trajectory
+		else:	
+			feature.loc[ start : start + len( trajectory ) - 1, parameter ] = trajectory
+		#values_a = feature.loc[ : start, parameter ].to_list()
+		#values_b = feature.loc[ : start, parameter ].to_list()
+		#smooth_values_1 = transition( values_a, resampled_values, 40, fade='in' )
+		#smooth_values_2 = transition( smooth_values_1, values_b, 40, fade='out' )
+		#print(len(smooth_values_2))
+		#feature.loc[ 0 : len( smooth_values_2 )-1, parameter ] = smooth_values_2
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
@@ -175,9 +206,61 @@ class Tract_Sequence():
 #####################################################################################################################################################
 
 
+def resample_trajectory( trajectory, trajectory_sr, target_sr ):
+	resample_rate = trajectory_sr / target_sr
+	resampled_x = np.arange( 0, len(trajectory)-1, resample_rate )
+	#resampled_y = interpolate( resampled_x, trajectory )
+	return interpolate( resampled_x, trajectory )
 
 
+def s( x, a, b ):
+	return 0.5 + 0.5 * np.tanh( ( x - a ) / b )
+def h( x, g, f, a = 0, b = 2 ):
+	p = s( x, a, b )
+	return (p * g) + (( 1 - p ) * f)
 
+
+def transition( values_a, values_b, window_size, fade ):
+	print( 'len val a: ', len(values_a) )
+	print( 'len val b: ', len(values_b) )
+	start = np.clip( len( values_a ) - int(window_size*0.5), a_min = 0, a_max = None, dtype = int )
+	values_window_a = values_a[ start : ]
+	values_window_b = values_b[ : window_size - len( values_window_a ) ]
+	print( 'len val w a: ', len(values_window_a) )
+	print( 'len val w b: ', len(values_window_b) )
+	values_window_a = values_window_a + [ values_window_a[-1] for _ in range( 0, window_size - len(values_window_a) ) ]
+	values_window_b = [ values_window_b[0] for _ in range( 0, window_size - len(values_window_b) ) ] + values_window_b
+	print( 'len val w a: ', values_window_a )
+	print( 'len val w b: ', values_window_b )
+	#if fade == 'in':
+	g = values_window_a
+	f = values_window_b
+	#elif fade == 'out':
+	#	g = values_window_a
+	#	f = values_window_b
+	#else:
+	#	raise ValueError( 'Argument "fade" must be "in" or "out", not "{}"!'.format( fade ) )
+	values_window = [ h( x, f[x], g[x], window_size/2 ) for x in range( 0, len(values_window_a) ) ]
+	#plt.plot( values_a[ : start ] + values_window + values_b[ window_size : ] )
+	#plt.show()
+	#stop
+	print( 'len val w: ', len(values_window) )
+	return values_a[ : start ] + values_window + values_b[ window_size : ]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def pad( values: list, front: int = 0, back: int = 0, type: str = 'same', smooth = True ):
+	insert_front = [ value[0] for _ in range( 0, front ) ]
+	insert_back = [ value[-1] for _ in range( 0, back ) ]
+	return insert_front + values + insert_back
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def interpolate( values_x, values_y, type = 'linear' ):
+	interpolated_values = []
+	for x in values_x:
+		x_0 = int( x )
+		x_1 = int( x ) + 1
+		y_0 = values_y[ x_0 ]
+		y_1 = values_y[ x_1 ]
+		interpolated_values.append( ( (y_0 * (x_1-x)) + (y_1 * (x-x_0)) ) / (x_1 - x_0) )
+	return interpolated_values
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def read_tract_seq_GLP( index ):
 	if (index > 7) and (index % 2 == 0):
