@@ -177,8 +177,8 @@ class Tract_Sequence():
 			start = round( state_sr * start )
 		if padding == 'same':
 			trajectory = [ trajectory[0] for _ in range(0, start) ] + trajectory + [ trajectory[-1] for _ in range( start + len( trajectory ), len(feature[parameter]) ) ] 
-			plt.plot(trajectory)
-			plt.show()
+			#plt.plot(trajectory)
+			#plt.show()
 			feature[ parameter ] = trajectory
 		else:	
 			feature.loc[ start : start + len( trajectory ) - 1, parameter ] = trajectory
