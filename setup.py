@@ -106,7 +106,7 @@ EXT_MODULES = cythonize(
 DEPENDENCIES = [
     'librosa>=0.8.1',
     'matplotlib>=3.4.3',
-    'numpy>=1.21.2',
+    'numpy>=1.19.2',
     'pandas>=1.3.2',
     'tqdm>=4.62.1',
 ]
@@ -149,7 +149,10 @@ setup_args = dict(
     packages=find_packages(),
     package_dir={'PyVTL': 'PyVTL'},
     #package_data= {'PyVTL': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
-    package_data= {'PyVTL': [ os.path.join( WORKING_PATH, 'PyVTL/Speaker/*'), os.path.join( WORKING_PATH,'./PyVTL/*' ) ]},
+    package_data= {'PyVTL': [ os.path.join( WORKING_PATH, 'PyVTL/speaker/*'),
+                              os.path.join( WORKING_PATH, 'PyVTL/data/*'), 
+                              os.path.join( WORKING_PATH, 'PyVTL/data/dictionaries/phonecodes/*'), 
+                              os.path.join( WORKING_PATH,'./PyVTL/*' ) ]},
     include_package_data = True,
     install_requires=DEPENDENCIES,
     #zip_safe= False,
