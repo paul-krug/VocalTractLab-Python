@@ -6,7 +6,7 @@ sys.path.append( os.path.join( os.path.dirname(__file__), 'data', 'dictionaries'
 import phonecodes as pc
 
 vtl_phonemes = pd.read_csv( os.path.join( os.path.dirname(__file__), 'data', 'vtl_phonemes.txt' ), sep = ',', skiprows = 4 )
-print( vtl_phonemes )
+#print( vtl_phonemes )
 
 def text_to_phonemes( sentences, phoneme_style = 'vtl', language = 'en' ):
 	available_styles = [ 'ipa', 'arpabet', 'xsampa', 'vtl', 'vtlsampa', 'vtl_sampa', 'disc', 'callhome' ]
@@ -39,12 +39,12 @@ def _en_to_phonemes( sentences, phoneme_style ):
 def get_vtl_phonemes( sampa, drop = [ ',','^','_','.','/','\\','"','%','[',']','=',"'",'!' ] ):
 	phones = []
 	phoneme_list=[]
-	print( sampa)
+	#print( sampa)
 	for entry in sampa:
 		for char in drop:
 			entry = entry.replace(char, '')
 		phones.append( entry )
-	print('phones: {}'.format( phones ) )
+	#print('phones: {}'.format( phones ) )
 	return phones
 	#phonemes = ''.join( phones )
 	found= False
