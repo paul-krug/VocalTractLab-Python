@@ -59,7 +59,7 @@ class Segment_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL segment sequences""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, phonemes: list, durations: list, onset_duration: float, offset_duration: float = 0.0 ):
+	def __init__( self, phonemes: list, durations: list, onset_duration: float, offset_duration: float = None ):
 		self.durations = FT.check_if_list_is_valid( durations, (int, float) )
 		self.phonemes = FT.check_if_list_is_valid( phonemes, (str) )
 		self.onset_duration = onset_duration
@@ -103,11 +103,13 @@ class Segment_Sequence():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self ):
+		return str( pd.DataFrame( self._get_data(), columns=[ 'onset', 'offset', 'duration', 'phoneme', 'effect'] ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def _get_data( self ):
 		boundaries = [ self.onset_duration ]
 		for index, duration in enumerate( self.durations ):
 			boundaries.append( boundaries[-1] + duration )
-		data = [ boundaries[ :-1 ], boundaries[ 1: ], self.durations, self.phonemes, self.effects ]
-		return str( pd.DataFrame( data, columns=[ 'onset', 'offset', 'duration', 'phoneme', 'effect'] ) )
+		return np.array( [ boundaries[ :-1 ], boundaries[ 1: ], self.durations, self.phonemes, self.effects ] ).T
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _get_phoneme_boundary_times( self, file_path: str, n_phonemes: int ):
 		data, samplerate = librosa.load( file_path, 44100 )
@@ -179,6 +181,21 @@ class Segment_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_phoneme_names( self, ):
 		return [ phoneme.name for phoneme in self._phonemes ]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_seg_file( self, seg_file_path, account_for_effects = False ):
+		assert len( self.phonemes ) == len( self.durations), 'Lengths do not match'
+		out_file = open( seg_file_path, 'w+' )
+		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.onset_duration ) )
+		for index, phoneme in enumerate( self.phonemes ):
+			if account_for_effects == False or ( account_for_effects == True and self.effects[ index ] != 'elision' ):
+				if self.effects[ index ] != None and self.effects[ index ] != 'elision':
+					output_phone = self.effects[ index ]
+				else:
+					output_phone = phoneme
+				out_file.write( 'name = {}; duration_s = {};\n'.format( output_phone, self.durations[ index ] ) )
+		if self.offset_duration != None:
+			out_file.write( 'name = {}; duration_s = {};'.format( '', self.offset_duration ) )
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
