@@ -109,13 +109,14 @@ _xsampa2ipa = {
         '-':'',
         '@':'ə',
         '@\\':'ɘ',
-        '6\\':'ɚ',
+        '6\\':'ɚ', #Updated missing when transforming arpabet -> ipa -> xsampa
         '{':'æ',
         '}':'ʉ',
         '1':'ɨ',
         '2':'ø',
         '3':'ɜ',
         '3\\':'ɞ',
+        '3:':'ɝ', #Updated missing when transforming arpabet -> ipa -> xsampa
         '4':'ɾ',
         '5':'ɫ',
         '6':'ɐ',

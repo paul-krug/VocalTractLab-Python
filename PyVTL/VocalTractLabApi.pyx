@@ -42,6 +42,30 @@ import itertools
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	ctypedef enum SpectrumType:
+		NO_RADIATION,
+		PISTONINSPHERE_RADIATION,
+		PISTONINWALL_RADIATION,
+		PARALLEL_RADIATION,
+		NUM_RADIATION_OPTIONS,
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	ctypedef enum RadiationType:
+		SPECTRUM_UU,
+		SPECTRUM_PU,
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	cdef struct TransferFunctionOptions:
+		SpectrumType spectrumType,
+		RadiationType radiationType,
+		bool boundaryLayer,
+		bool heatConduction,
+		bool softWalls,
+		bool hagenResistance,
+		bool innerLengthCorrections,
+		bool lumpedElements,
+		bool paranasalSinuses,
+		bool piriformFossa,
+		bool staticPressureDrops,
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlCalcTongueRootAutomatically( bool automaticCalculation );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlClose();
@@ -50,15 +74,15 @@ cdef extern from "VocalTractLabApi.h":
 							const char *fileName
 							);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToAudio(	const char* gesFileName,
-									const char* wavFileName,
-									double* audio,
-									int* numSamples,
+	int vtlGesturalScoreToAudio(	const char *gesFileName,
+									const char *wavFileName,
+									double *audio,
+									int *numSamples,
 									int enableConsoleOutput
 									);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToTractSequence(	const char* gesFileName, 
-											const char* tractSequenceFileName
+	int vtlGesturalScoreToTractSequence(	const char *gesFileName, 
+											const char *tractSequenceFileName
 											);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetConstants(	int *audioSamplingRate,
@@ -67,9 +91,11 @@ cdef extern from "VocalTractLabApi.h":
 							int *numGlottisParams
 							);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGesturalScoreDuration(	const char* gesFileName,
-										int* numAudioSamples,
-										int* numGestureSamples
+	int vtlGetDefaultTransferFunctionOptions( TransferFunctionOptions *opts );
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlGetGesturalScoreDuration(	const char *gesFileName,
+										int *numAudioSamples,
+										int *numGestureSamples
 										);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetGlottisParamInfo(	char *names,
@@ -84,16 +110,23 @@ cdef extern from "VocalTractLabApi.h":
 								double *paramNeutral
 								);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetTractParams(	const char *shapeName,
-							double *param
-							);
+	int vtlGetTractParams( const char *shapeName,
+	                       double *param
+	                       );
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlGetTransferFunction( double *tractParams,
+	                            int numSpectrumSamples,
+	                            TransferFunctionOptions *opts,
+	                            double *magnitude,
+	                            double *phase_rad
+	                            );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	void vtlGetVersion( char *version );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlInitialize( const char *speakerFileName );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlInputTractToLimitedTract(	double* inTractParams,
-										double* outTractParams
+	int vtlInputTractToLimitedTract(	double *inTractParams,
+										double *outTractParams
 										);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlSegmentSequenceToGesturalScore(	const char *segFileName,
@@ -108,11 +141,20 @@ cdef extern from "VocalTractLabApi.h":
 						int enableConsoleOutput
 						);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlTractSequenceToAudio(	const char* tractSequenceFileName,
-									const char* wavFileName,
-									double* audio,
-									int* numSamples,
+	int vtlTractSequenceToAudio(	const char *tractSequenceFileName,
+									const char *wavFileName,
+									double *audio,
+									int *numSamples,
 									);
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlTractToTube( double *tractParams,
+	                    double *tubeLength_cm,
+	                    double *tubeArea_cm2,
+	                    int *tubeArticulator,
+	                    double *incisorPos_cm,
+	                    double *tongueTipSideElevation,
+	                    double *velumOpening_cm2
+	                    );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -307,6 +349,46 @@ def tract_sequence_to_svg(	tract_sequence_list,
 	args = [ [tract_sequence, svg_dir, fps ]
 	for tract_sequence, svg_dir in itertools.zip_longest( tract_sequence_list, svg_dir_list ) ]
 	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def tract_sequence_to_transfer_functions( tract_sequence,
+	                                      n_spectrum_samples: int = 8192,
+	                                      save_magnitude_spectrum: bool = True,
+	                                      save_phase_spectrum: bool = True,
+	                                      workers: int = None,
+	                                    ):
+	if not isinstance( tract_sequence, [ ts.Tract_Sequence or ts.Supra_Glottal_Sequence ] ):
+		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
+	tract_param_data = []
+	args = [ [ state,
+	           n_spectrum_samples,
+	           save_magnitude_spectrum,
+	           save_phase_spectrum ] 
+		for state in tract_sequence.tract.to_numpy() ]
+	tract_param_data = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def tract_sequence_to_tube_states( tract_sequence,
+	                               save_tube_length: bool = True,
+	                               save_tube_area: bool = True,
+	                               save_tube_articulator: bool = True,
+	                               save_incisor_position: bool = True,
+	                               save_tongue_tip_side_elevation: bool = True,
+	                               save_velum_opening: bool = True,
+	                               workers: int = None,
+	                             ):
+	if not isinstance( tract_sequence, [ ts.Tract_Sequence or ts.Supra_Glottal_Sequence ] ):
+		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
+	tract_param_data = []
+	args = [ [ state,
+	           save_tube_length,
+	           save_tube_area,
+	           save_tube_articulator,
+	           save_incisor_position,
+	           save_tongue_tip_side_elevation,
+	           save_velum_opening ] 
+		for state in tract_sequence.tract.to_numpy() ]
+	tract_param_data = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -510,7 +592,65 @@ def _tract_sequence_to_svg( args ):
 		fileName = ( svg_dir + '/tract_{}.svg'.format( index ) ).encode()
 		vtlExportTractSvg( &tractParams[0], fileName )
 	return
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _tract_state_to_transfer_function( args ):
+	tract_state, n_spectrum_samples, save_magnitude_spectrum, save_phase_spectrum = args
+	magnitude_spectrum = None
+	phase_spectrum = None
+	cdef int numSpectrumSamples = n_spectrum_samples
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_state.ravel()
+	cdef np.ndarray[ np.float64_t, ndim=1 ] magnitude = np.zeros( n_spectrum_samples, dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=1 ] phase_rad = np.zeros( n_spectrum_samples, dtype='float64' )
+	value = vtlGetTransferFunction( &tractParams[0],
+	                                numSpectrumSamples,
+	                                NULL,
+	                                &magnitude[0],
+	                                &phase_rad[0],
+	                              )
+	if save_magnitude_spectrum:
+		magnitude_spectrum = np.array( magnitude )
+	if save_phase_spectrum:
+		phase_spectrum = np.array( phase_rad )
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _tract_state_to_tube_state( args ):
+	tract_state, save_tube_length, save_tube_area, save_tube_articulator, save_incisor_position, save_tongue_tip_side_elevation, save_velum_opening = args
+	tube_length = None
+	tube_area = None
+	tube_articulator = None
+	incisor_position = None
+	tongue_tip_side_elevation = None
+	velum_opening = None
+	constants = get_constants()
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_state.ravel()
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tubeLength_cm = np.zeros( constants[ 'n_tube_sections' ], dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tubeArea_cm2 = np.zeros( constants[ 'n_tube_sections' ], dtype='float64' )
+	cdef np.ndarray[ int, ndim=1 ] tubeArticulator = np.zeros( constants[ 'n_tube_sections' ], dtype='i' )
+	cdef double incisorPos_cm = 0.0
+	cdef double tongueTipSideElevation = 0.0
+	cdef double velumOpening_cm2 = 0.0
+	vtlTractToTube( &tractParams[0],
+	                &tubeLength_cm[0],
+	                &tubeArea_cm2[0],
+	                &tubeArticulator[0],
+	                &incisorPos_cm,
+	                &tongueTipSideElevation,
+	                &velumOpening_cm2
+	                )
+	if save_tube_length:
+		tube_length = np.array( tubeLength_cm )
+	if save_tube_area:
+		tube_area = np.array( tubeArea_cm2 )
+	if save_tube_articulator:
+		tube_articulator = np.array( tubeArticulator )
+	if save_incisor_position:
+		incisor_position = incisorPos_cm
+	if save_tongue_tip_side_elevation:
+		tongue_tip_side_elevation = tongueTipSideElevation
+	if save_velum_opening:
+		velum_opening = velumOpening_cm2
+	return ts.Tube_State( tube_length, tube_area, tube_articulator, incisor_position, tongue_tip_side_elevation, velum_opening )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
 
@@ -556,7 +696,7 @@ def _worker( args ):
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 atexit.register( _close )
-_initialize( os.path.join( os.path.dirname(__file__), 'Speaker/JD2.speaker' ) )
+_initialize( os.path.join( os.path.dirname(__file__), 'speaker/JD2.speaker' ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
