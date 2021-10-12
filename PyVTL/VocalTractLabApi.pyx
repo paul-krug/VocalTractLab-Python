@@ -23,6 +23,7 @@ from cpython.pycapsule cimport *
 #from libc.stdlib cimport malloc, free
 
 import PyVTL.tract_sequence as ts
+import PyVTL.frequency_domain as fds
 import PyVTL.audio_tools as AT
 import PyVTL.function_tools as FT
 import librosa
@@ -357,7 +358,7 @@ def tract_sequence_to_transfer_functions( tract_sequence,
 	                                      save_phase_spectrum: bool = True,
 	                                      workers: int = None,
 	                                    ):
-	if not isinstance( tract_sequence, [ ts.Tract_Sequence or ts.Supra_Glottal_Sequence ] ):
+	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ [ state,
@@ -365,8 +366,8 @@ def tract_sequence_to_transfer_functions( tract_sequence,
 	           save_magnitude_spectrum,
 	           save_phase_spectrum ] 
 		for state in tract_sequence.tract.to_numpy() ]
-	tract_param_data = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
-	return
+	transfer_functions = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
+	return transfer_functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def tract_sequence_to_tube_states( tract_sequence,
 	                               save_tube_length: bool = True,
@@ -377,7 +378,7 @@ def tract_sequence_to_tube_states( tract_sequence,
 	                               save_velum_opening: bool = True,
 	                               workers: int = None,
 	                             ):
-	if not isinstance( tract_sequence, [ ts.Tract_Sequence or ts.Supra_Glottal_Sequence ] ):
+	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ [ state,
@@ -388,8 +389,8 @@ def tract_sequence_to_tube_states( tract_sequence,
 	           save_tongue_tip_side_elevation,
 	           save_velum_opening ] 
 		for state in tract_sequence.tract.to_numpy() ]
-	tract_param_data = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
-	return
+	tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
+	return tube_states
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -611,7 +612,7 @@ def _tract_state_to_transfer_function( args ):
 		magnitude_spectrum = np.array( magnitude )
 	if save_phase_spectrum:
 		phase_spectrum = np.array( phase_rad )
-	return
+	return fds.Transfer_Function( magnitude_spectrum, phase_spectrum, n_spectrum_samples )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_tube_state( args ):
 	tract_state, save_tube_length, save_tube_area, save_tube_articulator, save_incisor_position, save_tongue_tip_side_elevation, save_velum_opening = args
