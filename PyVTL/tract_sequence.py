@@ -305,3 +305,73 @@ class Target_Sequence():
 	def plot():
 		return str( self.tract )
 #####################################################################################################################################################
+
+
+
+
+
+import PyVTL.VocalTractLabApi as vtl
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+
+
+def multiple_formatter( denominator=2, number=np.pi, latex='\\pi' ):
+	def gcd(a, b):
+		while b:
+			a, b = b, a%b
+		return a
+	def _multiple_formatter(x, pos):
+		den = denominator
+		num = np.int(np.rint(den*x/number))
+		com = gcd(num,den)
+		(num,den) = (int(num/com),int(den/com))
+		if den==1:
+			if num==0:
+				return r'$0$'
+			if num==1:
+				 return r'$%s$'%latex
+			elif num==-1:
+				return r'$-%s$'%latex
+			else:
+				return r'$%s%s$'%(num,latex)
+		else:
+			if num==1:
+				return r'$\frac{%s}{%s}$'%(latex,den)
+			elif num==-1:
+				return r'$\frac{-%s}{%s}$'%(latex,den)
+			else:
+				return r'$\frac{%s%s}{%s}$'%(num,latex,den)
+	return _multiple_formatter
+class Multiple:
+	def __init__(self, denominator=2, number=np.pi, latex='\\pi'):
+		self.denominator = denominator
+		self.number = number
+		self.latex = latex
+	def locator(self):
+		return plt.MultipleLocator(self.number / self.denominator)
+	def formatter(self):
+		return plt.FuncFormatter(multiple_formatter(self.denominator, self.number, self.latex))
+
+
+
+
+#####################################################################################################################################################
+class Tube_State():
+	def __init__( self, 
+		          tube_length,
+		          tube_area,
+		          tube_articulator,
+		          incisor_position,
+		          tongue_tip_side_elevation,
+		          velum_opening,
+		          ):
+		self.tube_length = tube_length
+		self.tube_area = tube_area
+		self.tube_articulator = tube_articulator
+		self.incisor_position = incisor_position
+		self.tongue_tip_side_elevation = tongue_tip_side_elevation
+		self.velum_opening = velum_opening
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
