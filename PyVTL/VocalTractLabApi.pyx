@@ -332,9 +332,9 @@ def tract_sequence_to_limited_tract_sequence(	tract_sequence: ts.Tract_Sequence,
 												workers: int = None, 
 											):
 	tract_param_data = []
-	args = [ [state] for state in tract_sequence.tract.to_numpy() ]
+	args = [ state for state in tract_sequence.tract.to_numpy() ]
 	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
-	return ts.Supra_Glottal_Sequence( tract_param_data )
+	return ts.Supra_Glottal_Sequence( np.array( tract_param_data ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def tract_sequence_to_svg(	tract_sequence_list,
 							svg_dir_list = None,
