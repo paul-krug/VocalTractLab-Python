@@ -45,7 +45,7 @@ def check_if_list_is_valid( input_list, instances ):
 	if input_list and all( isinstance( x, instances ) for x in input_list ):
 		return input_list
 	else:
-		raise TypeError( 'a list containing a non-{} type object was passed, but list of {} was expected.'.format( instances, instances ) )
+		raise TypeError( 'a list containing a {} - type object was passed, but list of {} was expected.'.format( type( input_list ), instances ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def check_if_all_elements_are_equal( iterable ):
 	g = itertools.groupby(iterable)

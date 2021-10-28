@@ -60,7 +60,7 @@ class Segment_Sequence():
 	"""PyVTL segment sequences""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self, phonemes: list, durations: list, onset_duration: float, offset_duration: float = None ):
-		self.durations = FT.check_if_list_is_valid( durations, (int, float) )
+		self.durations = FT.check_if_list_is_valid( durations, (int, float, np.float64) )
 		self.phonemes = FT.check_if_list_is_valid( phonemes, (str) )
 		self.onset_duration = onset_duration
 		self.offset_duration = offset_duration
@@ -144,19 +144,19 @@ class Segment_Sequence():
 				self.effect[ index ] = 'elision'
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def export_seg( self, file_path, account_for_effects = False ):
-		assert len( self._phonemes ) == len( self._boundaries.times ) - 1, 'Lengths do not match'
-		out_file = open( file_path, 'w+' )
-		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.silence_onset ) )
-		for index, phoneme in enumerate( self._phonemes ):
-			if account_for_effects == False or ( account_for_effects == True and self.effect[ index ] != 'elision' ):
-				if self.effect[ index ] != None and self.effect[ index ] != 'elision':
-					output_phone = self.effect[ index ]
-				else:
-					output_phone = phoneme.name
-				out_file.write( 'name = {}; duration_s = {};\n'.format( output_phone, self._boundaries.intervals[ index ] ) )
-		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.silence_offset ) )
-		return
+#	def export_seg( self, seg_file_path, account_for_effects = False ): Deprecated use to_seg_file instead
+#		assert len( self.phonemes ) == len( self.durations ), 'Lengths do not match'
+#		out_file = open( seg_file_path, 'w+' )
+#		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.onset_duration ) )
+#		for index, phoneme in enumerate( self.phonemes ):
+#			if account_for_effects == False or ( account_for_effects == True and self.effect[ index ] != 'elision' ):
+#				if self.effect[ index ] != None and self.effect[ index ] != 'elision':
+#					output_phone = self.effect[ index ]
+#				else:
+#					output_phone = phoneme
+#				out_file.write( 'name = {}; duration_s = {};\n'.format( output_phone, self.durations[ index ] ) )
+#		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.offset_duration ) )
+#		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_variants( self, account_for_effects = 'on' ):
 		assert len( self._phonemes ) == len( self._boundaries.times ) - 1, 'Lengths do not match'
