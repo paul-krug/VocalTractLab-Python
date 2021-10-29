@@ -84,26 +84,43 @@ class Transfer_Function():
 			peaks = peaks[ : 4 ]
 		return peaks
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, parameters = [ 'frequency', 'phase' ], plot_formants = True ): #, scale = 'dB' ):
-
-		figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
-		#figure.suptitle( 'Sharing both axes' )
-		#parameters = self.tract.columns
-
+	def plot( self, 
+	axs: list = None, 
+	parameters = [ 'frequency', 'phase' ], 
+	plot_formants = True, 
+	plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ] 
+	): #, scale = 'dB' ):
+		if axs == None:
+			figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
 		for index, parameter in enumerate( parameters ):
 			if parameter == 'frequency':
 				y = librosa.amplitude_to_db( self.data[ parameter ] )
+				continuities = [ slice( 0, len(y) ) ]
 				y_title = 'Intensity [dB]'
+				_min = np.min( y )
+				_max = np.max( y )
+				axs[ index ].set( ylim = [ _min - 0.1 * np.abs( _max - _min ), _max + 0.1 * np.abs( _max - _min ) ] )
+				axs[ index ].locator_params( axis = 'y', nbins = 4 )
 			elif parameter == 'phase':
+				continuities = []
+				y = self.data[ parameter ]
+				tmp_idx = 0
+				for idx in range( 0, len(y) - 1 ):
+					if np.abs( y[idx] - y[idx+1] ) > 1.552:
+						continuities.append( slice( tmp_idx, idx+1 ) )
+						tmp_idx = idx + 1
+
 				y = self.data[ parameter ]
 				y_title = 'Phase'
 				axs[ index ].yaxis.set_major_locator(plt.MultipleLocator(np.pi / 2))
 				#axs[ index ].yaxis.set_minor_locator(plt.MultipleLocator(np.pi / 12))
 				axs[ index ].yaxis.set_major_formatter(plt.FuncFormatter(multiple_formatter()))
+				axs[ index ].set( ylim = [ -3.76, 3.76 ] )
 			else:
 				raise ValueError( 'parameters must be frequency and/or phase! Passed values are: {}'.format( parameters ) )
-
-			axs[ index ].plot( np.arange( 0, self.n_spectrum_samples, self.delta_frequency ), y )
+			x = np.arange( 0, self.n_spectrum_samples, self.delta_frequency )
+			for _slice in continuities:
+				axs[ index ].plot( x[ _slice ], y[ _slice ], **plot_kwargs[ index ] )
 			axs[ index ].set( ylabel = y_title )
 		plt.xlabel( 'Frequency [Hz]' )
 		if plot_formants:
@@ -112,6 +129,7 @@ class Transfer_Function():
 					ax.axvline( formant, color = 'gray', ls = '--' )
 		for ax in axs:
 		    ax.label_outer()
-		figure.align_ylabels( axs[:] )
-		plt.show()
+		
+		#figure.align_ylabels( axs[:] )
+		#plt.show()
 		return

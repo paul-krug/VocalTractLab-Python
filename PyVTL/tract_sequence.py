@@ -375,3 +375,31 @@ class Tube_State():
 		self.velum_opening = velum_opening
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, 
+	          ax = None, 
+			  **kwargs,
+	          ):
+		if ax == None:
+			pass #Implement
+		tube_x = x = [ self.tube_length[ 0 ] ]
+		for length in self.tube_length[ 1: ]:
+			tube_x.append( x[ -1 ] + length )
+		x = np.arange( 0, np.sum( self.tube_length ), 0.01 )
+		y = []
+		tmp_length = 0
+		for index, _ in enumerate( self.tube_length ): 
+			for val in x:
+				if val >= tmp_length:
+					if val <= tube_x[ index ]:
+						y.append( self.tube_area[ index ] )
+					else:
+						tmp_length = tube_x[ index ]
+						break
+		#y = [ val for val in x  ]
+		#x = [ self.tube_length[ 0 ] ]
+		#for length in self.tube_length[ 1: ]:
+		#	x.append( x[ -1 ] + length )
+		ax.plot( x, y, **kwargs )
+		ax.set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
