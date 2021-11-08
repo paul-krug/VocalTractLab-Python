@@ -1,8 +1,18 @@
 
 import numpy as np
+import pandas as pd
 from scipy.special import binom
 from scipy.special import factorial
 import matplotlib.pyplot as plt
+from itertools import zip_longest
+from PyVTL import plotting_tools as PT
+from PyVTL import function_tools as FT
+from PyVTL import tract_sequence as TS
+import PyVTL.VocalTractLabApi as vtl
+from collections import Counter
+
+def get_name_of( variable ):
+	return [ k for k, v in locals().items() if v is variable ][ 0 ]
 
 
 #####################################################################################################################################################
@@ -11,13 +21,21 @@ class Target():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, onset_time, duration, slope, offset, time_constant ):
+	def __init__( self,
+		          onset_time: float = 0.0, 
+		          duration: float = 1.0, 
+		          slope: float = 0.0, 
+		          offset: float = 1.0, 
+		          time_constant = 0.015,
+		          ):
 		self.onset_time = onset_time
 		self.offset_time = onset_time + duration
 		self.duration = duration
 		self.slope = slope
 		self.offset = offset
 		self.time_constant = time_constant
+		self.m = slope
+		self.b = offset
 		self.tau = time_constant
 		return
 	# def __init__( self, onset_time, offset_time, slope, offset, time_constant ):
@@ -56,54 +74,164 @@ class Target_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, targets ):
-		self.targets = targets
+	def __init__( self,
+		          onset_time = 0.0,
+		          durations: list = [],
+		          slopes: list = [],
+		          offsets: list = [],
+		          time_constants: list = [], 
+		          targets: list = None,
+		          name = '',
+		          ):
+		if targets != None:
+			self.targets = targets
+		else:
+			self.targets = []
+			function_argument_names = [ 'duration', 'slope', 'offset', 'time_constant' ]
+			for idx_target, args in enumerate( zip_longest( durations, slopes, offsets, time_constants ) ):
+				kwargs = {}
+				kwargs[ 'onset_time' ] = onset_time
+				for idx_member, arg in enumerate( args ):
+					if arg != None:
+						kwargs[ function_argument_names[ idx_member ] ] = arg
+				self.targets.append( Target( **kwargs ) )
+				onset_time += self.targets[-1].duration
+		self.name = name
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self, ):
+		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
+		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, ax = None, plot_contour = True, plot_targets = True, show = True ):
 		if ax == None:
 			figure, ax = plt.subplots( 1, figsize = (8, 4/3) )#, sharex = True, gridspec_kw = {'hspace': 0} )
 		if plot_contour:
-			tam = tg.Target_Approximation_Model()
+			tam = Target_Approximation_Model()
 			contour = tam.response( self.targets )
 			ax.plot( contour[ :, 0 ], contour[ :, 1 ], color = 'navy' )
+			ax.set( ylim = ( PT.get_plot_limits( contour[ :, 1 ], 0.3 ) ) )
 		if plot_targets:
 			ax.axvline( self.targets[0].onset_time, color = 'black' )
+			y_data = []
 			for tar in self.targets:
 				ax.axvline( tar.offset_time, color = 'black' )
-				ax.plot( [ tar.onset_time, tar.offset_time ], 
-				         [ tar.slope * (tar.onset_time-tar.onset_time) + tar.offset, tar.slope * (tar.offset_time-tar.onset_time) + tar.offset ],
-				         color = 'black', linestyle='--' )
+				x = [ tar.onset_time, tar.offset_time ]
+				y = [ tar.slope * (tar.onset_time-tar.onset_time) + tar.offset, tar.slope * (tar.offset_time-tar.onset_time) + tar.offset ]
+				ax.plot( x, y, color = 'black', linestyle='--' )
+				y_data.append( y )
+			if not plot_contour:
+				ax.set( ylim = ( PT.get_plot_limits( y_data, 0.3 ) ) )
 		ax.set( xlabel = 'Time [s]', ylabel = self.name )
+		ax.label_outer()
 		if show:
 			plt.tight_layout()
 			plt.show()
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
 
 
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-class Synchronous_Target_Sequence():
+class Synchronous_Target_Score():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, 
-		          targets = None,
-		          onset_duration = 0,
-		          duration = 0.5,
-		          slope = 0,
-		          offset = 0,
-		          time_constant = 0.015,
-		          name = '',
+	def __init__( self,
+		          durations: list,
+		          names: list,
+		          onset_time: float = 0.0,
+		          slope_score: list = [],
+		          offset_score: list = [],
+		          time_constant_score: list = [],
 		          ):
-		self.targets = []
-		for offset in offsets:
-			self.targets.append( Target( onset_time, offset_time, slope, offset, time_constant ) )
+		onset_time = onset_time
+		self.target_sequences = []
+		for args in zip_longest( names, slope_score, offset_score, time_constant_score ):
+			print( 'args: {}'.format(args) )
+			args_corrected = []
+			for x in args:
+				try:
+					if x == None:
+						args_corrected.append( [] )
+					else:
+						args_corrected.append( x )
+				except Exception:
+					args_corrected.append( x )
+			args = args_corrected
+			print( args )
+			#args = [ [] if (not isinstance( x, list) ) and (x == None) else x for x in args]
+			name, slopes, offsets, time_constants = args
+			print( 'na,e:{}, slopes:{}, off:{}, tico:{}'.format( name, slopes, offsets, time_constants) )
+			self.target_sequences.append( Target_Sequence( onset_time, durations, slopes, offsets, time_constants, name = name ) )
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, ax = None, plot_contour = True, plot_targets = True, show = True ):
+		if ax == None:
+			figure, axs = plt.subplots( len(self.target_sequences), figsize = (8, 4/3 * len(self.target_sequences) ), sharex = True, gridspec_kw = {'hspace': 0} )
+		for index, target_sequence in enumerate( self.target_sequences ):
+			target_sequence.plot( ax = axs[ index ], plot_contour = plot_contour, plot_targets= plot_targets, show=False )
+		figure.align_ylabels( axs[:] )
+		plt.tight_layout()
+		plt.show()
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
+
+
+
+
+#####################################################################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+class Supra_Glottal_Motor_Score( Synchronous_Target_Score ):
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __init__( self, target_scores
+		          ):
+		self.target_scores = target_scores
+		self.target_sequences = [ target_sequence for target_score in self.target_scores for target_sequence in target_score.target_sequences ]
+		self.tiers = [ target_sequence.name for target_sequence in self.target_sequences ]
+		self.param_info = vtl.get_param_info( 'tract' )
+		print( self.param_info.index )
+		if  Counter( self.tiers ) != Counter( self.param_info.index ):
+			raise ValueError( 'Tiers in Motor Score are {}, but should be {}.'.format( self.tiers, self.param_info.index ) )
+		self.target_sequences.sort( key = lambda i: list( self.param_info.index ).index( i.name ) )
+		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_supra_glottal_sequence( cls,
+		                             supra_glottal_sequence,
+		                             synchronous = [ [ 'VO', 'HX' ], [ 'other' ] ],
+		                             durations = [ [0.5,0.2], [0.3,0.4] ],
+		                             slopes = None,
+		                             time_constants = None,
+		                             onset_time = 0.0 ):
+		if not isinstance( supra_glottal_sequence, ( TS.Supra_Glottal_Sequence, TS.Tract_Sequence ) ):
+			raise ValueError( 'Passed argument supra_glottal_sequence is of type {}, but should be {} or {}.'.format( type(supra_glottal_sequence),
+			type(TS.Supra_Glottal_Sequence ), type( TS.Tract_Sequence ) ) )
+		target_scores = []
+		for synchronous_tiers, durations in zip( synchronous, durations ):
+			if 'other' in synchronous_tiers:
+				synchronous_tiers = [ x for x in supra_glottal_sequence.tract.columns if x not in sum( synchronous, [] ) ]
+			print( synchronous_tiers )
+			offsets = supra_glottal_sequence.tract[ synchronous_tiers ].to_numpy().T
+			print(offsets)
+			target_scores.append( Synchronous_Target_Score( durations, synchronous_tiers, onset_time, offset_score = offsets ) )
+		return cls( target_scores )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	# def plot( self,  ):
+	# 	for tract_score in self.tract_scores:
+	# 		tract_score.plot( plot_contour=True )
+	# 	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+
+
 
 
 #####################################################################################################################################################
@@ -119,6 +247,11 @@ class Motor_Score():
 		self.tract_targets = supra_glottal_target_sequence.tract_targets
 		self.glottis_targets = sub_glottal_target_sequence.glottis_targets
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_tract_sequence( cls, tract_sequence ):
+		
+		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
 		figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
