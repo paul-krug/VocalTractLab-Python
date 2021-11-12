@@ -38,17 +38,17 @@ GeometricGlottis::GeometricGlottis()
 
   Parameter cp[NUM_CONTROL_PARAMS] =
   {
-    { "f0", "f0", "Hz", 1, "Hz", 40.0, 600.0, 120.0, 0.0 },
-    { "Subglottal pressure", "pressure", "dPa", 1.0, "dPa", 0.0, 20000.0, 8000.0, 0.0 },
-    { "Lower displacement", "x_bottom", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
-    { "Upper displacement", "x_top", "cm", 10.0, "mm", -0.05, 0.3, 0.02, 0.0 },
-    { "Chink area", "chink_area", "cm^2", 100.0, "mm^2", -0.25, 0.25, 0.05, 0.0 },
-    { "Phase lag", "lag", "rad", 57.296, "deg", 0.0, 3.1415, 1.22, 0.0 },
-    { "Relative amplitude", "rel_amp", "", 1.0, "", -1.0, 1.0, 1.0, 1.0 },
-    { "Double pulsing", "double_pulsing", "", 1.0, "", 0.0, 1.0, 0.05, 0.0 },
-    { "Pulse skewness", "pulse_skewness", "", 1.0, "", -0.5, 0.5, 0.0, 0.0 },
-    { "Flutter", "flutter", "%", 1.0, "%", 0.0, 100.0, 25.0, 25.0 },
-    { "Aspiration strength", "aspiration_strength", "dB", 1, "dB", -40.0, 0.0, -10.0, -10.0 }
+    { "F0", "Fundamental frequency", "Hz", 1, "Hz", 40.0, 600.0, 120.0, 0.0 },
+    { "PR", "Lung pressure", "dPa", 1.0, "dPa", 0.0, 20000.0, 8000.0, 0.0 },
+    { "XB", "Lower displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
+    { "XT", "Upper displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.02, 0.0 },
+    { "CA", "Chink area", "cm^2", 100.0, "mm^2", -0.25, 0.25, 0.05, 0.0 },
+    { "PL", "Phase lag", "rad", 57.296, "deg", 0.0, 3.1415, 1.22, 0.0 },
+    { "RA", "Relative amplitude", "", 1.0, "", -1.0, 1.0, 1.0, 1.0 },
+    { "DP", "Double pulsing", "", 1.0, "", 0.0, 1.0, 0.05, 0.0 },
+    { "PS", "Pulse skewness", "", 1.0, "", -0.5, 0.5, 0.0, 0.0 },
+    { "FL", "Flutter", "%", 1.0, "%", 0.0, 100.0, 25.0, 25.0 },
+    { "AS", "Aspiration strength", "dB", 1, "dB", -40.0, 0.0, -10.0, -10.0 }
   };
 
   controlParam.clear();
@@ -64,10 +64,10 @@ GeometricGlottis::GeometricGlottis()
 
   Parameter sp[NUM_STATIC_PARAMS] =
   {
-    { "Rest thickness", "rest_thickness", "cm", 10, "mm", 0.3, 1.0, 0.45, 0.0 },
-    { "Rest length", "rest_length", "cm", 10, "mm", 0.5, 2.0, 1.6, 0.0 },
-    { "Rest f0", "rest_f0", "Hz", 1.0, "Hz", 50.0, 400.0, 120.0, 120.0 },
-    { "Chink length", "chink_length", "cm", 10, "mm", 0.1, 0.5, 0.4, 0.0 }
+    { "RT",  "Rest thickness", "cm", 10, "mm", 0.3, 1.0, 0.45, 0.0 },
+    { "RL",  "Rest length", "cm", 10, "mm", 0.5, 2.0, 1.6, 0.0 },
+    { "RF0", "Rest f0", "Hz", 1.0, "Hz", 50.0, 400.0, 120.0, 120.0 },
+    { "CL",  "Chink length", "cm", 10, "mm", 0.1, 0.5, 0.4, 0.0 }
   };
 
   staticParam.clear();
@@ -83,14 +83,14 @@ GeometricGlottis::GeometricGlottis()
 
   Parameter dp[NUM_DERIVED_PARAMS] =
   {
-    { "Length", "length", "cm", 10, "mm", 0.0, 3.0, 0.0, 0.0 },
-    { "Thickness", "thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
-    { "Vibration amplitude", "amplitude", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Lower cord x", "lower_cord_x", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Upper cord x", "upper_cord_x", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Lower glottal area", "lower_area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
-    { "Upper glottal area", "upper_area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
-    { "Chink width", "chink_width", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 }
+    { "L", "Length", "cm", 10, "mm", 0.0, 3.0, 0.0, 0.0 },
+    { "T", "Thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
+    { "VA", "Vibration amplitude", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "LCX", "Lower cord x", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "UCX", "Upper cord x", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "LGA", "Lower glottal area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
+    { "UGA", "Upper glottal area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
+    { "CW", "Chink width", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 }
   };
 
   derivedParam.clear();

@@ -52,6 +52,7 @@
     <ClInclude Include="VocalTractLabApi.h" />
     <ClInclude Include="VoiceQualityEstimator.h" />
     <ClInclude Include="VowelLf.h" />
+    <ClInclude Include="XmlExceptions.h" />
     <ClInclude Include="XmlHelper.h" />
     <ClInclude Include="XmlNode.h" />
   </ItemGroup>

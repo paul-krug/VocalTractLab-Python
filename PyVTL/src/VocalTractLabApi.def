@@ -7,6 +7,7 @@ vtlGetVersion
 vtlGetConstants
 vtlGetTractParamInfo
 vtlGetGlottisParamInfo
+vtlGetGlottisParams
 vtlGetTractParams
 vtlExportTractSvg
 vtlTractToTube

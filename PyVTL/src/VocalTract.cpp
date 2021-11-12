@@ -150,25 +150,25 @@ void VocalTract::init()
     "  <subglottal_cavity length=\"23.0\"/>\n"
 	  "  <nasal_cavity length=\"11.4\"/>\n"
     "  <!--****************************************************************************-->\n"
-    "  <param index=\"0\"  name=\"HX\"   min=\"0.0\"   max=\"1.0\"   neutral=\"1.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"1\"  name=\"HY\"   min=\"-6.0\"  max=\"-3.5\"  neutral=\"-4.75\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"2\"  name=\"JX\"   min=\"-0.5\"  max=\"0.0\"   neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"3\"  name=\"JA\"   min=\"-7.0\"  max=\"0.0\"   neutral=\"-2.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"4\"  name=\"LP\"   min=\"-1.0\"  max=\"1.0\"   neutral=\"-0.07\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"5\"  name=\"LD\"   min=\"-2.0\"  max=\"4.0\"   neutral=\"0.95\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"6\"  name=\"VS\"  min=\"0.0\"   max=\"1.0\"   neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"7\"  name=\"VO\"  min=\"-0.1\"   max=\"1.0\"   neutral=\"-0.1\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"8\"  name=\"TCX\"  min=\"-3.0\"  max=\"4.0\"   neutral=\"-0.4\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"9\"  name=\"TCY\"  min=\"-3.0\"  max=\"1.0\"   neutral=\"-1.46\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"10\" name=\"TTX\"   min=\"1.5\"   max=\"5.5\"   neutral=\"3.5\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"11\" name=\"TTY\"  min=\"-3.0\"  max=\"2.5\"   neutral=\"-1.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"12\" name=\"TBX\"  min=\"-3.0\"  max=\"4.0\"   neutral=\"2.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"13\" name=\"TBY\"  min=\"-3.0\"  max=\"5.0\"   neutral=\"0.5\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"14\" name=\"TRX\"  min=\"-4.0\"  max=\"2.0\"   neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"15\" name=\"TRY\"  min=\"-6.0\"  max=\"0.0\"   neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"16\" name=\"TS1\"  min=\"0.0\" max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n"  
-    "  <param index=\"17\" name=\"TS2\"  min=\"0.0\" max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
-    "  <param index=\"18\" name=\"TS3\"  min=\"-1.0\" max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\"   negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"0\"  name=\"HX\"  description=\"Hyoid position (horz.)\"  unit=\"cm\"   min=\"0.0\"  max=\"1.0\"  neutral=\"1.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"1\"  name=\"HY\"  description=\"Hyoid position (vert.)\"  unit=\"cm\"   min=\"-6.0\" max=\"-3.5\" neutral=\"-4.75\" positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"2\"  name=\"JX\"  description=\"Jaw position (horz.)\"    unit=\"cm\"   min=\"-0.5\" max=\"0.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"3\"  name=\"JA\"  description=\"Jaw angle\"               unit=\"deg.\" min=\"-7.0\" max=\"0.0\"  neutral=\"-2.0\"  positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"4\"  name=\"LP\"  description=\"Lip protrusion\"          unit=\"cm\"   min=\"-1.0\" max=\"1.0\"  neutral=\"-0.07\" positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"5\"  name=\"LD\"  description=\"Lip distance\"            unit=\"cm\"   min=\"-2.0\" max=\"4.0\"  neutral=\"0.95\"  positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"6\"  name=\"VS\"  description=\"Velum shape\"             unit=\"\"     min=\"0.0\"  max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"7\"  name=\"VO\"  description=\"Velum opening\"           unit=\"cm^2\" min=\"-0.1\" max=\"1.0\"  neutral=\"-0.1\"  positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"8\"  name=\"TCX\" description=\"Tongue body (horz.)\"     unit=\"cm\"   min=\"-3.0\" max=\"4.0\"  neutral=\"-0.4\"  positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"9\"  name=\"TCY\" description=\"Tongue body (vert.)\"     unit=\"cm\"   min=\"-3.0\" max=\"1.0\"  neutral=\"-1.46\" positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"10\" name=\"TTX\" description=\"Tongue tip (horz.)\"      unit=\"cm\"   min=\"1.5\"  max=\"5.5\"  neutral=\"3.5\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"11\" name=\"TTY\" description=\"Tongue tip (vert.)\"      unit=\"cm\"   min=\"-3.0\" max=\"2.5\"  neutral=\"-1.0\"  positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"12\" name=\"TBX\" description=\"Tongue blade (horz.)\"    unit=\"cm\"   min=\"-3.0\" max=\"4.0\"  neutral=\"2.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"13\" name=\"TBY\" description=\"Tongue blade (vert.)\"    unit=\"cm\"   min=\"-3.0\" max=\"5.0\"  neutral=\"0.5\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"14\" name=\"TRX\" description=\"Tongue root (horz.)\"     unit=\"cm\"   min=\"-4.0\" max=\"2.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"15\" name=\"TRY\" description=\"Tongue root (vert.)\"     unit=\"cm\"   min=\"-6.0\" max=\"0.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"16\" name=\"TS1\" description=\"Tongue side elevation 1\" unit=\"cm\"   min=\"0.0\"  max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n"  
+    "  <param index=\"17\" name=\"TS2\" description=\"Tongue side elevation 2\" unit=\"cm\"   min=\"0.0\"  max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
+    "  <param index=\"18\" name=\"TS3\" description=\"Tongue side elevation 3\" unit=\"cm\"   min=\"-1.0\" max=\"1.0\"  neutral=\"0.0\"   positive_velocity_factor=\"1.0\" negative_velocity_factor=\"1.0\"/>\n" 
     "</anatomy>";
 
   // ****************************************************************
@@ -192,30 +192,6 @@ void VocalTract::init()
 
   // Delete the XML-tree.
   delete node;
-
-  // ****************************************************************
-  // Init. the long names of the parameters.
-  // ****************************************************************
-
-  param[HX].name = "Horz. hyoid pos.";
-  param[HY].name = "Vert. hyoid pos.";
-  param[JX].name = "Horz. jaw pos.";
-  param[JA].name = "Jaw angle (deg.)";
-  param[LP].name = "Lip protrusion";
-  param[LD].name = "Lip distance";
-  param[VS].name = "Velum shape";
-  param[VO].name = "Velic opening";
-  param[TCX].name = "Tongue body X";
-  param[TCY].name = "Tongue body Y";
-  param[TTX].name = "Tongue tip X";
-  param[TTY].name = "Tongue tip Y";
-  param[TBX].name = "Tongue blade X";
-  param[TBY].name = "Tongue blade Y";
-  param[TRX].name = "Tongue root X";
-  param[TRY].name = "Tongue root Y";
-  param[TS1].name = "Tongue side elevation 1";
-  param[TS2].name = "Tongue side elevation 2";
-  param[TS3].name = "Tongue side elevation 3";
 
 
   // ****************************************************************
@@ -1517,7 +1493,9 @@ void VocalTract::readAnatomyXml(XmlNode *anatomyNode)
       }
       paramRead[m] = true;    // Mark this parameter as read/initialized
 
-      XmlHelper::readAttribute(node, "name", param[m].abbr);
+      XmlHelper::readAttribute(node, "name", param[m].name);
+      XmlHelper::readAttribute(node, "description", param[m].description);
+      XmlHelper::readAttribute(node, "unit", param[m].unit);
       XmlHelper::readAttribute(node, "min", param[m].min);
       XmlHelper::readAttribute(node, "max", param[m].max);
       XmlHelper::readAttribute(node, "neutral", param[m].neutral);
@@ -1619,7 +1597,7 @@ void VocalTract::readShapesXml(XmlNode *shapeListNode)
       n = -1;
       for (m=0; (m < NUM_PARAMS) && (n == -1); m++)
       {
-        if (paramName == param[m].abbr) 
+        if (paramName == param[m].name) 
         { 
           n = m; 
         }
@@ -1886,7 +1864,7 @@ void VocalTract::writeAnatomyXml(ostream &os, int indent)
   {
     sprintf(st, "<param index=\"%d\"  name=\"%s\"  min=\"%2.3f\"  max=\"%2.3f\"  neutral=\"%2.3f\"  "
       "positive_velocity_factor=\"%2.3f\"  negative_velocity_factor=\"%2.3f\" />",
-      i, param[i].abbr.c_str(), param[i].min, param[i].max, param[i].neutral,
+      i, param[i].name.c_str(), param[i].min, param[i].max, param[i].neutral,
       anatomy.positiveVelocityFactor[i], anatomy.negativeVelocityFactor[i]);
     os << string(indent, ' ') << st << endl;
   }
@@ -1925,7 +1903,7 @@ void VocalTract::writeShapesXml(std::ostream &os, int indent)
     for (k=0; k < NUM_PARAMS; k++)
     {
       sprintf(st, "<param name=\"%s\" value=\"%2.4f\"/>", 
-        param[k].abbr.c_str(), s->param[k]);
+        param[k].name.c_str(), s->param[k]);
       os << string(indent, ' ') << string(st) << endl;
     }
 

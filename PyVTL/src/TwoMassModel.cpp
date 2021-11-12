@@ -37,12 +37,12 @@ TwoMassModel::TwoMassModel()
 
   Parameter cp[NUM_CONTROL_PARAMS] =
   {
-    { "f0", "f0", "Hz", 1, "Hz", 40.0, 600.0, 120.0, 0.0 },
-    { "Subglottal pressure", "pressure", "dPa", 1.0, "dPa", 0.0, 20000.0, 8000.0, 0.0 },
-    { "Lower rest displacement", "lower_rest_displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
-    { "Upper rest displacement", "upper_rest_displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
-    { "Extra arytenoid area", "ary_area", "cm^2", 100.0, "mm^2", -0.25, 0.25, 0.0, 0.0 },
-    { "Damping factor", "damping_factor", "", 1, "", 0.3, 3.0, 1.0, 0.0 },
+    { "F0", "Fundamental frequency", "Hz", 1, "Hz", 40.0, 600.0, 120.0, 0.0 },
+    { "PR", "Lung pressure", "dPa", 1.0, "dPa", 0.0, 20000.0, 8000.0, 0.0 },
+    { "XB", "Lower rest displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
+    { "XT", "Upper rest displacement", "cm", 10.0, "mm", -0.05, 0.3, 0.01, 0.0 },
+    { "EAA", "Extra arytenoid area", "cm^2", 100.0, "mm^2", -0.25, 0.25, 0.0, 0.0 },
+    { "DF", "Damping factor", "", 1, "", 0.3, 3.0, 1.0, 0.0 },
   };
 
   controlParam.clear();
@@ -58,26 +58,26 @@ TwoMassModel::TwoMassModel()
 
   Parameter sp[NUM_STATIC_PARAMS] =
   {
-    { "Cord length", "cord_length", "cm", 10, "mm", 0.5, 2.0, 1.3, 0.0 },
-    { "L. rest thickness", "lower_rest_thickness", "cm", 10, "mm", 0.1, 0.5, 0.25, 0.0 },
-    { "U. rest thickness", "upper_rest_thickness", "cm", 10, "mm", 0.01, 0.2, 0.05, 0.0 },
-    { "L. rest mass", "lower_rest_mass", "g", 1, "g", 0.01, 0.2, 0.125, 0.0 },
-    { "U. rest mass", "upper_rest_mass", "g", 1, "g", 0.01, 0.2, 0.025, 0.0 },
-    { "L. damping ratio", "lower_damping_ratio", "", 1, "", 0.0, 3.0, 0.1, 0.0 },
-    { "U. damping ratio", "upper_damping_ratio", "", 1, "", 0.0, 3.0, 0.6, 0.0 },
-    { "L. spring k", "lower_spring_k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 80000.0, 0.0 },
-    { "U. spring k", "upper_spring_k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 8000.0, 0.0 },
-    { "L. spring eta", "lower_spring_eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 100.0, 0.0 },
-    { "U. spring eta", "upper_spring_eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 100.0, 0.0 },
-    { "L. contact spring k", "lower_contact_spring_k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 240000.0, 0.0 },
-    { "U. contact spring k", "upper_contact_spring_k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 24000.0, 0.0 },
-    { "L. contact spring eta", "lower_contact_spring_eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 500.0, 0.0 },
-    { "U. contact spring eta", "upper_contact_spring_eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 500.0, 0.0 },
-    { "Coupling spring k", "coupling_spring_k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 25000.0, 0.0 },
-    { "Critical width", "critical_width", "cm", 10, "mm", 0.0, 0.2, 0.0, 0.0 },
-    { "Natural F0", "natural_f0", "Hz", 1, "Hz", 20.0, 500.0, 158.0, 0.0 },
-    { "dF0/dQ", "f0_div_q", "Hz", 1, "Hz", 20.0, 500.0, 100.0, 0.0 },
-    { "Chink length", "chink_length", "cm", 10, "mm", 0.0, 0.5, 0.2, 0.0 }
+    { "COL", "Cord length", "cm", 10, "mm", 0.5, 2.0, 1.3, 0.0 },
+    { "LRT", "Lower rest thickness", "cm", 10, "mm", 0.1, 0.5, 0.25, 0.0 },
+    { "URT", "Upper rest thickness", "cm", 10, "mm", 0.01, 0.2, 0.05, 0.0 },
+    { "LRM", "Lower rest mass", "g", 1, "g", 0.01, 0.2, 0.125, 0.0 },
+    { "URM", "Upper rest mass", "g", 1, "g", 0.01, 0.2, 0.025, 0.0 },
+    { "LDR", "Lower damping ratio", "", 1, "", 0.0, 3.0, 0.1, 0.0 },
+    { "UDR", "Upper damping ratio", "", 1, "", 0.0, 3.0, 0.6, 0.0 },
+    { "LSK", "Lower spring k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 80000.0, 0.0 },
+    { "USK", "Upper spring k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 8000.0, 0.0 },
+    { "LSE", "Lower spring eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 100.0, 0.0 },
+    { "USE", "Upper spring eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 100.0, 0.0 },
+    { "LCK", "Lower contact spring k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 240000.0, 0.0 },
+    { "UCK", "Upper contact spring k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 24000.0, 0.0 },
+    { "LCE", "Lower contact spring eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 500.0, 0.0 },
+    { "UCE", "Upper contact spring eta", "1/cm^2", 1.0, "1/cm^2", 0.0, 1000.0, 500.0, 0.0 },
+    { "CSK", "Coupling spring k", "dyne/cm", 0.001, "kdyne/cm", 0.0, 400000.0, 25000.0, 0.0 },
+    { "CRW", "Critical width", "cm", 10, "mm", 0.0, 0.2, 0.0, 0.0 },
+    { "NF0", "Natural F0", "Hz", 1, "Hz", 20.0, 500.0, 158.0, 0.0 },
+    { "dF0", "Derivative d(F0)/dQ", "Hz", 1, "Hz", 20.0, 500.0, 100.0, 0.0 },
+    { "CL", "Chink length", "cm", 10, "mm", 0.0, 0.5, 0.2, 0.0 }
   };
 
   staticParam.clear();
@@ -93,17 +93,17 @@ TwoMassModel::TwoMassModel()
 
   Parameter dp[NUM_DERIVED_PARAMS] =
   {
-    { "Lower rel. displacement", "lower_rel_displacement", "cm", 10, "mm", -0.3, 0.3, 0.0, 0.0 },
-    { "Upper rel. displacement", "upper_rel_displacement", "cm", 10, "mm", -0.3, 0.3, 0.0, 0.0 },
-    { "Lower abs. displacement", "lower_abs_displacement", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Upper abs. displacement", "upper_abs_displacement", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Cord length", "cord_length", "cm", 10, "mm", 0.0, 3.0, 0.0, 0.0 },
-    { "Lower thickness", "lower_thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
-    { "Upper thickness", "upper_thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
-    { "Lower area", "lower_area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
-    { "Upper area", "upper_area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
-    { "Chink width", "chink_width", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
-    { "Tension Q", "tension_q", "", 1, "", 0.0, 6.0, 0.0, 0.0 }
+    { "LRD", "Lower relative displacement", "cm", 10, "mm", -0.3, 0.3, 0.0, 0.0 },
+    { "URD", "Upper relative displacement", "cm", 10, "mm", -0.3, 0.3, 0.0, 0.0 },
+    { "LAD", "Lower absolute displacement", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "UAD", "Upper absolute displacement", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "COL", "Cord length", "cm", 10, "mm", 0.0, 3.0, 0.0, 0.0 },
+    { "LT", "Lower thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
+    { "UT", "Upper thickness", "cm", 10, "mm", 0.0, 2.0, 0.0, 0.0 },
+    { "LA", "Lower area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
+    { "UA", "Upper area", "cm^2", 100, "mm^2", 0.0, 4.0, 0.0, 0.0 },
+    { "CW", "Chink width", "cm", 10, "mm", 0.0, 1.0, 0.0, 0.0 },
+    { "TQ", "Tension Q", "", 1, "", 0.0, 6.0, 0.0, 0.0 }
   };
 
   derivedParam.clear();

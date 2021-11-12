@@ -43,7 +43,7 @@ extern "C"{ /* start extern "C" */
   #define C_EXPORT
 #endif  // WIN32
 
-typedef enum { false, true } bool;
+#include <stdbool.h>
 
 // ****************************************************************************
 // The exported C-compatible functions.
@@ -99,6 +99,8 @@ C_EXPORT void vtlGetVersion(char *version);
 // o The number of supraglottal tube sections.
 // o The number of vocal tract model parameters.
 // o The number of glottis model parameters.
+// o The number of audio samples that correspond to a single tract state sample
+// o The number of evaluated tract state samples per second (internal sampling rate).
 //
 // Function return value:
 // 0: success.
@@ -106,43 +108,68 @@ C_EXPORT void vtlGetVersion(char *version);
 // ****************************************************************************
 
 C_EXPORT int vtlGetConstants(int *audioSamplingRate, int *numTubeSections,
-  int *numVocalTractParams, int *numGlottisParams);
+  int *numVocalTractParams, int *numGlottisParams, int *numAudioSamplesPerTractState, double *internalSamplingRate);
 
 
 // ****************************************************************************
-// Returns for each vocal tract parameter the minimum value, the maximum value,
-// and the neutral value. Each vector passed to this function must have at 
-// least as many elements as the number of vocal tract model parameters.
-// The "names" string receives the abbreviated names of the parameters separated
-// by spaces. This string should have at least 10*numParams elements.
+// Returns for each supra glottal parameter the minimum value, the maximum value,
+// and the standard (default) value. Each array passed to this function must have at 
+// least as many elements as the number of supra glottal parameters.
+// The "names" string receives the names of the parameters separated
+// by tabs. This string should have at least 10*numParams elements.
+// The "descriptions" string receives the descriptions of the parameters separated
+// by tabs. This string should have at least 100*numParams elements.
+// The "units" string receives the names of the parameter units separated
+// by tabs. This string should have at least 10*numParams elements.
 //
 // Function return value:
 // 0: success.
 // 1: The API has not been initialized.
 // ****************************************************************************
 
-C_EXPORT int vtlGetTractParamInfo(char *names, double *paramMin, double *paramMax, double *paramNeutral);
+C_EXPORT int vtlGetTractParamInfo(char* names, char* descriptions, char* units,
+    double* paramMin, double* paramMax, double* paramStandard);
 
 
 // ****************************************************************************
 // Returns for each glottis model parameter the minimum value, the maximum value,
-// and the neutral value. Each vector passed to this function must have at 
+// and the standard (default) value. Each array passed to this function must have at 
 // least as many elements as the number of glottis model parameters.
-// The "names" string receives the abbreviated names of the parameters separated
-// by spaces. This string should have at least 10*numParams elements.
+// The "names" string receives the names of the parameters separated
+// by tabs. This string should have at least 10*numParams elements.
+// The "descriptions" string receives the descriptions of the parameters separated
+// by tabs. This string should have at least 100*numParams elements.
+// The "units" string receives the names of the parameter units separated
+// by tabs. This string should have at least 10*numParams elements.
 //
 // Function return value:
 // 0: success.
 // 1: The API has not been initialized.
 // ****************************************************************************
 
-C_EXPORT int vtlGetGlottisParamInfo(char *names, double *paramMin, double *paramMax, double *paramNeutral);
+C_EXPORT int vtlGetGlottisParamInfo(char* names, char* descriptions, char* units,
+    double* paramMin, double* paramMax, double* paramStandard);
 
 
 // ****************************************************************************
-// Returns the vocal tract parameters for the given shape as defined in the
+// Returns the sub-glottal parameters for the given shape as defined in the
 // speaker file.
-// The vector passed to this function must have at least as many elements as 
+// The array passed to this function must have at least as many elements as 
+// the number of glottis model parameters.
+//
+// Function return value:
+// 0: success.
+// 1: The API has not been initialized.
+// 2: A shape with the given name does not exist.
+// ****************************************************************************
+
+C_EXPORT int vtlGetGlottisParams(const char* shapeName, double *glottisParams);
+
+
+// ****************************************************************************
+// Returns the supra-glottal parameters for the given shape as defined in the
+// speaker file.
+// The array passed to this function must have at least as many elements as 
 // the number of vocal tract model parameters.
 //
 // Function return value:
@@ -151,7 +178,7 @@ C_EXPORT int vtlGetGlottisParamInfo(char *names, double *paramMin, double *param
 // 2: A shape with the given name does not exist.
 // ****************************************************************************
 
-C_EXPORT int vtlGetTractParams(const char *shapeName, double *param);
+C_EXPORT int vtlGetTractParams(const char *shapeName, double *tractParams);
 
 
 // ****************************************************************************
@@ -403,7 +430,7 @@ C_EXPORT int vtlSynthesisAddTract(int numNewSamples, double *audio,
 // ****************************************************************************
 
 C_EXPORT int vtlSynthBlock(double *tractParams, double *glottisParams,
-  int numFrames, int frameStep_samples, double *audio, int enableConsoleOutput);
+  int numFrames, int frameStep_samples, double *audio, bool enableConsoleOutput);
 
 
 // ****************************************************************************
@@ -421,6 +448,9 @@ C_EXPORT int vtlApiTest(const char *speakerFileName, double *audio, int *numSamp
 // name segFileName into a gestural score file (gesFileName).
 // The f0 tier in the gestural score is set to a "standard" f0.
 //
+// o enableConsoleOutput (in): Set to 1, if you want to allow output about the
+//   synthesis progress in the console window. Otherwise, set it to 0.
+//
 // Function return value:
 // 0: success.
 // 1: The API was not initialized.
@@ -428,7 +458,7 @@ C_EXPORT int vtlApiTest(const char *speakerFileName, double *audio, int *numSamp
 // 3: Saving the gestural score file failed.
 // ****************************************************************************
 
-C_EXPORT int vtlSegmentSequenceToGesturalScore(const char *segFileName, const char *gesFileName);
+C_EXPORT int vtlSegmentSequenceToGesturalScore(const char *segFileName, const char *gesFileName, bool enableConsoleOutput);
 
 
 // ****************************************************************************
@@ -455,7 +485,7 @@ C_EXPORT int vtlSegmentSequenceToGesturalScore(const char *segFileName, const ch
 // ****************************************************************************
 
 C_EXPORT int vtlGesturalScoreToAudio(const char* gesFileName, const char* wavFileName,
-  double* audio, int* numSamples, int enableConsoleOutput);
+  double* audio, int* numSamples, bool enableConsoleOutput);
 
 
 // ****************************************************************************

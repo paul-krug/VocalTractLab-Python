@@ -50,7 +50,7 @@ public:
   struct Parameter
   {
     string name;
-    string abbr;
+    string description;
     string cgsUnit;     ///< CGS unit of this parameter (used for its values)
     double factor;      ///< userUnit = factor * cgsUnit
     string userUnit;    ///< Unit displayed for the user
@@ -99,6 +99,7 @@ public:
   virtual double getAspirationStrength_dB();
 
   Shape *getShape(const string &name);
+  int getShapeIndex(const string& name);
   bool hasUnsavedChanges();
   void clearUnsavedChanges();
   bool writeToXml(ostream &os, int initialIndent, bool isSelected);

@@ -24,7 +24,7 @@ cmake ..
 ```
 - Build the library (still from within the folder ``out``)
 ```
-cmake --build .
+cmake --build . --config Release
 ```
 
 ### Build using Visual Studio 2019 (Windows)

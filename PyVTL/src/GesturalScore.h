@@ -177,7 +177,7 @@ public:
   
   void clear();
   void initTestScore();
-  void createFromSegmentSequence(SegmentSequence *origSegmentSequence);
+  void createFromSegmentSequence(SegmentSequence *origSegmentSequence, bool enableConsoleOutput = true );
   
   void addClosingGesture(GestureType gestureType, string gestureName, 
     double closureBegin_s, double closureEnd_s, bool connectToPrevGesture);

@@ -22,8 +22,11 @@
 #ifndef __XML_NODE_H__
 #define __XML_NODE_H__
 
+#include "XmlExceptions.h"
+
 #include <string>
 #include <vector>
+
 
 using namespace std;
 

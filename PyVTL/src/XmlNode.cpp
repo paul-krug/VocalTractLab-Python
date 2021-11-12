@@ -991,14 +991,15 @@ bool XmlNode::hasAttribute(const string &name)
 
 
 // ****************************************************************************
-/// Returns the integer value of the given attribute, or 0, if the attribute
-/// does not exist or is not convertable to integer.
+/// Returns the integer value of the given attribute. Throws an XmlAttributeNotFound exception, if the attribute
+/// does not exist, or an XmlBadAttribute exception if its value is not convertable to integer.
 // ****************************************************************************
 
 int XmlNode::getAttributeInt(const string &name)
 {
   int i;
   int k = -1;
+  int value = k;
 
   for (i=0; i < (int)attribute.size(); i++)
   {
@@ -1010,25 +1011,34 @@ int XmlNode::getAttributeInt(const string &name)
   }
 
   if (k != -1)
-  {
-    return atoi( attribute[k].value.c_str() );
+  { 
+      try
+      {
+          value = std::stoi(attribute[k].value.c_str());
+      }
+      catch (const std::exception& e)
+      {
+          throw XmlBadAttribute();
+      }
   }
   else
   {
-    return 0;
+      throw XmlAttributeNotFound(name);
   }
+  return value;
 }
 
 
 // ****************************************************************************
-/// Returns the double value of the given attribute, or 0.0, if the attribute
-/// does not exist or is not convertable to double.
+/// Returns the double value of the given attribute. Throws an XmlAttributeNotFound exception, if the attribute
+/// does not exist, or an XmlBadAttribute exception if its value is not convertable to double.
 // ****************************************************************************
 
 double XmlNode::getAttributeDouble(const string &name)
 {
   int i;
   int k = -1;
+  double value = -1.0;
 
   for (i=0; i < (int)attribute.size(); i++)
   {
@@ -1041,17 +1051,26 @@ double XmlNode::getAttributeDouble(const string &name)
 
   if (k != -1)
   {
-    return atof( attribute[k].value.c_str() );
+      try
+      {
+          value = std::stod(attribute[k].value.c_str());
+      }
+      catch (const std::exception & e)
+      {
+          throw XmlBadAttribute();
+      }
   }
   else
   {
-    return 0.0;
+      throw XmlAttributeNotFound(name);
   }
+  return value;
 }
 
 
+
 // ****************************************************************************
-/// Returns the string value of the given attribute, or an empty string, if the
+/// Returns the string value of the given attribute. Throws an XmlAttributeNotFound exception, if the
 /// attribute does not exist.
 // ****************************************************************************
 
@@ -1075,7 +1094,7 @@ string XmlNode::getAttributeString(const string &name)
   }
   else
   {
-    return string("");
+      throw XmlAttributeNotFound(name);
   }
 }
 

@@ -111,6 +111,9 @@
     <ClInclude Include="AnatomyParams.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="XmlExceptions.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="VocalTractLabApi.def" />
