@@ -272,7 +272,7 @@ class Sub_Glottal_Motor_Score( Target_Score ):
 	def from_sub_glottal_sequence( cls,
 		                           sub_glottal_sequence,
 		                           synchronous = [ [ 'f0' ], [ 'pressure' ], [ 'other' ] ],
-		                           durations = [ [0.5,0.2], [0.1,0.6], [0.3,0.4] ],
+		                           durations = [ [0.5,0.2], [0.1,0.7], [0.3,0.4] ],
 		                           slopes = None,
 		                           time_constants = None,
 		                           onset_time = 0.0 ):
