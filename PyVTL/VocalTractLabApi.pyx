@@ -486,13 +486,13 @@ def _gestural_score_to_audio( args ):
 	ges_file_path, audio_file_path, save_file, normalize_audio, sr, verbose = args
 	constants = get_constants()
 	if sr == None:
-		sr = constants[ 'samplerate' ]
+		sr = constants[ 'samplerate_audio' ]
 	if not os.path.exists( ges_file_path ):
 		warnings.warn( 'the specified gestural score file path does not exist: {}. API call will be skipped.'.format( ges_file_path ) )
 		return
 	if save_file:
 		audio_file_path = FT.make_output_path( audio_file_path, ges_file_path.rsplit( '.' )[0] + '.wav' )
-	if ( save_file and normalize_audio != None ) or ( save_file and sr != constants[ 'samplerate' ] ):
+	if ( save_file and normalize_audio != None ) or ( save_file and sr != constants[ 'samplerate_audio' ] ):
 		save_file = False
 		return_audio = True
 	if save_file == False:
@@ -511,8 +511,8 @@ def _gestural_score_to_audio( args ):
 	if value != 0:
 		raise ValueError('VTL API function vtlGesturalScoreToAudio returned the Errorcode: {}  (See API doc for info.) \
 			while processing gestural score file (input): {}, audio file (output): {}'.format(value, ges_file_path, audio_file_path) )
-	if sr != constants[ 'samplerate' ]:
-		audio = librosa.resample( audio, constants[ 'samplerate' ], sr )
+	if sr != constants[ 'samplerate_audio' ]:
+		audio = librosa.resample( audio, constants[ 'samplerate_audio' ], sr )
 	if normalize_audio != None:
 		audio = AT.normalize( audio, normalize_audio )
 	if verbose:
@@ -558,9 +558,9 @@ def _segment_sequence_to_gestural_score( args ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _synth_block( args ):
 	tract_sequence, state_samples, verbose = args
-	constants = get_constants()
 	if state_samples == None:
-		state_samples = 110
+		constants = get_constants()
+		state_samples = constants[ 'n_samples_per_state' ]
 	cdef int numFrames = tract_sequence.length
 	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_sequence.tract.to_numpy().ravel()
 	cdef np.ndarray[ np.float64_t, ndim=1 ] glottisParams = tract_sequence.glottis.to_numpy().ravel()
@@ -589,11 +589,11 @@ def _tract_sequence_to_audio( args ):
 	audio = _synth_block( ( tract_sequence, None, verbose ) )
 	constants = get_constants()
 	if sr == None:
-		sr = constants[ 'samplerate' ]
+		sr = constants[ 'samplerate_audio' ]
 	if save_file:
 		audio_file_path = FT.make_output_path( audio_file_path, tract_sequence.name.rsplit( '.' )[0] + '.wav' )
-	if sr != constants[ 'samplerate' ]:
-		audio = librosa.resample( audio, constants[ 'samplerate' ], sr )
+	if sr != constants[ 'samplerate_audio' ]:
+		audio = librosa.resample( audio, constants[ 'samplerate_audio' ], sr )
 	if normalize_audio != None:
 		audio = AT.normalize( audio, normalize_audio )
 	if save_file:
