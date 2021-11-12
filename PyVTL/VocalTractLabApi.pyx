@@ -79,18 +79,20 @@ cdef extern from "VocalTractLabApi.h":
 									const char *wavFileName,
 									double *audio,
 									int *numSamples,
-									int enableConsoleOutput
+									bool enableConsoleOutput
 									);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGesturalScoreToTractSequence(	const char *gesFileName, 
 											const char *tractSequenceFileName
 											);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetConstants(	int *audioSamplingRate,
-							int *numTubeSections,
-							int *numVocalTractParams,
-							int *numGlottisParams
-							);
+	int vtlGetConstants( int *audioSamplingRate,
+		                 int *numTubeSections,
+		                 int *numVocalTractParams,
+		                 int *numGlottisParams,
+		                 int *numAudioSamplesPerTractState,
+		                 double *internalSamplingRate
+		                 );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetDefaultTransferFunctionOptions( TransferFunctionOptions *opts );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -100,19 +102,27 @@ cdef extern from "VocalTractLabApi.h":
 										);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetGlottisParamInfo(	char *names,
+		                        char *descriptions,
+		                        char *units,
 								double *paramMin,
 								double *paramMax,
-								double *paramNeutral
+								double *paramStandard,
 								);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetTractParamInfo(	char *names,
-								double *paramMin,
-								double *paramMax,
-								double *paramNeutral
-								);
+	int vtlGetTractParamInfo( char *names,
+		                      char *descriptions,
+		                      char *units,
+		                      double *paramMin,
+		                      double *paramMax,
+		                      double *paramStandard,
+		                      );
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlGetGlottisParams( const char *shapeName,
+	                         double *glottisParams,
+	                         );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetTractParams( const char *shapeName,
-	                       double *param
+	                       double *tractParams,
 	                       );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetTransferFunction( double *tractParams,
@@ -130,16 +140,17 @@ cdef extern from "VocalTractLabApi.h":
 										double *outTractParams
 										);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlSegmentSequenceToGesturalScore(	const char *segFileName,
-											const char *gesFileName
-											);
+	int vtlSegmentSequenceToGesturalScore( const char *segFileName,
+		                                   const char *gesFileName,
+		                                   bool enableConsoleOutput,
+		                                   );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlSynthBlock(	double *tractParams,
 						double *glottisParams,
 						int numFrames,
 						int frameStep_samples,
 						double *audio,
-						int enableConsoleOutput
+						bool enableConsoleOutput,
 						);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlTractSequenceToAudio(	const char *tractSequenceFileName,
@@ -193,18 +204,28 @@ def get_version():
 	return version.decode()
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_constants():
-	cdef int audioSamplingRate = 0
-	cdef int numTubeSections = 0
-	cdef int numVocalTractParams = 0
-	cdef int numGlottisParams = 0
-	value = vtlGetConstants( &audioSamplingRate, &numTubeSections, &numVocalTractParams, &numGlottisParams )
+	cdef int audioSamplingRate = -1
+	cdef int numTubeSections = -1
+	cdef int numVocalTractParams = -1
+	cdef int numGlottisParams = -1
+	cdef int numAudioSamplesPerTractState = -1
+	cdef double internalSamplingRate = -1.0
+	value = vtlGetConstants( &audioSamplingRate,
+		                     &numTubeSections,
+		                     &numVocalTractParams,
+		                     &numGlottisParams,
+		                     &numAudioSamplesPerTractState,
+		                     &internalSamplingRate,
+	                         )
 	if value != 0:
 		raise ValueError('VTL API function vtlGetConstants returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
 	constants = {
-		'samplerate': int( audioSamplingRate ),
+		'samplerate_audio': int( audioSamplingRate ),
+		'samplerate_internal': float( internalSamplingRate ),
 		'n_tube_sections': int( numTubeSections ),
 		'n_tract_params': int( numVocalTractParams ),
 		'n_glottis_params': int( numGlottisParams ),
+		'n_samples_per_state': int( numAudioSamplesPerTractState ),
 		}
 	return constants
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -218,27 +239,45 @@ def get_param_info( str params ):
 		key = 'n_glottis_params'
 	constants = get_constants()
 	names = ( ' ' * 10 * constants[ key ] ).encode()
+	descriptions = (' ' * 100 * constants[key]).encode()
+	units = (' ' * 10 * constants[key]).encode()
 	cdef np.ndarray[ np.float64_t, ndim=1 ] paramMin = np.empty( constants[key], dtype='float64' )
 	cdef np.ndarray[ np.float64_t, ndim=1 ] paramMax = np.empty( constants[key], dtype='float64' )
-	cdef np.ndarray[ np.float64_t, ndim=1 ] paramNeutral = np.empty( constants[key], dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=1 ] paramStandard = np.empty( constants[key], dtype='float64' )
 	if params == 'tract':
-		value = vtlGetTractParamInfo( names, &paramMin[0], &paramMax[0], &paramNeutral[0] )
+		value = vtlGetTractParamInfo( names, descriptions, units, &paramMin[0], &paramMax[0], &paramStandard[0] )
 	elif params == 'glottis':
-		value = vtlGetGlottisParamInfo( names, &paramMin[0], &paramMax[0], &paramNeutral[0] )
+		value = vtlGetGlottisParamInfo( names, descriptions, units, &paramMin[0], &paramMax[0], &paramStandard[0] )
 	if value != 0:
 		raise ValueError('VTL API function vtlGetTractParamInfo or vtlGetGlottisParamInfo returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
-	df = pd.DataFrame( np.array( [ paramMin, paramMax, paramNeutral ] ).T, columns = [ 'min', 'max', 'neutral' ] )
-	df.index = names.decode().replace('\x00','').strip( ' ' ).split( ' ' )
+	descriptions = descriptions.decode().replace('\x00', '').strip(' ').strip('').split('\t')
+	units = units.decode().replace('\x00', '').strip(' ').strip( '' ).split('\t')
+	df = pd.DataFrame( np.array( [ descriptions, units, paramMin, paramMax, paramStandard ] ).T, columns = [ 'description', 'unit', 'min', 'max', 'standard' ] )
+	df.index = names.decode().replace('\x00','').strip( ' ' ).strip('').split( '\t' )
 	return df
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def get_tract_params_from_shape( str shape ): #Todo: glottis shapes as well
+def get_tract_params_from_shape( str shape, str params = None ):
 	shapeName = shape.encode()
 	constants = get_constants()
-	cdef np.ndarray[ np.float64_t, ndim=2 ] param = np.empty( shape = (1, constants[ 'n_tract_params' ] ),  dtype='float64' )
-	value = vtlGetTractParams( shapeName, &param[0, 0] )
+	cdef np.ndarray[ np.float64_t, ndim=2 ] tractParams = np.empty( shape = (1, constants[ 'n_tract_params' ] ),  dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=2 ] glottisParams = np.empty( shape = (1, constants[ 'n_glottis_params' ] ),  dtype='float64' )
+	if params == 'tract':
+		value = vtlGetTractParams( shapeName, &tractParams[0, 0] )
+		seq = ts.Supra_Glottal_Sequence( tractParams )
+	elif params == 'glottis':
+		value = vtlGetGlottisParams( shapeName, &glottisParams[0, 0] )
+		seq = ts.Sub_Glottal_Sequence( glottisParams )
+	else:
+		value = vtlGetTractParams(shapeName, &tractParams[0, 0])
+		if value == 0:
+			seq = ts.Supra_Glottal_Sequence( tractParams )
+		if value == 2:
+			log.info('Specified shape: {} was not found in tract state shapes. Looking for glottal shapes now.'.format(shape))
+			value = vtlGetGlottisParams( shapeName, &glottisParams[0, 0] )
+			seq = ts.Sub_Glottal_Sequence( glottisParams )
 	if value != 0:
 		raise ValueError('VTL API function vtlGetTractParams returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
-	return ts.Supra_Glottal_Sequence( param )
+	return seq
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def load_speaker_file( str speaker_file_path ):
 	_close()
@@ -297,14 +336,15 @@ def gestural_score_to_tract_sequence(	ges_file_path_list,
 	tract_sequence_list = _run_multiprocessing( _gestural_score_to_tract_sequence, args, return_data, workers )
 	return tract_sequence_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def segment_sequence_to_gestural_score(	seg_file_path_list,
-										ges_file_path_list = None,
-										workers: int = None,
-									):
+def segment_sequence_to_gestural_score( seg_file_path_list,
+	                                    ges_file_path_list = None,
+	                                    workers: int = None,
+	                                    verbose: bool = False,
+	                                    ):
 	seg_file_path_list, ges_file_path_list = FT.check_if_input_lists_are_valid( [ seg_file_path_list, ges_file_path_list ], 
 	                                                                            [ str, ( str, type(None) ) ] 
 	                                                                          )
-	args = [ [ seg_file_path, ges_file_path ] 
+	args = [ [ seg_file_path, ges_file_path, verbose ]
 		for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list ) ]
 	_run_multiprocessing( _segment_sequence_to_gestural_score, args, False, workers )
 	return
@@ -461,7 +501,7 @@ def _gestural_score_to_audio( args ):
 		wavFileName = audio_file_path.encode()
 	gesFileName = ges_file_path.encode()
 	cdef np.ndarray[ np.float64_t, ndim=1 ] audio
-	cdef int enableConsoleOutput = 1 if verbose == True else 0
+	cdef bool enableConsoleOutput = verbose
 	audio = np.zeros( get_gestural_score_audio_duration( ges_file_path, return_samples = True ), dtype='float64' )
 	time_synth_start = time.time()
 	cdef int numS = 0
@@ -501,14 +541,15 @@ def _gestural_score_to_tract_sequence( args ):
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _segment_sequence_to_gestural_score( args ):
-	seg_file_path, ges_file_path = args
+	seg_file_path, ges_file_path, verbose = args
 	if not os.path.exists( seg_file_path ):
 		warnings.warn( 'the specified segment sequence file path does not exist: {}. API call will be skipped.'.format( seg_file_path ) )
 		return
 	ges_file_path = FT.make_output_path( ges_file_path, seg_file_path.rsplit('.')[0] + '.ges' )
 	segFileName = seg_file_path.encode()
 	gesFileName = ges_file_path.encode()
-	value = vtlSegmentSequenceToGesturalScore( segFileName, gesFileName )
+	cdef bool enableConsoleOutput = verbose
+	value = vtlSegmentSequenceToGesturalScore( segFileName, gesFileName, enableConsoleOutput )
 	if value != 0:
 		raise ValueError('VTL API function vtlSegmentSequenceToGesturalScore returned the Errorcode: {}  (See API doc for info.) \
 			while processing segment sequence file (input): {}, gestural score file (output): {}'.format(value, seg_file_path, ges_file_path) )
@@ -525,7 +566,7 @@ def _synth_block( args ):
 	cdef np.ndarray[ np.float64_t, ndim=1 ] glottisParams = tract_sequence.glottis.to_numpy().ravel()
 	cdef int frameStep_samples = state_samples
 	cdef np.ndarray[ np.float64_t, ndim=1 ] audio = np.zeros( tract_sequence.length * state_samples, dtype='float64' )
-	cdef int enableConsoleOutput = 1 if verbose == True else 0
+	cdef bool enableConsoleOutput = verbose
 	value = vtlSynthBlock( &tractParams[0], &glottisParams[0], numFrames, frameStep_samples, &audio[0], enableConsoleOutput )
 	if value != 0:
 		raise ValueError( 'VTL API function vtlSynthBlock returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
@@ -697,7 +738,7 @@ def _worker( args ):
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 atexit.register( _close )
-_initialize( os.path.join( os.path.dirname(__file__), 'speaker/JD2.speaker' ) )
+_initialize( os.path.join( os.path.dirname(__file__), 'speaker/JD3.speaker' ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
