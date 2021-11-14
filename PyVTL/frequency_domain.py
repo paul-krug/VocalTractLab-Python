@@ -1,4 +1,5 @@
 import PyVTL.VocalTractLabApi as vtl
+import PyVTL.plotting_tools as PT
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
@@ -85,13 +86,14 @@ class Transfer_Function():
 		return peaks
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, 
-	axs: list = None, 
-	parameters = [ 'frequency', 'phase' ], 
-	plot_formants = True, 
-	plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ] 
-	): #, scale = 'dB' ):
+		      parameters = [ 'frequency', 'phase' ], 
+		      plot_formants = True,
+		      show = True,
+		      axs: list = None, 
+		      plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ] 
+		      ): #, scale = 'dB' ):
 		if axs == None:
-			figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
+			figure, axs = PT.get_plot( len( parameters ) )
 		for index, parameter in enumerate( parameters ):
 			if parameter == 'frequency':
 				y = librosa.amplitude_to_db( self.data[ parameter ] )
@@ -129,7 +131,8 @@ class Transfer_Function():
 					ax.axvline( formant, color = 'gray', ls = '--' )
 		for ax in axs:
 		    ax.label_outer()
-		
-		#figure.align_ylabels( axs[:] )
-		#plt.show()
+		if show:
+			PT.show_plot( figure )
+			figure.align_ylabels( axs[:] )
+			plt.show()
 		return

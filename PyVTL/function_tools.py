@@ -62,7 +62,11 @@ def make_output_path( query_path, output_path ):
 	index = 0
 	while os.path.exists( output_path ):
 		index += 1
-		output_path = output_path.replace( file_extension, '_{}{}'.format( index, file_extension ) )
+		if index > 1:
+			replace_extension = '_{}'.format( index - 1 ) + file_extension
+		else:
+			replace_extension = file_extension
+		output_path = output_path.replace( replace_extension, '_{}{}'.format( index, file_extension ) )
 	log.info( 'Saving file to {}'.format( output_path ) )
 	if not os.path.exists( os.path.dirname( output_path ) ) and  os.path.dirname( output_path ) not in ( '', ' ', None ):
 		os.mkdir( os.path.dirname( output_path ) )
