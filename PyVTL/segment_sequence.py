@@ -46,6 +46,10 @@ import pandas as pd
 import numpy as np
 import PyVTL.VocalTractLabApi as vtl
 import PyVTL.function_tools as FT
+import PyVTL.plotting_tools as PT
+from PyVTL.plotting_tools import finalize_plot
+from PyVTL.plotting_tools import get_plot
+from PyVTL.plotting_tools import get_plot_limits
 import matplotlib.pyplot as plt
 from  itertools import chain
 #import math
@@ -59,7 +63,7 @@ class Segment_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL segment sequences""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, phonemes: list, durations: list, onset_duration: float, offset_duration: float = None ):
+	def __init__( self, phonemes: list, durations: list, onset_duration: float = 0, offset_duration: float = None ):
 		self.durations = FT.check_if_list_is_valid( durations, (int, float, np.float64) )
 		self.phonemes = FT.check_if_list_is_valid( phonemes, (str) )
 		self.onset_duration = onset_duration
@@ -79,7 +83,7 @@ class Segment_Sequence():
 		return cls( phonemes, boundaries )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
-	def from_seg_file( self, seg_file_path ): #'TODO'
+	def from_seg_file( cls, seg_file_path ): #'TODO'
 		phonemes = []
 		durations = []
 		boundary_times = []
@@ -92,24 +96,26 @@ class Segment_Sequence():
 						value = item.split('=')[1].strip()
 						#print('Label: {}'.format(label))
 						#print('Value: {}'.format(value))
-						if label =='name' and (value not in [None," ", ""]):
+						if label =='name':# and (value not in [None," ", ""]):
 							phonemes.append( value )
 						if label == 'duration_s':
 							durations.append( float( value ) )
-		return cls( phonemes, boundaries )
+		return cls( phonemes, durations )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __del__( self ):
 		#print( 'Segment sequence destroyed.' )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self ):
-		return str( pd.DataFrame( self._get_data(), columns=[ 'onset', 'offset', 'duration', 'phoneme', 'effect'] ) )
+		return str( self._get_data() )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _get_data( self ):
 		boundaries = [ self.onset_duration ]
 		for index, duration in enumerate( self.durations ):
 			boundaries.append( boundaries[-1] + duration )
-		return np.array( [ boundaries[ :-1 ], boundaries[ 1: ], self.durations, self.phonemes, self.effects ] ).T
+		data = np.array( [ boundaries[ :-1 ], boundaries[ 1: ], self.durations, self.phonemes, self.effects ] ).T
+		print( data.shape )
+		return pd.DataFrame( data, columns = [ 'onset', 'offset', 'duration', 'phoneme', 'effect' ] )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _get_phoneme_boundary_times( self, file_path: str, n_phonemes: int ):
 		data, samplerate = librosa.load( file_path, 44100 )
@@ -197,6 +203,23 @@ class Segment_Sequence():
 			out_file.write( 'name = {}; duration_s = {};'.format( '', self.offset_duration ) )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, axs = None, **kwargs ):
+			figure, ax = get_plot( 1, axs )
+			data = self._get_data()
+			for index, (onset, duration, phoneme) in enumerate( zip( data.loc[ :, 'onset' ], data.loc[ :, 'duration' ], data.loc[ :, 'phoneme' ] ) ):
+				ax.axvline( onset, **PT.segment_plot_kwargs.get( 'boundaries' ) )
+				ax.set( ylim = [ 0, 1 ] )
+				ax.text( onset + 0.5 * duration, 0.5, phoneme, **PT.segment_plot_kwargs.get( 'phonemes' ) )
+			ax.axvline( data[ 'offset' ].iloc[ -1 ], **PT.segment_plot_kwargs.get( 'boundaries' ) )
+			plt.tick_params(
+				axis = 'y',          # changes apply to the x-axis
+				which = 'both',      # both major and minor ticks are affected
+				left = False,        # ticks along the left edge are off
+				right = False,       # ticks along the right edge are off
+				labelleft = False)   # labels along the left edge are off
+			plt.xlabel( 'Time [s]' )
+			finalize_plot( figure, axs, **kwargs )
+			return
 #####################################################################################################################################################
 
 '''

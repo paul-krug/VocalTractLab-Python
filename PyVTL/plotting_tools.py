@@ -35,8 +35,11 @@ state_plot_kwargs = dict( HX = dict( color = '#02010e' ),
                           PS = dict( color = 'turquoise' ),
                           FL = dict( color = 'turquoise' ),
                           AS = dict( color = 'turquoise' ),
-                                )
+                        )
 
+segment_plot_kwargs = dict( boundaries = dict( color = 'black' ),
+                            phonemes = dict( color = 'black', ha = 'center', va = 'center' ),
+                          )
 
 
 def get_plot( n_subplots, axs ):
