@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 from itertools import zip_longest
 from itertools import chain
 from PyVTL import plotting_tools as PT
+from PyVTL.plotting_tools import finalize_plot
+from PyVTL.plotting_tools import get_plot
+from PyVTL.plotting_tools import get_plot_limits
 from PyVTL import function_tools as FT
 from PyVTL import tract_sequence as TS
 import PyVTL.VocalTractLabApi as vtl
@@ -104,14 +107,15 @@ class Target_Sequence():
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, ax = None, plot_contour = True, plot_targets = True, show = True ):
-		if ax == None:
-			figure, ax = plt.subplots( 1, figsize = (8, 4/3) )#, sharex = True, gridspec_kw = {'hspace': 0} )
+	def plot( self, plot_contour = True, plot_targets = True, ax = None, **kwargs ):
+		#if ax == None:
+		#	figure, ax = plt.subplots( 1, figsize = (8, 4/3) )#, sharex = True, gridspec_kw = {'hspace': 0} )
+		figure, ax = get_plot( 1, ax )
 		if plot_contour:
 			tam = Target_Approximation_Model()
 			contour = tam.response( self.targets )
 			ax.plot( contour[ :, 0 ], contour[ :, 1 ], color = 'navy' )
-			ax.set( ylim = ( PT.get_plot_limits( contour[ :, 1 ], 0.3 ) ) )
+			ax.set( ylim = get_plot_limits( contour[ :, 1 ], 0.3 ) )
 		if plot_targets:
 			ax.axvline( self.targets[0].onset_time, color = 'black' )
 			y_data = []
@@ -122,13 +126,14 @@ class Target_Sequence():
 				ax.plot( x, y, color = 'black', linestyle='--' )
 				y_data.append( y )
 			if not plot_contour:
-				ax.set( ylim = ( PT.get_plot_limits( y_data, 0.3 ) ) )
+				ax.set( ylim = get_plot_limits( y_data, 0.3 ) )
 		ax.set( xlabel = 'Time [s]', ylabel = self.name )
 		ax.label_outer()
-		if show:
-			plt.tight_layout()
-			plt.show()
-		return
+		finalize_plot( figure, ax, **kwargs )
+		#if show:
+		#	plt.tight_layout()
+		#	plt.show()
+		return ax
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -139,14 +144,11 @@ class Target_Score():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, ax = None, plot_contour = True, plot_targets = True, show = True ):
-		if ax == None:
-			figure, axs = plt.subplots( len(self.target_sequences), figsize = (8, 4/3 * len(self.target_sequences) ), sharex = True, gridspec_kw = {'hspace': 0} )
+	def plot( self, plot_contour = True, plot_targets = True, axs = None, **kwargs ):
+		figure, axs = get_plot( len( self.target_sequences ), axs )
 		for index, target_sequence in enumerate( self.target_sequences ):
-			target_sequence.plot( ax = axs[ index ], plot_contour = plot_contour, plot_targets= plot_targets, show=False )
-		figure.align_ylabels( axs[:] )
-		plt.tight_layout()
-		plt.show()
+			target_sequence.plot( plot_contour = plot_contour, plot_targets= plot_targets, ax = axs[ index ], show=False )
+		finalize_plot( figure, axs, **kwargs )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -157,7 +159,7 @@ class Target_Score():
 
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-class Synchronous_Target_Score():
+class Synchronous_Target_Score( Target_Score ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -190,15 +192,6 @@ class Synchronous_Target_Score():
 			self.target_sequences.append( Target_Sequence( onset_time, durations, slopes, offsets, time_constants, name = name ) )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, ax = None, plot_contour = True, plot_targets = True, show = True ):
-		if ax == None:
-			figure, axs = plt.subplots( len(self.target_sequences), figsize = (8, 4/3 * len(self.target_sequences) ), sharex = True, gridspec_kw = {'hspace': 0} )
-		for index, target_sequence in enumerate( self.target_sequences ):
-			target_sequence.plot( ax = axs[ index ], plot_contour = plot_contour, plot_targets= plot_targets, show=False )
-		figure.align_ylabels( axs[:] )
-		plt.tight_layout()
-		plt.show()
-		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 

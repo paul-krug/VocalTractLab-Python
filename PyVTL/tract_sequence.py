@@ -48,18 +48,41 @@ import PyVTL.VocalTractLabApi as vtl
 import PyVTL.function_tools as FT
 import matplotlib.pyplot as plt
 from  itertools import chain
-import math
+#import math
+import PyVTL.plotting_tools as PT
+from PyVTL.plotting_tools import finalize_plot
+from PyVTL.plotting_tools import get_plot
+from PyVTL.plotting_tools import get_plot_limits
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
 
-
+class State_Sequence():
+	def plot( self, parameters = None, axs = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ):
+		if parameters == None:
+			parameters = self.states.columns
+		else:
+			parameters = [ parameter
+			               if parameter in set( self.states.columns )
+			               else warnings.warn( 'The specified parameter: {} does not exist in the sequence, plotting skipped.'.format( parameter ) )
+			               for parameter in parameters
+			             ]
+		figure, axs = get_plot( len( parameters ), axs )
+		for index, parameter in enumerate( parameters ):
+			y = self.states.loc[ :, parameter ]
+			axs[ index ].plot( y, **plot_kwargs.get( parameter ) )
+			axs[ index ].set( ylabel = parameter, ylim = get_plot_limits( y ) )
+		plt.xlabel( 'Tract state' )
+		for ax in axs:
+		    ax.label_outer()
+		finalize_plot( figure, axs, **kwargs )
+		return
 
 
 
 
 #####################################################################################################################################################
-class Sub_Glottal_Sequence():
+class Sub_Glottal_Sequence( State_Sequence ):
 	def __init__( self, states: np.array, name: str = 'sequence.sub_glottal' ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
@@ -69,6 +92,7 @@ class Sub_Glottal_Sequence():
 		self.param_info = vtl.get_param_info( 'glottis' )
 		self.name = name
 		self.glottis = pd.DataFrame( states, columns = self.param_info.index )
+		self.states = self.glottis
 		self.length = len( self.glottis.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -84,7 +108,7 @@ class Sub_Glottal_Sequence():
 
 
 #####################################################################################################################################################
-class Supra_Glottal_Sequence():
+class Supra_Glottal_Sequence( State_Sequence ):
 	def __init__( self, states: np.array, name: str = 'sequence.supra_glottal' ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
@@ -94,6 +118,7 @@ class Supra_Glottal_Sequence():
 		self.param_info = vtl.get_param_info( 'tract' )
 		self.name = name
 		self.tract = pd.DataFrame( states, columns = self.param_info.index )
+		self.states = self.tract
 		self.length = len( self.tract.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -112,7 +137,7 @@ class Supra_Glottal_Sequence():
 
 
 #####################################################################################################################################################
-class Tract_Sequence():
+class Tract_Sequence( State_Sequence ):
 	def __init__( self, tract_states: Supra_Glottal_Sequence, glottis_states: Sub_Glottal_Sequence, name: str = 'sequence.tract' ):
 		if not isinstance( tract_states, Supra_Glottal_Sequence ):
 			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_states, Supra_Glottal_Sequence ) )
@@ -125,6 +150,7 @@ class Tract_Sequence():
 		self.name = name
 		self.tract = tract_states.tract
 		self.glottis = glottis_states.glottis
+		self.states = pd.concat( [ tract_states.tract, glottis_states.glottis ], axis = 1 )
 		self.supra_glottal_sequence = tract_states
 		self.sub_glottal_sequence = glottis_states
 		lengths_difference = np.abs( tract_states.length - glottis_states.length )
@@ -150,7 +176,7 @@ class Tract_Sequence():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self, ):
-		return str( pd.concat( [ self.tract, self.glottis ], axis = 1 ) )
+		return str( self.states )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
@@ -192,19 +218,19 @@ class Tract_Sequence():
 		#feature.loc[ 0 : len( smooth_values_2 )-1, parameter ] = smooth_values_2
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
-		figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
-		#figure.suptitle( 'Sharing both axes' )
-		#parameters = self.tract.columns
-		for index, parameter in enumerate( parameters ):
-			axs[ index ].plot( self.tract.loc[ :, parameter ] )
-			axs[ index ].set( ylabel = parameter )
-		plt.xlabel( 'Tract state' )
-		for ax in axs:
-		    ax.label_outer()
-		figure.align_ylabels( axs[:] )
-		plt.show()
-		return
+	# def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
+	# 	figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
+	# 	#figure.suptitle( 'Sharing both axes' )
+	# 	#parameters = self.tract.columns
+	# 	for index, parameter in enumerate( parameters ):
+	# 		axs[ index ].plot( self.tract.loc[ :, parameter ] )
+	# 		axs[ index ].set( ylabel = parameter )
+	# 	plt.xlabel( 'Tract state' )
+	# 	for ax in axs:
+	# 	    ax.label_outer()
+	# 	figure.align_ylabels( axs[:] )
+	# 	plt.show()
+	# 	return
 #####################################################################################################################################################
 
 
@@ -278,7 +304,7 @@ def read_tract_seq_VTP( index ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
-
+'''
 #####################################################################################################################################################
 class Target_Sequence():
 	def __init__( self, states: np.array, name: str = 'sequence.supra_glottal' ):
@@ -405,3 +431,4 @@ class Tube_State():
 		ax.set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+'''

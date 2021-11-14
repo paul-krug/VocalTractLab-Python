@@ -1,5 +1,8 @@
 import PyVTL.VocalTractLabApi as vtl
 import PyVTL.plotting_tools as PT
+from PyVTL.plotting_tools import finalize_plot
+from PyVTL.plotting_tools import get_plot
+from PyVTL.plotting_tools import get_plot_limits
 import librosa
 import numpy as np
 import matplotlib.pyplot as plt
@@ -85,23 +88,23 @@ class Transfer_Function():
 			peaks = peaks[ : 4 ]
 		return peaks
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, 
-		      parameters = [ 'frequency', 'phase' ], 
+	def plot( self,
+		      parameters = [ 'frequency', 'phase' ],
 		      plot_formants = True,
-		      show = True,
-		      axs: list = None, 
-		      plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ] 
+		      axs: list = None,
+		      plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ],
+		      **kwargs,
 		      ): #, scale = 'dB' ):
-		if axs == None:
-			figure, axs = PT.get_plot( len( parameters ) )
+		figure, axs = get_plot( len( parameters ), axs )
 		for index, parameter in enumerate( parameters ):
 			if parameter == 'frequency':
 				y = librosa.amplitude_to_db( self.data[ parameter ] )
 				continuities = [ slice( 0, len(y) ) ]
 				y_title = 'Intensity [dB]'
-				_min = np.min( y )
-				_max = np.max( y )
-				axs[ index ].set( ylim = [ _min - 0.1 * np.abs( _max - _min ), _max + 0.1 * np.abs( _max - _min ) ] )
+				#_min = np.min( y )
+				#_max = np.max( y )
+				#axs[ index ].set( ylim = [ _min - 0.1 * np.abs( _max - _min ), _max + 0.1 * np.abs( _max - _min ) ] )
+				axs[ index ].set( ylim = get_plot_limits( y ) )
 				axs[ index ].locator_params( axis = 'y', nbins = 4 )
 			elif parameter == 'phase':
 				continuities = []
@@ -130,9 +133,6 @@ class Transfer_Function():
 				for ax in axs:
 					ax.axvline( formant, color = 'gray', ls = '--' )
 		for ax in axs:
-		    ax.label_outer()
-		if show:
-			PT.show_plot( figure )
-			figure.align_ylabels( axs[:] )
-			plt.show()
-		return
+			ax.label_outer()
+		finalize_plot( figure, axs, **kwargs )
+		return axs

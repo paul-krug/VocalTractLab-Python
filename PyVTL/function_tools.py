@@ -30,7 +30,7 @@ def check_lengths_of_input_lists( input_lists ):
 		#print( input_list )
 	return input_lists
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def check_if_object_is_iterable( query ):
+def is_iterable( query ):
 	try:
 		iter( query )
 	except TypeError:
@@ -38,8 +38,8 @@ def check_if_object_is_iterable( query ):
 	return True
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def check_if_list_is_valid( input_list, instances ):
-	is_iterable = check_if_object_is_iterable( input_list )
-	if isinstance( input_list, str ) or is_iterable == False:
+	#is_iterable = is_iterable( input_list )
+	if isinstance( input_list, str ) or not is_iterable( input_list ):
 		warnings.warn( 'input is either not iterable or a single string. The input gets turned into a list now.' )
 		input_list = [ input_list ]
 	if input_list and all( isinstance( x, instances ) for x in input_list ):
