@@ -26,6 +26,7 @@ import PyVTL.tract_sequence as ts
 import PyVTL.frequency_domain as fds
 import PyVTL.audio_tools as AT
 import PyVTL.function_tools as FT
+from PyVTL.tube_states import Tube_State
 import librosa
 import multiprocessing as mp
 import tqdm
@@ -697,7 +698,7 @@ def _tract_state_to_tube_state( args ):
 		tongue_tip_side_elevation = tongueTipSideElevation
 	if save_velum_opening:
 		velum_opening = velumOpening_cm2
-	return ts.Tube_State( tube_length, tube_area, tube_articulator, incisor_position, tongue_tip_side_elevation, velum_opening )
+	return Tube_State( tube_length, tube_area, tube_articulator, incisor_position, tongue_tip_side_elevation, velum_opening )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
