@@ -51,22 +51,23 @@ def check_if_all_elements_are_equal( iterable ):
 	g = itertools.groupby(iterable)
 	return next(g, True) and not next(g, False)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def make_output_path( query_path, output_path ):
+def make_output_path( query_path, output_path, overwrite = False ):
 	if '.' not in output_path:
 		raise ValueError( 'The output path: {} is not valid because it does not specify the file extension!'.format( output_path ) )
 	if query_path in (None, ''):
 		query_path = output_path
 	else:
 		output_path = query_path
-	file_extension = '.' + query_path.rsplit('.')[1]
-	index = 0
-	while os.path.exists( output_path ):
-		index += 1
-		if index > 1:
-			replace_extension = '_{}'.format( index - 1 ) + file_extension
-		else:
-			replace_extension = file_extension
-		output_path = output_path.replace( replace_extension, '_{}{}'.format( index, file_extension ) )
+	if not overwrite:
+		file_extension = '.' + query_path.rsplit('.')[1]
+		index = 0
+		while os.path.exists( output_path ):
+			index += 1
+			if index > 1:
+				replace_extension = '_{}'.format( index - 1 ) + file_extension
+			else:
+				replace_extension = file_extension
+			output_path = output_path.replace( replace_extension, '_{}{}'.format( index, file_extension ) )
 	log.info( 'Saving file to {}'.format( output_path ) )
 	if not os.path.exists( os.path.dirname( output_path ) ) and  os.path.dirname( output_path ) not in ( '', ' ', None ):
 		os.mkdir( os.path.dirname( output_path ) )
