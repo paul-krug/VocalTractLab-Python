@@ -349,15 +349,15 @@ def segment_sequence_to_gestural_score( seg_file_path_list,
 	_run_multiprocessing( _segment_sequence_to_gestural_score, args, False, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_audio(	tract_sequence_list,
-								audio_file_path_list = None,
-								save_file: bool = True,
-								normalize_audio: int = None,
-								sr: int = None,
-								return_data: bool = False,
-								workers: int = None,
-								verbose: bool = False,
-							):
+def tract_sequence_to_audio( tract_sequence_list,
+	                         audio_file_path_list = None,
+	                         save_file: bool = True,
+	                         normalize_audio: int = None,
+	                         sr: int = None,
+	                         return_data: bool = False,
+	                         workers: int = None,
+	                         verbose: bool = False,
+	                         ):
 	tract_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, audio_file_path_list ], 
 																		           [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
 	                                                                                 ( str, type(None) ),
@@ -368,20 +368,26 @@ def tract_sequence_to_audio(	tract_sequence_list,
 	audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
 	return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_limited_tract_sequence(	tract_sequence: ts.Tract_Sequence,
-												workers: int = None, 
-											):
+def tract_sequence_to_limited_tract_sequence( tract_sequence,
+	                                          workers: int = None, 
+	                                        ):
+	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
+		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ state for state in tract_sequence.tract.to_numpy() ]
 	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
-	return ts.Supra_Glottal_Sequence( np.array( tract_param_data ) )
+	limited_supra_glottal_sequence = ts.Supra_Glottal_Sequence( np.array( tract_param_data ) )
+	if isinstance( tract_sequence,  ts.Tract_Sequence ):
+		return ts.Tract_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = tract_sequence.sub_glottal_sequence )
+	else:
+		return limited_supra_glottal_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_svg(	tract_sequence_list,
-							svg_dir_list = None,
-							fps: int = 60,
-							save_video = False,
-							workers: int = None,
-						):
+def tract_sequence_to_svg( tract_sequence_list,
+	                       svg_dir_list = None,
+	                       fps: int = 60,
+	                       save_video = False,
+	                       workers: int = None,
+	                       ):
 	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, svg_dir_list ],
 	                                                                       [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
 	                                                                         ( str, type(None) ),

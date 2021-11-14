@@ -125,6 +125,8 @@ class Tract_Sequence():
 		self.name = name
 		self.tract = tract_states.tract
 		self.glottis = glottis_states.glottis
+		self.supra_glottal_sequence = tract_states
+		self.sub_glottal_sequence = glottis_states
 		lengths_difference = np.abs( tract_states.length - glottis_states.length )
 		if tract_states.length > glottis_states.length:
 			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
