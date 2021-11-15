@@ -16,23 +16,50 @@ import cmake
 
 WORKING_PATH = os.getcwd()
 
-class Build_VTL(build_py):
-    """Build VocalTractLab API"""
+class Build_Target_Optimizer( build_py ):
+    """Build TargetOptimizer-Backend API"""
     def run( self ):
-        print( 'Building VocalTractLab API using cmake:' )
-        os.chdir( 'PyVTL/src' )
+        print( 'Building Target_Optimizer-Backend using cmake:' )
+        os.chdir( 'PyVTL/src/targetoptimizer-backend' )
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
         subprocess.check_call( [ 'cmake', '.' ] )
         subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
-        vtl_api_name = 'VocalTractLabApi'
+        api_name = 'TargetOptimizerApi'
         if sys.platform == 'win32':
             file_extension = '.dll'
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'Release', vtl_api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( 'Release', vtl_api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        #shutil.move( os.path.join( '', vtl_api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        #print( ' chir dir: ' )
+        #print( os.listdir( os.getcwd() ) )
+        os.chdir( WORKING_PATH )
+        #print( 'working dir:' )
+        #print( os.listdir( os.getcwd() ) )
+        #print( 'PyVTL dir:' )
+        #print( os.listdir( os.getcwd()+'/PyVTL' ) )
+        build_py.run( self )
+
+class Build_VTL( build_py ):
+    """Build VocalTractLab-Backend API"""
+    def run( self ):
+        print( 'Building VocalTractLab-Backend using cmake:' )
+        os.chdir( 'PyVTL/src/vocaltractlab-backend' )
+        #with TemporaryDirectory() as tmpdir:
+        #    os.chdir(tmpdir)
+        subprocess.check_call( [ 'cmake', '.' ] )
+        subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
+        api_name = 'VocalTractLabApi'
+        if sys.platform == 'win32':
+            file_extension = '.dll'
+        else:
+            file_extension = '.so'
+        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
+        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
         print( ' chir dir: ' )
         print( os.listdir( os.getcwd() ) )
         os.chdir( WORKING_PATH )
@@ -42,6 +69,11 @@ class Build_VTL(build_py):
         print( os.listdir( os.getcwd()+'/PyVTL' ) )
         build_py.run( self )
 
+class Build_Backends( build_py ):
+    def run(self):
+        self.run_command( 'build_target_optimizer' )
+        self.run_command( 'build_vtl' )
+        build_py.run(self)
 
 
 
@@ -92,13 +124,20 @@ with open('PyVTL/__init__.py') as f:
 # Build extension modules 
 EXT_MODULES = cythonize(
     [
+        Extension( 'PyVTL.target_estimation',
+              ['PyVTL/target_estimation.pyx'],
+              language="c++",
+              libraries=['PyVTL/TargetOptimizerApi'],
+              library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
+              include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
+              ),
         Extension( 'PyVTL.VocalTractLabApi',
               ['PyVTL/VocalTractLabApi.pyx'],
-              language="c",  
+              language="c",
               libraries=['PyVTL/VocalTractLabApi'],
               library_dirs=['.'],
               include_dirs=[np.get_include()]
-              )
+              ),
     ]
 )
 
@@ -132,6 +171,14 @@ Operating System :: Unix
 """
 
 
+cmdclass = dict( build_target_optimizer = Build_Target_Optimizer,
+                 build_vtl = Build_VTL,
+                 build_py = Build_Backends,
+                 )
+#cmdclass['build_target_optimizer'] = Build_Target_Optimizer
+#cmdclass['build_vtl'] = Build_VTL
+#cmdclass['build_py'] = my_build
+
 setup_args = dict(
     name='PyVTL',
     version=version,
@@ -144,7 +191,7 @@ setup_args = dict(
     classifiers = [_f for _f in CLASSIFIERS.split('\n') if _f],
     keywords=[ 'text-to-speech', 'speech synthesis', 'articulatory synthesis', 'vocal tract' ],
     ext_modules=EXT_MODULES,
-    cmdclass = {"build_py": Build_VTL},
+    cmdclass = cmdclass,
     include_dirs=np.get_include(),
     packages=find_packages(),
     package_dir={'PyVTL': 'PyVTL'},
