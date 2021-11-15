@@ -1,5 +1,7 @@
 import os
 import itertools
+import pickle
+import gzip
 import warnings
 import logging
 
@@ -91,4 +93,20 @@ def make_output_dir( query_dir, output_dir ):
 		os.mkdir( output_dir )
 		log.info( 'Output directory {} did not exist and was created.'.format( output_dir ) )
 	return output_dir
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def save( object, filename, protocol = 0 ):
+	"""Saves a compressed object to disk
+	"""
+	file = gzip.GzipFile( filename, 'wb' )
+	file.write( pickle.dumps( object, protocol ) )
+	file.close()
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def load( filename ):
+	"""Loads a compressed object from disk
+	"""
+	file = gzip.GzipFile( filename, 'rb' )
+	data = file.read()
+	object = pickle.loads( data )
+	file.close()
+	return object
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
