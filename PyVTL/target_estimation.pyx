@@ -28,7 +28,7 @@ import utils_method as um
 import matplotlib.pyplot as plt
 from itertools import cycle
 
-import targets as tg
+import PyVTL.targets as tg
 
 
 

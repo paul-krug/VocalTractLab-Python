@@ -12,6 +12,7 @@ from PyVTL.plotting_tools import get_plot
 from PyVTL.plotting_tools import get_plot_limits
 from PyVTL import function_tools as FT
 from PyVTL import tract_sequence as TS
+from PyVTL.audio_tools import get_f0
 import PyVTL.VocalTractLabApi as vtl
 from collections import Counter
 
@@ -102,6 +103,17 @@ class Target_Sequence():
 				onset_time += self.targets[-1].duration
 		self.name = name
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_audio_file( cls, audio_file_path, **kwargs ):
+		data = get_f0( audio_file_path, **kwargs )
+		fit_result = fit( data[ 'time' ], data[ 'f0' ], **kwargs )
+		return cls( targets = fit_result.out_targets, name = 'f0' )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_data( cls, data, name, **kwargs ):
+		fit_result = fit( data[ :, 0 ], data[ :, 1 ], **kwargs )
+		return cls( targets = fit_result.out_targets, name = name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __str__( self, ):
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]

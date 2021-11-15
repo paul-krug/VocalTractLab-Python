@@ -147,6 +147,7 @@ DEPENDENCIES = [
     'matplotlib>=3.4.3',
     'numpy>=1.19.2',
     'pandas>=1.3.2',
+    'praat-parselmouth>=0.4.0',
     'tqdm>=4.62.1',
 ]
 

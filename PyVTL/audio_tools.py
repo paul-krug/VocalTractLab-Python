@@ -1,5 +1,9 @@
 import soundfile
 import numpy as np
+import pandas as pd
+import parselmouth
+
+from PyVTL.target_estimation import fit
 
 from scipy.spatial.distance import canberra
 from scipy.spatial.distance import cityblock
@@ -28,18 +32,28 @@ def calculate_spectral_distances( reference_list,
 
 
 
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def normalize( audio, normalization = -1 ): #normalisation in dB
 	norm_factor = 10**( -1 * normalization * 0.05 ) -1
 	norm_max = np.max( np.abs( audio ),axis=0)
 	audio /= ( norm_max + ( norm_max * norm_factor ) )
 	return audio
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def write( audio, audio_file_path, sr ):
 	soundfile.write( audio_file_path, audio, sr )
 	return
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_distance( args ):
 	return spectral_distance
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_f0( audio_file_path, lower_limit = 50, upper_limit = 250 ):
+	pitch = parselmouth.Sound( audio_file_path ).to_pitch()
+	pitch_times  = pitch.xs()
+	pitch_values = pitch.selected_array[ 'frequency' ]
+	pitch_values[ pitch_values == 0 ] = np.nan
+	pitch_values[ pitch_values >= upper_limit ] = np.nan
+	pitch_values[ pitch_values <= lower_limit ] = np.nan
+	return pd.DataFrame( np.array( [ pitch_times, pitch_values ] ).T, columns = [ 'time', 'f0' ] )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
