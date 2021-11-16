@@ -107,7 +107,7 @@ class Target_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_audio_file( cls, audio_file_path, **kwargs ):
-		data = get_f0( audio_file_path, **kwargs )
+		data = get_f0( audio_file_path )
 		fit_result = fit( data[ 'time' ], data[ 'f0' ], **kwargs )
 		return cls( targets = fit_result.out_targets, name = 'f0' )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
