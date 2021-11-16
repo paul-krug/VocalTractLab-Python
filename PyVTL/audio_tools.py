@@ -3,8 +3,6 @@ import numpy as np
 import pandas as pd
 import parselmouth
 
-from PyVTL.target_estimation import fit
-
 from scipy.spatial.distance import canberra
 from scipy.spatial.distance import cityblock
 from scipy.spatial.distance import correlation

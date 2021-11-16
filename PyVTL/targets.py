@@ -15,6 +15,7 @@ from PyVTL import tract_sequence as TS
 from PyVTL.audio_tools import get_f0
 import PyVTL.VocalTractLabApi as vtl
 from collections import Counter
+from PyVTL.target_estimation import fit
 
 def get_name_of( variable ):
 	return [ k for k, v in locals().items() if v is variable ][ 0 ]
