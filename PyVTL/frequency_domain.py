@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def multiple_formatter( denominator=2, number=np.pi, latex='\\pi' ):
 	def gcd(a, b):
 		while b:
@@ -36,6 +36,7 @@ def multiple_formatter( denominator=2, number=np.pi, latex='\\pi' ):
 			else:
 				return r'$\frac{%s%s}{%s}$'%(num,latex,den)
 	return _multiple_formatter
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 class Multiple:
 	def __init__(self, denominator=2, number=np.pi, latex='\\pi'):
 		self.denominator = denominator
@@ -45,7 +46,7 @@ class Multiple:
 		return plt.MultipleLocator(self.number / self.denominator)
 	def formatter(self):
 		return plt.FuncFormatter(multiple_formatter(self.denominator, self.number, self.latex))
-
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
 
@@ -136,3 +137,4 @@ class Transfer_Function():
 			ax.label_outer()
 		finalize_plot( figure, axs, **kwargs )
 		return axs
+#---------------------------------------------------------------------------------------------------------------------------------------------------#

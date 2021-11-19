@@ -23,6 +23,7 @@ from cpython.pycapsule cimport *
 #from libc.stdlib cimport malloc, free
 
 import PyVTL.tract_sequence as ts
+from PyVTL.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
 import PyVTL.frequency_domain as fds
 import PyVTL.audio_tools as AT
 import PyVTL.function_tools as FT
@@ -31,6 +32,7 @@ import librosa
 import multiprocessing as mp
 import tqdm
 import itertools
+#import copy
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -256,29 +258,53 @@ def get_param_info( str params ):
 	df = pd.DataFrame( np.array( [ descriptions, units, paramMin, paramMax, paramStandard ] ).T, columns = [ 'description', 'unit', 'min', 'max', 'standard' ] )
 	df.index = names.decode().replace('\x00','').strip( ' ' ).strip('').split( '\t' )
 	return df
+def get_shape( shape_list, str params = None, return_tract_sequence = True ):
+	return get_shapes( shape_list,  params, return_tract_sequence )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def get_tract_params_from_shape( str shape, str params = None ):
-	shapeName = shape.encode()
+def get_shapes( shape_list, str params = None, return_tract_sequence = True ):
+	shape_list = FT.check_if_list_is_valid( shape_list, str )
 	constants = get_constants()
-	cdef np.ndarray[ np.float64_t, ndim=2 ] tractParams = np.empty( shape = (1, constants[ 'n_tract_params' ] ),  dtype='float64' )
-	cdef np.ndarray[ np.float64_t, ndim=2 ] glottisParams = np.empty( shape = (1, constants[ 'n_glottis_params' ] ),  dtype='float64' )
-	if params == 'tract':
-		value = vtlGetTractParams( shapeName, &tractParams[0, 0] )
-		seq = ts.Supra_Glottal_Sequence( tractParams )
-	elif params == 'glottis':
-		value = vtlGetGlottisParams( shapeName, &glottisParams[0, 0] )
-		seq = ts.Sub_Glottal_Sequence( glottisParams )
-	else:
-		value = vtlGetTractParams(shapeName, &tractParams[0, 0])
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = np.empty( shape = constants[ 'n_tract_params' ],  dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=1 ] glottisParams = np.empty( shape = constants[ 'n_glottis_params' ],  dtype='float64' )
+	supra_glottal_shapes, sub_glottal_shapes = [], []
+	supra_glottal_shape_names, sub_glottal_shape_names = [], []
+	for shape in shape_list:
+		print(shape)
+		shapeName = shape.encode()
+		#if params == 'tract':
+		#	value = vtlGetTractParams( shapeName, &tractParams[0, 0] )
+		#	supra_glottal_shapes.append( [ tractParams, shape ] )
+		#elif params == 'glottis':
+		#	value = vtlGetGlottisParams( shapeName, &glottisParams[0, 0] )
+		#	sub_glottal_shapes.append( [ glottisParams, shape ] )
+		#else:
+		value = vtlGetTractParams( shapeName, &tractParams[ 0 ] )
 		if value == 0:
-			seq = ts.Supra_Glottal_Sequence( tractParams )
+			supra_glottal_shapes.append( tractParams.copy() )
+			supra_glottal_shape_names.append( shape )
 		if value == 2:
-			log.info('Specified shape: {} was not found in tract state shapes. Looking for glottal shapes now.'.format(shape))
-			value = vtlGetGlottisParams( shapeName, &glottisParams[0, 0] )
-			seq = ts.Sub_Glottal_Sequence( glottisParams )
-	if value != 0:
-		raise ValueError('VTL API function vtlGetTractParams returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
-	return seq
+			log.info('Specified shape: {} was not found in tract state shapes. Looking for glottal shapes now.'.format( shape ) )
+			value = vtlGetGlottisParams( shapeName, &glottisParams[ 0 ] )
+			if value == 0:
+				sub_glottal_shapes.append( glottisParams.copy() )
+				sub_glottal_shape_names.append( shape )
+		if value != 0:
+			raise ValueError('VTL API function vtlGetTractParams returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
+	supra_glottal_sequence_name = ','.join( supra_glottal_shape_names )
+	sub_glottal_sequence_name = ','.join( sub_glottal_shape_names )
+	print( 'array shape: {}'.format(np.array( supra_glottal_shapes ).shape )  )
+	if len( supra_glottal_shapes ) != 0 and len( sub_glottal_shapes ) != 0:
+		supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_shapes ), name = supra_glottal_sequence_name )
+		sub_glottal_sequence = Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
+		if return_tract_sequence:
+			tract_sequence_name = ','.join( [ supra_glottal_sequence_name, sub_glottal_sequence_name ] )
+			return Tract_Sequence( supra_glottal_sequence, sub_glottal_sequence, name = tract_sequence_name )
+		else:
+			return [ supra_glottal_sequence, sub_glottal_sequence ]
+	elif len( supra_glottal_shapes ) != 0:
+		return Supra_Glottal_Sequence( np.array( supra_glottal_shapes ), name = supra_glottal_sequence_name )
+	elif len( sub_glottal_shapes ) != 0:
+		return Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def load_speaker_file( str speaker_file_path ):
 	_close()

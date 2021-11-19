@@ -16,11 +16,23 @@ def text_to_phonemes( sentences, phoneme_style = 'vtl', language = 'en' ):
 		alphabet = 'xsampa'
 	else:
 		alphabet = phoneme_style
-	if language == 'en':
+	if language == 'de':
+		out = _de_to_phonemes( sentences, alphabet )
+	elif language == 'en':
 		out = _en_to_phonemes( sentences, alphabet )
 	if phoneme_style in [ 'vtl', 'vtlsampa', 'vtl_sampa' ]:
 		out = [ get_vtl_phonemes( x ) for x in out ]
 	return out
+
+def _de_to_phonemes( sentences, phoneme_style ):
+	phonemes_list = [ dictionary_lookup( sentence, language = 'de' ) for sentence in sentences ]
+	if phoneme_style == 'arpabet':
+		return phonemes_list
+	else:
+		phonemes_list = [ [ pc.convert( x, 'arpabet', 'ipa', language='en' ) for x in phonemes ] for phonemes in phonemes_list ]
+	if phonemes_list != 'ipa':
+		phonemes_list = [ [ pc.convert( x, 'ipa', phoneme_style, language='en' ) for x in phonemes ] for phonemes in phonemes_list ]
+	return phonemes_list
 
 def _en_to_phonemes( sentences, phoneme_style ):
 	from g2p_en import G2p

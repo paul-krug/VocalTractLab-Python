@@ -53,5 +53,6 @@ def get_f0( audio_file_path, lower_limit = 50, upper_limit = 250 ):
 	pitch_values[ pitch_values == 0 ] = np.nan
 	pitch_values[ pitch_values >= upper_limit ] = np.nan
 	pitch_values[ pitch_values <= lower_limit ] = np.nan
-	return pd.DataFrame( np.array( [ pitch_times, pitch_values ] ).T, columns = [ 'time', 'f0' ] )
+	#data = np.array( [ pitch_times, pitch_values ] ).T
+	return pd.DataFrame( np.array( [ pitch_times, pitch_values ] ).T, columns = [ 'time', 'f0' ] ).dropna()
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

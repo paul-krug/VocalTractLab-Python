@@ -58,7 +58,20 @@ from PyVTL.plotting_tools import get_plot_limits
 
 
 class State_Sequence():
-	def plot( self, parameters = None, axs = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ):
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def __str__( self, ):
+		return str( self.states )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, plot_type = 'trajectory', time = 'seconds', **kwargs ):
+		if plot_type in [ 'trajectory', 'trajectoris', 'time' ]:
+			return plot_trajectories( time = time, **kwargs )
+		elif plot_type in [ 'distribution', 'distributions', 'dist', 'dists' ]:
+			return plot_distributions( **kwargs )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot_distributions( self, parameters = None, axs = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ):
+		return axs
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot_trajectories( self, parameters = None, axs = None, time = 'seconds', plot_kwargs = PT.state_plot_kwargs, **kwargs ):
 		if parameters == None:
 			parameters = self.states.columns
 		else:
@@ -67,68 +80,104 @@ class State_Sequence():
 			               else warnings.warn( 'The specified parameter: {} does not exist in the sequence, plotting skipped.'.format( parameter ) )
 			               for parameter in parameters
 			             ]
+		constants = vtl.get_constants()
 		figure, axs = get_plot( len( parameters ), axs )
 		for index, parameter in enumerate( parameters ):
 			y = self.states.loc[ :, parameter ]
+			x = np.array( range( 0, len( y ) ) )
+			if time == 'seconds':
+				x / constants[ 'samplerate_internal' ]
 			axs[ index ].plot( y, **plot_kwargs.get( parameter ) )
 			axs[ index ].set( ylabel = parameter, ylim = get_plot_limits( y ) )
 		plt.xlabel( 'Tract state' )
 		for ax in axs:
 		    ax.label_outer()
 		finalize_plot( figure, axs, **kwargs )
-		return
-
+		return axs
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 
 
 #####################################################################################################################################################
 class Sub_Glottal_Sequence( State_Sequence ):
-	def __init__( self, states: np.array, name: str = 'sequence.sub_glottal' ):
+	def __init__( self,
+		          states: np.array,
+		          name: str = 'sequence',
+		          extension: str = '.sub_glottal',
+		          ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
-			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
+			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x: no. states, y: no. features)" )
 		if states.shape[ 1 ] != self.constants[ 'n_glottis_params' ]:
 			raise ValueError( "Dimension of features is {}, but should be {}.".format( states.shape[ 1 ], self.constants[ 'n_glottis_params' ] ) )
 		self.param_info = vtl.get_param_info( 'glottis' )
 		self.name = name
-		self.glottis = pd.DataFrame( states, columns = self.param_info.index )
-		self.states = self.glottis
+		self.extension = extension
+		self.states = pd.DataFrame( states, columns = self.param_info.index )
+		self.glottis = self.states
 		self.length = len( self.glottis.index )
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_sub_glottal_sequences( cls, sub_glottal_sequence_list ):
+		sub_glottal_sequence_list = FT.check_if_input_lists_are_valid( [ sub_glottal_sequence_list ], [ Sub_Glottal_Sequence ] )
+		states = pd.concat( [ x.states for x in sub_glottal_sequence_list ] ).to_numpy()
+		name = [ x.name for x in sub_glottal_sequence_list ] #TODO concat string in list comp
+		return cls( states, name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
 		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
 		return cls( df_GLP.to_numpy(), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( self.glottis )
+	def append( self, sub_glottal_sequence ):
+		if not isinstance( sub_glottal_sequence, Sub_Glottal_Sequence ):
+			raise ValueError( 'Trying to append an object of type {} to an object of type {}'.format( type( self ), type( sub_glottal_sequence ) ) )
+		self.glottis = pd.concat( [self.glottis, sub_glottal_sequence.glottis ] )
+		self.name = self.name + ',' + sub_glottal_sequence.name
+		return
 #####################################################################################################################################################
 
 
 
 #####################################################################################################################################################
 class Supra_Glottal_Sequence( State_Sequence ):
-	def __init__( self, states: np.array, name: str = 'sequence.supra_glottal' ):
+	def __init__( self,
+		          states: np.array,
+		          name: str = 'sequence',
+		          extension: str = '.supra_glottal',
+		          ):
 		self.constants = vtl.get_constants()
 		if len( states.shape ) != 2:
-			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x,y), x: no. states, y: no. features" )
+			raise ValueError( "Shape of passed state is not two-dimensional. The shape should be (x: no. states, y: no. features)" )
 		if states.shape[ 1 ] != self.constants[ 'n_tract_params' ]:
 			raise ValueError( "Dimension of features is {}, but should be {}.".format( states.shape[ 1 ], self.constants[ 'n_tract_params' ] ) )
 		self.param_info = vtl.get_param_info( 'tract' )
 		self.name = name
-		self.tract = pd.DataFrame( states, columns = self.param_info.index )
-		self.states = self.tract
+		self.extension = extension
+		self.states = pd.DataFrame( states, columns = self.param_info.index )
+		self.tract = self.states
 		self.length = len( self.tract.index )
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	@classmethod
+	def from_supra_glottal_sequences( cls, supra_glottal_sequence_list ):
+		supra_glottal_sequence_list = FT.check_if_input_lists_are_valid( [ supra_glottal_sequence_list ], [ Sub_Glottal_Sequence ] )
+		states = pd.concat( [ x.states for x in supra_glottal_sequence_list ] ).to_numpy()
+		name = [ x.name for x in supra_glottal_sequence_list ] #TODO concat string in list comp
+		return cls( states, name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
 		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
 		return cls( df_VTP.to_numpy(), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( self.tract )
+	def append( self, supra_glottal_sequence ):
+		if not isinstance( supra_glottal_sequence, Supra_Glottal_Sequence ):
+			raise ValueError( 'Trying to append a {} type object to a {} type object.'.format( type( self ), type( supra_glottal_sequence ) ) )
+		self.tract = pd.concat( [ self.tract, supra_glottal_sequence.tract ] )
+		self.name = self.name + ',' + supra_glottal_sequence.name
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def apply_biomechanical_constraints():
 		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
@@ -138,7 +187,12 @@ class Supra_Glottal_Sequence( State_Sequence ):
 
 #####################################################################################################################################################
 class Tract_Sequence( State_Sequence ):
-	def __init__( self, tract_states: Supra_Glottal_Sequence, glottis_states: Sub_Glottal_Sequence, name: str = 'sequence.tract' ):
+	def __init__( self,
+		          tract_states: Supra_Glottal_Sequence,
+		          glottis_states: Sub_Glottal_Sequence,
+		          name: str = 'sequence',
+		          extension: str = '.tract',
+		          ):
 		if not isinstance( tract_states, Supra_Glottal_Sequence ):
 			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_states, Supra_Glottal_Sequence ) )
 		if not isinstance( glottis_states, Sub_Glottal_Sequence ):
@@ -146,13 +200,14 @@ class Tract_Sequence( State_Sequence ):
 		for key in tract_states.constants:
 			if tract_states.constants[ key ] != glottis_states.constants[ key ]:
 				raise ValueError( 'API constant {} is different for supra and sub glottal state sequence.'.format( key ) )
-		self.param_info = { 'tract': tract_states.param_info, 'glottis': glottis_states.param_info }
+		self.param_info = dict( tract = tract_states.param_info, glottis = glottis_states.param_info )
 		self.name = name
-		self.tract = tract_states.tract
-		self.glottis = glottis_states.glottis
+		self.extension = extension
 		self.states = pd.concat( [ tract_states.tract, glottis_states.glottis ], axis = 1 )
-		self.supra_glottal_sequence = tract_states
-		self.sub_glottal_sequence = glottis_states
+		self.tract = self.states[ self.param_info[ 'tract' ].index ]
+		self.glottis = self.states[ self.param_info[ 'glottis' ].index ]
+		#self.supra_glottal_sequence = tract_states
+		#self.sub_glottal_sequence = glottis_states
 		lengths_difference = np.abs( tract_states.length - glottis_states.length )
 		if tract_states.length > glottis_states.length:
 			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
@@ -175,14 +230,19 @@ class Tract_Sequence( State_Sequence ):
 		self.length = len( self.tract.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( self.states )
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_file( cls, tract_file_path ):
 		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
 		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
 		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def append( self, tract_sequence ):
+		if not isinstance( tract_sequence, Tract_Sequence ):
+			raise ValueError( 'Trying to append a {} type object to a {} type object.'.format( type( self ), type( tract_sequence ) ) )
+		self.states = pd.concat( [ self.states, tract_sequence.states ] )
+		self.tract = pd.concat( [self.tract, tract_sequence.tract ] )
+		self.name = self.name + ',' + supra_glottal_sequence.name
+		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def apply_biomechanical_constraints( self, ):
 		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
@@ -217,6 +277,12 @@ class Tract_Sequence( State_Sequence ):
 		#print(len(smooth_values_2))
 		#feature.loc[ 0 : len( smooth_values_2 )-1, parameter ] = smooth_values_2
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_sub_glottal_sequence( self ):
+		return Sub_Glottal_Sequence( self.glottis.to_numpy(), name = '' ) #TODO name
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_supra_glottal_sequence( self ):
+		return Supra_Glottal_Sequence( self.tract.to_numpy(), name = '' ) #TODO name
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	# def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
 	# 	figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )

@@ -201,7 +201,7 @@ class Segment_Sequence():
 				out_file.write( 'name = {}; duration_s = {};\n'.format( output_phone, self.durations[ index ] ) )
 		if self.offset_duration != None:
 			out_file.write( 'name = {}; duration_s = {};'.format( '', self.offset_duration ) )
-		return
+		return seg_file_path
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, axs = None, **kwargs ):
 			figure, ax = get_plot( 1, axs )
