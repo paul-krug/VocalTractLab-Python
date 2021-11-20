@@ -48,11 +48,12 @@ import PyVTL.VocalTractLabApi as vtl
 import PyVTL.function_tools as FT
 import matplotlib.pyplot as plt
 from  itertools import chain
-#import math
+import math
 import PyVTL.plotting_tools as PT
 from PyVTL.plotting_tools import finalize_plot
 from PyVTL.plotting_tools import get_plot
 from PyVTL.plotting_tools import get_plot_limits
+from PyVTL.plotting_tools import get_valid_tiers
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -68,20 +69,29 @@ class State_Sequence():
 		elif plot_type in [ 'distribution', 'distributions', 'dist', 'dists' ]:
 			return self.plot_distributions( **kwargs )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot_distributions( self, parameters = None, axs = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ):
+	def plot_distributions( self, parameters = None, axs = None, n_columns = 5, plot_kwargs = PT.state_hist_kwargs, **kwargs ):
+		parameters = get_valid_tiers( parameters, self.states.columns )
+		n_rows = math.ceil( len( parameters ) / n_columns )
+		figure, axs = get_plot( n_rows = n_rows, n_columns = n_columns, axs = axs, sharex = False, sharey = True, gridspec_kw = {} )
+		index_row = 0
+		index_col = 0
+		for index, parameter in enumerate( parameters ):
+			if index_col == n_columns:
+				index_row += 1
+				index_col = 0
+			y = self.states.loc[ :, parameter ]
+			axs[ index_row, index_col ].hist( y, **plot_kwargs.get( parameter ) )
+			axs[ index_row, index_col ].set( xlabel = parameter ) #, ylim = get_plot_limits( y ) )
+			index_col += 1
+		#for ax in axs:
+		#	ax.label_outer()
+		finalize_plot( figure, axs, hide_labels = False, **kwargs )
 		return axs
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot_trajectories( self, parameters = None, axs = None, time = 'seconds', plot_kwargs = PT.state_plot_kwargs, **kwargs ):
-		if parameters == None:
-			parameters = self.states.columns
-		else:
-			parameters = [ parameter
-			               if parameter in set( self.states.columns )
-			               else warnings.warn( 'The specified parameter: {} does not exist in the sequence, plotting skipped.'.format( parameter ) )
-			               for parameter in parameters
-			             ]
+		parameters = PT.get_valid_tiers( parameters, self.states.columns )
 		constants = vtl.get_constants()
-		figure, axs = get_plot( len( parameters ), axs )
+		figure, axs = get_plot( n_rows = len( parameters ), axs = axs )
 		for index, parameter in enumerate( parameters ):
 			y = self.states.loc[ :, parameter ]
 			x = np.array( range( 0, len( y ) ) )
@@ -93,8 +103,8 @@ class State_Sequence():
 			plt.xlabel( 'Time [s]' )
 		else:
 			plt.xlabel( 'Tract state' )
-		for ax in axs:
-		    ax.label_outer()
+		#for ax in axs:
+		#	ax.label_outer()
 		finalize_plot( figure, axs, **kwargs )
 		return axs
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

@@ -31,6 +31,7 @@ from PyVTL import plotting_tools as PT
 from PyVTL.plotting_tools import finalize_plot
 from PyVTL.plotting_tools import get_plot
 from PyVTL.plotting_tools import get_plot_limits
+from PyVTL.plotting_tools import get_valid_tiers
 from PyVTL import function_tools as FT
 from PyVTL import tract_sequence as TS
 from PyVTL.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
@@ -143,7 +144,7 @@ class Target_Sequence():
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, plot_contour = True, plot_targets = True, ax = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ): #, time = 'seconds'
-		figure, ax = get_plot( 1, ax )
+		figure, ax = get_plot( n_rows = 1, axs = ax )
 		if plot_contour:
 			tam = Target_Approximation_Model()
 			contour = tam.response( self.targets )
@@ -156,25 +157,25 @@ class Target_Sequence():
 			#if time == 'samples':
 			#	constants = vtl.get_constants()
 			#	x *= constants[ 'samplerate_internal' ]
-			ax.plot( x, contour[ :, 1 ], **contour_kwargs )
-			ax.set( ylim = get_plot_limits( contour[ :, 1 ], 0.3 ) )
+			ax[ 0 ].plot( x, contour[ :, 1 ], **contour_kwargs )
+			ax[ 0 ].set( ylim = get_plot_limits( contour[ :, 1 ], 0.3 ) )
 		if plot_targets:
-			ax.axvline( self.targets[0].onset_time, color = 'black' )
+			ax[ 0 ].axvline( self.targets[0].onset_time, color = 'black' )
 			y_data = []
 			for tar in self.targets:
 				#x = tar.offset_time
 				#if time == 'samples':
 				#	constants = vtl.get_constants()
 				#	x *= constants[ 'samplerate_internal' ]
-				ax.axvline( tar.offset_time, color = 'black' )
+				ax[ 0 ].axvline( tar.offset_time, color = 'black' )
 				x = [ tar.onset_time, tar.offset_time ]
 				y = [ tar.slope * (tar.onset_time-tar.onset_time) + tar.offset, tar.slope * (tar.offset_time-tar.onset_time) + tar.offset ]
-				ax.plot( x, y, color = 'black', linestyle='--' )
+				ax[ 0 ].plot( x, y, color = 'black', linestyle='--' )
 				y_data.append( y )
 			if not plot_contour:
-				ax.set( ylim = get_plot_limits( y_data, 0.3 ) )
-		ax.set( xlabel = 'Time [s]', ylabel = self.name )
-		ax.label_outer()
+				ax[ 0 ].set( ylim = get_plot_limits( y_data, 0.3 ) )
+		ax[ 0 ].set( xlabel = 'Time [s]', ylabel = self.name )
+		#ax[ 0 ].label_outer()
 		finalize_plot( figure, ax, **kwargs )
 		return ax
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -188,14 +189,13 @@ class Target_Score():
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, parameters = None, plot_contour = True, plot_targets = True, axs = None, **kwargs ):
-		try:
-			n_parameters = len( parameters )
-		except Exception:
-			n_parameters = len( self.target_sequences )
-		figure, axs = get_plot( n_parameters, axs )
-		for index, target_sequence in enumerate( self.target_sequences ):
-			if ( parameters != None and target_sequence.name in parameters ) or parameters == None:
+		parameters = get_valid_tiers( parameters, self.names )
+		figure, axs = get_plot( n_rows = len( parameters ), axs = axs )
+		index = 0
+		for target_sequence in self.target_sequences:
+			if target_sequence.name in parameters:
 				target_sequence.plot( plot_contour = plot_contour, plot_targets= plot_targets, ax = axs[ index ], show=False )
+				index += 1
 		finalize_plot( figure, axs, **kwargs )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -238,6 +238,7 @@ class Synchronous_Target_Score( Target_Score ):
 			name, slopes, offsets, time_constants = args
 			#print( 'na,e:{}, slopes:{}, off:{}, tico:{}'.format( name, slopes, offsets, time_constants) )
 			self.target_sequences.append( Target_Sequence( onset_time, durations, slopes, offsets, time_constants, name = name ) )
+		self.names = [ target_sequence.name for target_sequence in self.target_sequences ]
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -262,6 +263,7 @@ class Supra_Glottal_Motor_Score( Target_Score ):
 		if Counter( self.tiers ) != Counter( self.param_info.index ):
 			raise ValueError( 'Tiers in Motor Score are {}, but should be {}.'.format( self.tiers, self.param_info.index ) )
 		self.target_sequences.sort( key = lambda i: list( self.param_info.index ).index( i.name ) )
+		self.names = [ target_sequence.name for target_sequence in self.target_sequences ]
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -307,6 +309,7 @@ class Sub_Glottal_Motor_Score( Target_Score ):
 		if Counter( self.tiers ) != Counter( self.param_info.index ):
 			raise ValueError( 'Tiers in Motor Score are {}, but should be {}.'.format( self.tiers, self.param_info.index ) )
 		self.target_sequences.sort( key = lambda i: list( self.param_info.index ).index( i.name ) )
+		self.names = [ target_sequence.name for target_sequence in self.target_sequences ]
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -350,6 +353,7 @@ class Motor_Score( Target_Score ):
 		self.supra_glottal_target_sequences = supra_glottal_motor_score.target_sequences
 		self.sub_glottal_target_sequences = sub_glottal_motor_score.target_sequences
 		self.target_sequences = [ target_sequence for target_sequence in chain( self.supra_glottal_target_sequences, self.sub_glottal_target_sequences ) ]
+		self.names = [ target_sequence.name for target_sequence in self.target_sequences ]
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
