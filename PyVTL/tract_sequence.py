@@ -64,9 +64,9 @@ class State_Sequence():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, plot_type = 'trajectory', time = 'seconds', **kwargs ):
 		if plot_type in [ 'trajectory', 'trajectoris', 'time' ]:
-			return plot_trajectories( time = time, **kwargs )
+			return self.plot_trajectories( time = time, **kwargs )
 		elif plot_type in [ 'distribution', 'distributions', 'dist', 'dists' ]:
-			return plot_distributions( **kwargs )
+			return self.plot_distributions( **kwargs )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot_distributions( self, parameters = None, axs = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ):
 		return axs
@@ -86,10 +86,13 @@ class State_Sequence():
 			y = self.states.loc[ :, parameter ]
 			x = np.array( range( 0, len( y ) ) )
 			if time == 'seconds':
-				x / constants[ 'samplerate_internal' ]
-			axs[ index ].plot( y, **plot_kwargs.get( parameter ) )
+				x /= constants[ 'samplerate_internal' ]
+			axs[ index ].plot( x, y, **plot_kwargs.get( parameter ) )
 			axs[ index ].set( ylabel = parameter, ylim = get_plot_limits( y ) )
-		plt.xlabel( 'Tract state' )
+		if time == 'seconds':
+			plt.xlabel( 'Time [s]' )
+		else:
+			plt.xlabel( 'Tract state' )
 		for ax in axs:
 		    ax.label_outer()
 		finalize_plot( figure, axs, **kwargs )

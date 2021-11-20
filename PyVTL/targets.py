@@ -19,6 +19,7 @@
 #
 # ****************************************************************************
 
+import warnings
 import numpy as np
 import pandas as pd
 from scipy.special import binom
@@ -32,6 +33,7 @@ from PyVTL.plotting_tools import get_plot
 from PyVTL.plotting_tools import get_plot_limits
 from PyVTL import function_tools as FT
 from PyVTL import tract_sequence as TS
+from PyVTL.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
 from PyVTL.audio_tools import get_f0
 import PyVTL.VocalTractLabApi as vtl
 from collections import Counter
@@ -140,19 +142,30 @@ class Target_Sequence():
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, plot_contour = True, plot_targets = True, ax = None, **kwargs ):
-		#if ax == None:
-		#	figure, ax = plt.subplots( 1, figsize = (8, 4/3) )#, sharex = True, gridspec_kw = {'hspace': 0} )
+	def plot( self, plot_contour = True, plot_targets = True, ax = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ): #, time = 'seconds'
 		figure, ax = get_plot( 1, ax )
 		if plot_contour:
 			tam = Target_Approximation_Model()
 			contour = tam.response( self.targets )
-			ax.plot( contour[ :, 0 ], contour[ :, 1 ], color = 'navy' )
+			try:
+				contour_kwargs = plot_kwargs.get( self.name )
+			except Exception:
+				warnings.warn( 'The parameter: {} does not exist in the plot_kwargs dict, doing a standard plot now.'.format( parameter ) )
+				contour_kwargs = dict( color = 'navy' )
+			x = contour[ :, 0 ]
+			#if time == 'samples':
+			#	constants = vtl.get_constants()
+			#	x *= constants[ 'samplerate_internal' ]
+			ax.plot( x, contour[ :, 1 ], **contour_kwargs )
 			ax.set( ylim = get_plot_limits( contour[ :, 1 ], 0.3 ) )
 		if plot_targets:
 			ax.axvline( self.targets[0].onset_time, color = 'black' )
 			y_data = []
 			for tar in self.targets:
+				#x = tar.offset_time
+				#if time == 'samples':
+				#	constants = vtl.get_constants()
+				#	x *= constants[ 'samplerate_internal' ]
 				ax.axvline( tar.offset_time, color = 'black' )
 				x = [ tar.onset_time, tar.offset_time ]
 				y = [ tar.slope * (tar.onset_time-tar.onset_time) + tar.offset, tar.slope * (tar.offset_time-tar.onset_time) + tar.offset ]
@@ -163,9 +176,6 @@ class Target_Sequence():
 		ax.set( xlabel = 'Time [s]', ylabel = self.name )
 		ax.label_outer()
 		finalize_plot( figure, ax, **kwargs )
-		#if show:
-		#	plt.tight_layout()
-		#	plt.show()
 		return ax
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -177,10 +187,15 @@ class Target_Score():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, plot_contour = True, plot_targets = True, axs = None, **kwargs ):
-		figure, axs = get_plot( len( self.target_sequences ), axs )
+	def plot( self, parameters = None, plot_contour = True, plot_targets = True, axs = None, **kwargs ):
+		try:
+			n_parameters = len( parameters )
+		except Exception:
+			n_parameters = len( self.target_sequences )
+		figure, axs = get_plot( n_parameters, axs )
 		for index, target_sequence in enumerate( self.target_sequences ):
-			target_sequence.plot( plot_contour = plot_contour, plot_targets= plot_targets, ax = axs[ index ], show=False )
+			if ( parameters != None and target_sequence.name in parameters ) or parameters == None:
+				target_sequence.plot( plot_contour = plot_contour, plot_targets= plot_targets, ax = axs[ index ], show=False )
 		finalize_plot( figure, axs, **kwargs )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -297,7 +312,7 @@ class Sub_Glottal_Motor_Score( Target_Score ):
 	@classmethod
 	def from_sub_glottal_sequence( cls,
 		                           sub_glottal_sequence,
-		                           synchronous = [ [ 'f0' ], [ 'pressure' ], [ 'other' ] ],
+		                           synchronous = [ [ 'F0' ], [ 'PR' ], [ 'other' ] ],
 		                           durations = [ [0.5,0.2], [0.1,0.7], [0.3,0.4] ],
 		                           slopes = None,
 		                           time_constants = None,
@@ -310,6 +325,7 @@ class Sub_Glottal_Motor_Score( Target_Score ):
 			if 'other' in synchronous_tiers:
 				synchronous_tiers = [ x for x in sub_glottal_sequence.glottis.columns if x not in sum( synchronous, [] ) ]
 			#print( synchronous_tiers )
+			#print( sub_glottal_sequence )
 			offsets = sub_glottal_sequence.glottis[ synchronous_tiers ].to_numpy().T
 			#print(offsets)
 			target_scores.append( Synchronous_Target_Score( durations, synchronous_tiers, onset_time, offset_score = offsets ) )
@@ -338,8 +354,9 @@ class Motor_Score( Target_Score ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_tract_sequence( cls, tract_sequence ):
-		
-		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
+		supra_glottal_motor_score = Supra_Glottal_Motor_Score.from_supra_glottal_sequence( tract_sequence.to_supra_glottal_sequence() )
+		sub_glottal_motor_score = Sub_Glottal_Motor_Score.from_sub_glottal_sequence( tract_sequence.to_sub_glottal_sequence() )
+		return cls( supra_glottal_motor_score, sub_glottal_motor_score )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
