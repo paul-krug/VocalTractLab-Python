@@ -1,2 +1,2 @@
 # PyVTL
-test
+VocalTractLab module for python
