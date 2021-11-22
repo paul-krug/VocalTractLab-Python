@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="320.26767mm"
+   height="46.971794mm"
+   viewBox="0 0 320.26767 46.971794"
+   version="1.1"
+   id="svg172802"
+   inkscape:version="1.1 (c68e22c387, 2021-05-23)"
+   sodipodi:docname="VocalTractLabLogo3.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview172804"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:zoom="0.58083614"
+     inkscape:cx="589.66717"
+     inkscape:cy="164.41814"
+     inkscape:window-width="1600"
+     inkscape:window-height="837"
+     inkscape:window-x="1912"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs172799">
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient11806"
+       id="linearGradient8816"
+       x1="43.888004"
+       y1="184.71408"
+       x2="68.840561"
+       y2="219.20184"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-120.56094,-53.434959)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient11806">
+      <stop
+         style="stop-color:#5d1856;stop-opacity:1;"
+         offset="0"
+         id="stop11800" />
+      <stop
+         style="stop-color:#a8522e;stop-opacity:1;"
+         offset="0.80900884"
+         id="stop11802" />
+      <stop
+         style="stop-color:#ff9600;stop-opacity:1"
+         offset="1"
+         id="stop11804" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient8814"
+       id="linearGradient10728"
+       x1="46.247498"
+       y1="179.62228"
+       x2="37.879955"
+       y2="152.82854"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-120.56094,-53.434959)" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient8814">
+      <stop
+         style="stop-color:#5d1856;stop-opacity:1;"
+         offset="0"
+         id="stop8810" />
+      <stop
+         style="stop-color:#a8522e;stop-opacity:1;"
+         offset="0.73143739"
+         id="stop10482" />
+      <stop
+         style="stop-color:#ff9600;stop-opacity:1"
+         offset="1"
+         id="stop8812" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient85324"
+       id="linearGradient85060"
+       x1="560.59979"
+       y1="829.39062"
+       x2="720.01105"
+       y2="346.35873"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       id="linearGradient85324">
+      <stop
+         style="stop-color:#5d1856;stop-opacity:1;"
+         offset="0"
+         id="stop85318" />
+      <stop
+         style="stop-color:#a8522e;stop-opacity:1;"
+         offset="0.95552784"
+         id="stop85320" />
+      <stop
+         style="stop-color:#ff9600;stop-opacity:1"
+         offset="1"
+         id="stop85322" />
+    </linearGradient>
+    <rect
+       x="289.46548"
+       y="680.04456"
+       width="1320.392"
+       height="177.79642"
+       id="rect15614" />
+  </defs>
+  <g
+     inkscape:label="Ebene 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(97.805858,-110.43742)">
+    <path
+       style="fill:url(#linearGradient8816);fill-opacity:1;stroke-width:0.264583"
+       d="m -73.233356,153.54174 v -4.01525 l 3.13031,-5.61999 c 4.90971,-8.81462 5.12785,-9.224 4.98911,-9.36274 -0.072,-0.072 -1.88873,0.76513 -4.03718,1.86029 -2.14844,1.09517 -4.00539,1.92995 -4.12654,1.85507 -0.12115,-0.0749 -0.22028,-1.6268 -0.22028,-3.44872 v -3.14175 l 10.44294,-5.3093 c 5.70615,-2.90107 10.50612,-5.50859 10.58334,-5.50859 0.19272,0 0.11749,5.60548 -0.0893,6.58782 -0.14416,0.68461 -0.52246,0.97728 -2.75125,2.12844 -1.42126,0.73408 -2.80311,1.56752 -3.07078,1.85209 -0.26767,0.28456 -2.07169,3.37489 -4.00895,6.86739 -7.86713,14.18296 -10.54744,18.97656 -10.69075,19.11987 -0.0828,0.0828 -0.15062,-1.65625 -0.15062,-3.86463 z m -6.739161,0.74587 c -1.59649,-1.02132 -3.00348,-1.95772 -3.12665,-2.08088 -0.23837,-0.23837 -14.4657,-31.34582 -14.37753,-31.43586 0.0286,-0.0292 1.29812,0.58839 2.82112,1.37247 l 2.7691,1.42558 4.23333,9.13823 c 2.32833,5.02602 4.32263,9.14115 4.43177,9.14473 0.10914,0.004 0.19844,-3.09005 0.19844,-6.87471 v -6.88121 l 3.175,1.59158 3.175,1.59158 v 12.43338 c 0,6.83835 -0.0893,12.43308 -0.19844,12.43271 -0.10914,-2.6e-4 -1.50465,-0.83629 -3.10114,-1.8576 z"
+       id="path1164-3"
+       sodipodi:nodetypes="ccssssscsscssssccsssscscscccscs" />
+    <path
+       style="fill:url(#linearGradient10728);fill-opacity:1;stroke-width:0.264583"
+       d="m -85.965758,124.27512 c -6.51205,-3.2666 -11.8401,-5.99569 -11.8401,-6.06466 0,-0.069 0.43927,-0.35074 0.97617,-0.62618 l 0.97616,-0.5008 3.5879,1.72057 c 8.91402,4.27475 13.77063,5.69513 17.624042,5.15441 2.0531,-0.2881 7.02103,-2.42933 7.78,-3.35327 0.42147,-0.51308 0.47068,-1.68246 0.15681,-3.7265 l -0.20361,-1.32604 0.96441,-0.4599 c 1.54098,-0.73484 2.31948,-0.58092 3.95823,0.78259 0.7001,0.58251 0.91187,0.62001 2.57562,0.45607 2.36365,-0.23291 3.00569,0.0613 4.39927,2.01589 l 1.12313,1.57526 -3.93798,1.97228 c -2.16588,1.08474 -6.69647,3.4069 -10.06797,5.16035 -3.37151,1.75344 -6.15295,3.13887 -6.18099,3.13093 -0.028,-0.008 -5.379032,-2.6444 -11.891092,-5.911 z m -1.38906,-6.06706 c -0.87312,-0.18176 -2.52491,-0.78306 -3.67063,-1.33624 l -2.08314,-1.00577 1.19888,-0.60929 c 1.06774,-0.54264 1.39434,-0.58576 2.98579,-0.39416 2.28749,0.27539 3.76201,-0.009 6.06702,-1.16806 2.46041,-1.23774 3.41206,-1.75643 3.57187,-1.94681 0.31494,-0.37516 2.26518,-1.11411 3.32308,-1.25911 1.578162,-0.21631 3.216422,0.24856 5.194352,1.47396 0.91797,0.56871 2.35907,1.18421 3.20246,1.36779 1.72563,0.37561 2.07967,0.68911 1.36684,1.21034 -0.32997,0.24128 -1.31948,0.35674 -3.05744,0.35674 -2.11227,0 -2.98615,0.13551 -4.91036,0.76148 -1.287442,0.41882 -2.936122,0.94946 -3.663722,1.17921 -0.7276,0.22974 -2.132,0.72051 -3.12089,1.0906 -2.00267,0.74948 -3.77437,0.82676 -6.40411,0.27932 z"
+       id="path1588-6"
+       sodipodi:nodetypes="ssscsssscsssscsscssscsscssssssssss" />
+    <path
+       style="fill:#5d1856;fill-opacity:1;stroke-width:0.264583"
+       d="m -82.912628,119.52188 c -1.74689,-0.89739 -1.97435,-1.12698 -1.98032,-1.99885 -0.008,-1.15582 2.94816,-2.19452 8.49334,-2.98432 3.366402,-0.47948 6.847882,0.39032 5.780662,1.44422 -0.21309,0.21042 -2.19394,1.28199 -4.401902,2.38125 -4.70828,2.34409 -5.38817,2.44382 -7.89178,1.1577 z"
+       id="path2612-8" />
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-120.73628,-59.710494)"
+       id="text15612"
+       style="font-style:normal;font-weight:normal;font-size:96px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect15614);fill:url(#linearGradient85060);fill-opacity:1;stroke:none"><tspan
+         x="289.46484"
+         y="766.51735"
+         id="tspan256541"><tspan
+           style="font-weight:bold;font-family:Arial;-inkscape-font-specification:'Arial Bold'"
+           id="tspan256523">V</tspan><tspan
+           style="font-size:74.6667px"
+           id="tspan256525">OCAL</tspan><tspan
+           style="font-weight:bold;font-family:Arial;-inkscape-font-specification:'Arial Bold'"
+           id="tspan256527">T</tspan><tspan
+           style="font-size:74.6667px"
+           id="tspan256529">RACT</tspan><tspan
+           style="font-weight:bold;font-family:Arial;-inkscape-font-specification:'Arial Bold'"
+           id="tspan256531">L</tspan><tspan
+           style="font-size:74.6667px"
+           id="tspan256533">AB</tspan><tspan
+           style="font-weight:bold;font-family:Arial;-inkscape-font-specification:'Arial Bold'"
+           id="tspan256535"> (</tspan><tspan
+           style="font-size:74.6667px;font-family:Arial;-inkscape-font-specification:Arial"
+           id="tspan256537">Python</tspan><tspan
+           style="font-weight:bold;font-family:Arial;-inkscape-font-specification:'Arial Bold'"
+           id="tspan256539">)</tspan></tspan></text>
+  </g>
+</svg>
