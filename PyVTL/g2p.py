@@ -106,7 +106,7 @@ def get_vtl_phonemes( sampa, drop = [ ',','^','_','.','/','\\','"','%','[',']','
 					found = True
 					#print(phonemes)
 		phoneme_list.append( tmp_list )
-	print(phoneme_list)
+	#print(phoneme_list)
 
 	index = 0
 	while index < len( phoneme_list )-1:
@@ -117,5 +117,5 @@ def get_vtl_phonemes( sampa, drop = [ ',','^','_','.','/','\\','"','%','[',']','
 
 	if ( phoneme_list_flat[0] in phonemes.vtl_sampa_dict['vowels'] ) or ( phoneme_list_flat[0] in phonemes.vtl_sampa_dict['diphthongs'] ):
 		phoneme_list_flat.insert(0, '?')
-	print( 'List of phonemes: {}'.format( phoneme_list_flat ) )
+	#print( 'List of phonemes: {}'.format( phoneme_list_flat ) )
 	return phoneme_list_flat

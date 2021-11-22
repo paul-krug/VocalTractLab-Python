@@ -149,7 +149,7 @@ class Time_Signal():
 	def from_pitch_tier_file( cls, pitch_tier_file_path ):
 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )
 		df_pitch_tier.columns = [ 'time', 'value' ]
-		print( df_pitch_tier )
+		#print( df_pitch_tier )
 		return cls( df_pitch_tier[ 'time' ].to_numpy(), df_pitch_tier[ 'value' ].to_numpy() )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -417,8 +417,8 @@ def fit(
 						c_epsilon,
 						c_patience,
 					)
-	print( 'res targets: ------------------------')
-	print( fit_results.res_targets )
+	#print( 'res targets: ------------------------')
+	#print( fit_results.res_targets )
 	fit_info = dict(
 		in_times = np.array( times ),
 		in_values = values * norm_factor_b + norm_factor_a,
@@ -643,7 +643,7 @@ def get_optimized_targets( windows, hop_length ):
 	#	avg_targets.append( avg_target )
 
 	'''
-
+	'''
 	avg_targets = target_sequence
 	print( avg_targets )
 	partial_fits = [ window.fit_result for window in windows ]
@@ -665,7 +665,7 @@ def get_optimized_targets( windows, hop_length ):
 	plt.plot( partial_fits[0].out_trajectory[:,0], partial_fits[0].out_trajectory[:,1] )
 	plt.plot( partial_fits[-1].out_trajectory[:,0], partial_fits[-1].out_trajectory[:,1] )
 	plt.show()
-
+	'''
 	#return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #def get_partial_fits()

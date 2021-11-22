@@ -104,7 +104,7 @@ class Segment_Sequence():
 		for index, duration in enumerate( self.durations ):
 			boundaries.append( boundaries[-1] + duration )
 		data = np.array( [ boundaries[ :-1 ], boundaries[ 1: ], self.durations, self.phonemes, self.effects ] ).T
-		print( data.shape )
+		#print( data.shape )
 		return pd.DataFrame( data, columns = [ 'onset', 'offset', 'duration', 'phoneme', 'effect' ] )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _get_phoneme_boundary_times( self, file_path: str, n_phonemes: int ):
@@ -113,12 +113,12 @@ class Segment_Sequence():
 		duration = len( data )
 		start = onset
 		end =  offset
-		print( 'num phon: {}'.format(n_phonemes) )
-		print( 'onset: {}'.format( onset ) )
-		print( 'offset: {}'.format( offset ) )
+		#print( 'num phon: {}'.format(n_phonemes) )
+		#print( 'onset: {}'.format( onset ) )
+		#print( 'offset: {}'.format( offset ) )
 		preds = [ x for x in np.arange( start, end, (end-start)/(n_phonemes) ) ] #+1*round( (end-start)/number_phonemes)
 		preds.append( offset )
-		print( 'returning {} boundaries'.format(len(preds)) )
+		#print( 'returning {} boundaries'.format(len(preds)) )
 		return preds
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def _get_uniform_durations_from_audio_file( self, ):
@@ -211,112 +211,3 @@ class Segment_Sequence():
 			finalize_plot( figure, axs, **kwargs )
 			return
 #####################################################################################################################################################
-
-'''
-#####################################################################################################################################################
-class Segment_Sequence2():
-	def __init__( self, boundaries: list, sampa: list, name: str = 'sequence.seg' ):
-		boundaries = FT.check_if_list_is_valid( boundaries, (int, float) )
-		sampa = FT.check_if_list_is_valid( sampa, (str) )
-
-
-		self.param_info = { 'tract': tract_states.param_info, 'glottis': glottis_states.param_info }
-		self.name = name
-		self.tract = tract_states.tract
-		self.glottis = glottis_states.glottis
-		lengths_difference = np.abs( tract_states.length - glottis_states.length )
-		if tract_states.length > glottis_states.length:
-			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
-			self.glottis = pd.concat( 
-			                             [ self.glottis, 
-										   pd.DataFrame( [ self.glottis.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
-										 ], 
-										 ignore_index = True 
-										 )
-		elif tract_states.length < glottis_states.length:
-			warnings.warn( 'lengths of supra glottal sequence is shorter than sub glottal sequence. Will pad the supra glottal sequence now.' )
-			self.tract = pd.concat( 
-			                             [ self.tract, 
-										   pd.DataFrame( [ self.tract.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
-										 ], 
-										 ignore_index = True 
-										 )
-		if len( self.tract.index ) != len( self.glottis.index ):
-			print( 'ultra fail' )
-		self.length = len( self.tract.index )
-		return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __str__( self, ):
-		return str( pd.concat( [ self.tract, self.glottis ], axis = 1 ) )
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	@classmethod
-	def from_tract_file( cls, tract_file_path ):
-		df_GLP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_GLP(x) , header = None )
-		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
-		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def apply_biomechanical_constraints( self, ):
-		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def insert( self, parameter, trajectory, trajectory_sr = None, start = 0, time_axis = 'samples', padding = None, smooth = True ):
-		if parameter in self.tract.columns:
-			feature = self.tract
-		elif parameter in self.glottis.columns:
-			feature = self.glottis
-		else:
-			#if parameter not in chain( *[ self.tract.columns, self.glottis.columns ] ):
-			raise ValueError( 'The specified parameter: {} is neither a supra glottal nor a sub glottal parameter!'.format( parameter ) )
-		if time_axis not in [ 'seconds', 'samples' ]:
-			raise ValueError( 'Argument "time_axis" must be "seconds" or "samples", not "{}"!'.format( time_axis ) )
-		trajectory = FT.check_if_list_is_valid( trajectory, (int, float) )
-		state_sr = 44100/110
-		if trajectory_sr != None:
-			trajectory = resample_trajectory( trajectory, trajectory_sr, state_sr )
-		if time_axis == 'seconds':
-			start = round( state_sr * start )
-		if padding == 'same':
-			trajectory = [ trajectory[0] for _ in range(0, start) ] + trajectory + [ trajectory[-1] for _ in range( start + len( trajectory ), len(feature[parameter]) ) ] 
-			#plt.plot(trajectory)
-			#plt.show()
-			feature[ parameter ] = trajectory
-		else:	
-			feature.loc[ start : start + len( trajectory ) - 1, parameter ] = trajectory
-		#values_a = feature.loc[ : start, parameter ].to_list()
-		#values_b = feature.loc[ : start, parameter ].to_list()
-		#smooth_values_1 = transition( values_a, resampled_values, 40, fade='in' )
-		#smooth_values_2 = transition( smooth_values_1, values_b, 40, fade='out' )
-		#print(len(smooth_values_2))
-		#feature.loc[ 0 : len( smooth_values_2 )-1, parameter ] = smooth_values_2
-		return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
-		figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
-		#figure.suptitle( 'Sharing both axes' )
-		#parameters = self.tract.columns
-		for index, parameter in enumerate( parameters ):
-			axs[ index ].plot( self.tract.loc[ :, parameter ] )
-			axs[ index ].set( ylabel = parameter )
-		plt.xlabel( 'Tract state' )
-		for ax in axs:
-		    ax.label_outer()
-		figure.align_ylabels( axs[:] )
-		plt.show()
-		return
-#####################################################################################################################################################
-
-
-
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def read_tract_seq_GLP( index ):
-	if (index > 7) and (index % 2 == 0):
-		return False
-	else:
-		return True
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def read_tract_seq_VTP( index ):
-	if (index > 7) and ((index-1) % 2 == 0):
-		return False
-	else:
-		return True
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-'''

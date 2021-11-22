@@ -228,16 +228,16 @@ cdef extern from "VocalTractLabApi.h":
 def automatic_calculation_of_TRX_and_TRY( bool automatic_calculation = True ):
 	cdef bool automaticCalculation = automatic_calculation
 	value = vtlCalcTongueRootAutomatically( automaticCalculation )
-	print( value )
+	#print( value )
 	if value != 0:
 		raise ValueError('VTL API function vtlCalcTongueRootAutomatically returned the Errorcode: {}  (See API doc for info.)' )
-	print( 'aut calc was set to {}'.format(automatic_calculation) )
+	warnings.warn( 'Automatic calculation of the Tongue Root parameters was set to {}.'.format(automatic_calculation) )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_version():
 	cdef char version[32]
 	vtlGetVersion( version )
-	print( 'Compile date of the library: "%s"' % version.decode() )
+	log.info( 'Compile date of the library: {}'.format( version.decode() ) )
 	#if self.params.verbose == True:
 	#	log.info( 'Compile date of the library: "%s"' % version.decode() )
 	return version.decode()
@@ -305,7 +305,7 @@ def get_shapes( shape_list, str params = None, return_tract_sequence = True ):
 	supra_glottal_shapes, sub_glottal_shapes = [], []
 	supra_glottal_shape_names, sub_glottal_shape_names = [], []
 	for shape in shape_list:
-		print(shape)
+		#print(shape)
 		shapeName = shape.encode()
 		#if params == 'tract':
 		#	value = vtlGetTractParams( shapeName, &tractParams[0, 0] )
@@ -328,7 +328,7 @@ def get_shapes( shape_list, str params = None, return_tract_sequence = True ):
 			raise ValueError('VTL API function vtlGetTractParams returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
 	supra_glottal_sequence_name = ','.join( supra_glottal_shape_names )
 	sub_glottal_sequence_name = ','.join( sub_glottal_shape_names )
-	print( 'array shape: {}'.format(np.array( supra_glottal_shapes ).shape )  )
+	#print( 'array shape: {}'.format(np.array( supra_glottal_shapes ).shape )  )
 	if len( supra_glottal_shapes ) != 0 and len( sub_glottal_shapes ) != 0:
 		supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_shapes ), name = supra_glottal_sequence_name )
 		sub_glottal_sequence = Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
@@ -576,7 +576,7 @@ def _gestural_score_to_audio( args ):
 	cdef int numS = 0
 	value = vtlGesturalScoreToAudio( gesFileName, wavFileName, &audio[0], &numS, enableConsoleOutput )
 	time_synth_end = time.time()
-	print( 'elapsed synthesis time {}'.format( time_synth_end-time_synth_start ) )
+	#print( 'elapsed synthesis time {}'.format( time_synth_end-time_synth_start ) )
 	if value != 0:
 		raise ValueError('VTL API function vtlGesturalScoreToAudio returned the Errorcode: {}  (See API doc for info.) \
 			while processing gestural score file (input): {}, audio file (output): {}'.format(value, ges_file_path, audio_file_path) )
@@ -589,7 +589,7 @@ def _gestural_score_to_audio( args ):
 	if save_file == False and audio_file_path not in ( None, '' ):
 		AT.write( audio, audio_file_path, sr )
 	time_end = time.time()
-	print( 'elapsed total time {}'.format( time_end-time_start ) )
+	#print( 'elapsed total time {}'.format( time_end-time_start ) )
 	return audio
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _gestural_score_to_tract_sequence( args ):
