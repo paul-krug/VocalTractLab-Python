@@ -1,4 +1,37 @@
-#cimport cVocalTractLabApi
+#####################################################################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#	- This file is a part of the VocalTractLab Python module PyVTL, see https://github.com/paul-krug/VocalTractLab
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#
+#	- Copyright (C) 2021, Paul Konstantin Krug, Dresden, Germany
+#	- https://github.com/paul-krug/VocalTractLab
+#	- Author: Paul Konstantin Krug, TU Dresden
+#
+#	- License info:
+#
+#		This program is free software: you can redistribute it and/or modify
+#		it under the terms of the GNU General Public License as published by
+#		the Free Software Foundation, either version 3 of the License, or
+#		(at your option) any later version.
+#		
+#		This program is distributed in the hope that it will be useful,
+#		but WITHOUT ANY WARRANTY; without even the implied warranty of
+#		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+#		GNU General Public License for more details.
+#		
+#		You should have received a copy of the GNU General Public License
+#		along with this program. If not, see <http://www.gnu.org/licenses/>.
+#
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+# Load essential packages:
+
+#cimport cVocalTractLabApi # Function defs could be placed here
 
 import numpy as np
 cimport numpy as np
@@ -33,6 +66,9 @@ import multiprocessing as mp
 import tqdm
 import itertools
 #import copy
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#####################################################################################################################################################
+
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -74,20 +110,20 @@ cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlClose();
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlExportTractSvg(	double *tractParams,
-							const char *fileName
-							);
+	int vtlExportTractSvg( double *tractParams,
+		                   const char *fileName
+		                   );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToAudio(	const char *gesFileName,
-									const char *wavFileName,
-									double *audio,
-									int *numSamples,
-									bool enableConsoleOutput
-									);
+	int vtlGesturalScoreToAudio( const char *gesFileName,
+		                         const char *wavFileName,
+		                         double *audio,
+		                         int *numSamples,
+		                         bool enableConsoleOutput
+		                         );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToTractSequence(	const char *gesFileName, 
-											const char *tractSequenceFileName
-											);
+	int vtlGesturalScoreToTractSequence( const char *gesFileName, 
+		                                 const char *tractSequenceFileName
+		                                 );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetConstants( int *audioSamplingRate,
 		                 int *numTubeSections,
@@ -99,18 +135,18 @@ cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetDefaultTransferFunctionOptions( TransferFunctionOptions *opts );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGesturalScoreDuration(	const char *gesFileName,
-										int *numAudioSamples,
-										int *numGestureSamples
-										);
+	int vtlGetGesturalScoreDuration( const char *gesFileName,
+		                             int *numAudioSamples,
+		                             int *numGestureSamples
+		                             );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGlottisParamInfo(	char *names,
+	int vtlGetGlottisParamInfo( char *names,
 		                        char *descriptions,
 		                        char *units,
-								double *paramMin,
-								double *paramMax,
-								double *paramStandard,
-								);
+		                        double *paramMin,
+		                        double *paramMax,
+		                        double *paramStandard,
+		                        );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetTractParamInfo( char *names,
 		                      char *descriptions,
@@ -139,28 +175,28 @@ cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlInitialize( const char *speakerFileName );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlInputTractToLimitedTract(	double *inTractParams,
-										double *outTractParams
-										);
+	int vtlInputTractToLimitedTract( double *inTractParams,
+		                             double *outTractParams
+		                             );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlSegmentSequenceToGesturalScore( const char *segFileName,
 		                                   const char *gesFileName,
 		                                   bool enableConsoleOutput,
 		                                   );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlSynthBlock(	double *tractParams,
-						double *glottisParams,
-						int numFrames,
-						int frameStep_samples,
-						double *audio,
-						bool enableConsoleOutput,
-						);
+	int vtlSynthBlock( double *tractParams,
+		               double *glottisParams,
+		               int numFrames,
+		               int frameStep_samples,
+		               double *audio,
+		               bool enableConsoleOutput,
+		               );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlTractSequenceToAudio(	const char *tractSequenceFileName,
-									const char *wavFileName,
-									double *audio,
-									int *numSamples,
-									);
+	int vtlTractSequenceToAudio( const char *tractSequenceFileName,
+		                         const char *wavFileName,
+		                         double *audio,
+		                         int *numSamples,
+		                         );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlTractToTube( double *tractParams,
 	                    double *tubeLength_cm,
