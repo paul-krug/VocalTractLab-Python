@@ -20,7 +20,7 @@ class Build_Target_Optimizer( build_py ):
     """Build TargetOptimizer-Backend API"""
     def run( self ):
         print( 'Building Target_Optimizer-Backend using cmake:' )
-        os.chdir( 'PyVTL/src/targetoptimizer-backend' )
+        os.chdir( 'VocalTractLab/src/targetoptimizer-backend' )
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
         subprocess.check_call( [ 'cmake', '.' ] )
@@ -30,24 +30,18 @@ class Build_Target_Optimizer( build_py ):
             file_extension = '.dll'
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        #print( ' chir dir: ' )
-        #print( os.listdir( os.getcwd() ) )
+        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         os.chdir( WORKING_PATH )
-        #print( 'working dir:' )
-        #print( os.listdir( os.getcwd() ) )
-        #print( 'PyVTL dir:' )
-        #print( os.listdir( os.getcwd()+'/PyVTL' ) )
         build_py.run( self )
 
 class Build_VTL( build_py ):
     """Build VocalTractLab-Backend API"""
     def run( self ):
         print( 'Building VocalTractLab-Backend using cmake:' )
-        os.chdir( 'PyVTL/src/vocaltractlab-backend' )
+        os.chdir( 'VocalTractLab/src/vocaltractlab-backend' )
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
         subprocess.check_call( [ 'cmake', '.' ] )
@@ -57,16 +51,10 @@ class Build_VTL( build_py ):
             file_extension = '.dll'
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'PyVTL' ) )
-        print( ' chir dir: ' )
-        print( os.listdir( os.getcwd() ) )
+        shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         os.chdir( WORKING_PATH )
-        print( 'working dir:' )
-        print( os.listdir( os.getcwd() ) )
-        print( 'PyVTL dir:' )
-        print( os.listdir( os.getcwd()+'/PyVTL' ) )
         build_py.run( self )
 
 class Build_Backends( build_py ):
@@ -74,8 +62,6 @@ class Build_Backends( build_py ):
         self.run_command( 'build_target_optimizer' )
         self.run_command( 'build_vtl' )
         build_py.run(self)
-
-
 
 
 
@@ -88,8 +74,8 @@ log = logging.getLogger()
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
 
-# Parse the verison from the PyVTL module
-with open('PyVTL/__init__.py') as f:
+# Parse the verison from the VocalTractLab module
+with open('VocalTractLab/__init__.py') as f:
     for line in f:
         if line.find('__version__') >= 0:
             version = line.split('=')[1].strip()
@@ -97,44 +83,21 @@ with open('PyVTL/__init__.py') as f:
             version = version.strip("'")
             continue
 
-#with open('VERSION.txt', 'w') as f:
-#    f.write(version)
-
-# Use Cython if available
-#try:
-#    from Cython.Build import cythonize
-#except:
-#    log.critical(
-#        'Cython.Build.cythonize not found. '
-#        'Cython is required to build from a repo.')
-#    sys.exit(1)
-
-
-# Extension options
-#include_dirs = []
-#try:
-#    import numpy as np
-#    include_dirs.append(numpy.get_include())
-#except ImportError:
-#    log.critical('Numpy and its headers are required to run setup(). Exiting')
-#    sys.exit(1)
-
-
 
 # Build extension modules 
 EXT_MODULES = cythonize(
     [
-        Extension( 'PyVTL.target_estimation',
-              ['PyVTL/target_estimation.pyx'],
+        Extension( 'VocalTractLab.target_estimation',
+              ['VocalTractLab/target_estimation.pyx'],
               language="c++",
-              libraries=['PyVTL/TargetOptimizerApi'],
+              libraries=['VocalTractLab/TargetOptimizerApi'],
               library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
               include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
               ),
-        Extension( 'PyVTL.VocalTractLabApi',
-              ['PyVTL/VocalTractLabApi.pyx'],
+        Extension( 'VocalTractLab.VocalTractLabApi',
+              ['VocalTractLab/VocalTractLabApi.pyx'],
               language="c",
-              libraries=['PyVTL/VocalTractLabApi'],
+              libraries=['VocalTractLab/VocalTractLabApi'],
               library_dirs=['.'],
               include_dirs=[np.get_include()]
               ),
@@ -186,7 +149,8 @@ setup_args = dict(
     description='Articulatory (text-to-) speech synthesis for Python',
     long_description=open('README.md').read(),
     url='https://github.com/paul-krug/VocalTractLab',
-    author='Paul Konstantin Krug',
+    #download_url='https://github.com/paul-krug/VocalTractLab/archive/v_0.3.tar.gz',
+    author='Paul Krug',
     author_email='paul_konstantin.krug@tu-dresden.de',
     license='GPL-3.0',
     classifiers = [_f for _f in CLASSIFIERS.split('\n') if _f],
@@ -195,12 +159,12 @@ setup_args = dict(
     cmdclass = cmdclass,
     include_dirs=np.get_include(),
     packages=find_packages(),
-    package_dir={'PyVTL': 'PyVTL'},
-    #package_data= {'PyVTL': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
-    package_data= {'PyVTL': [ os.path.join( WORKING_PATH, 'PyVTL/speaker/*'),
-                              os.path.join( WORKING_PATH, 'PyVTL/data/*'), 
-                              os.path.join( WORKING_PATH, 'PyVTL/data/dictionaries/phonecodes/*'), 
-                              os.path.join( WORKING_PATH,'./PyVTL/*' ) ]},
+    package_dir={'VocalTractLab': 'VocalTractLab'},
+    #package_data= {'VocalTractLab': ['API/*', 'Models/*', 'Speaker/*', 'Data/*']},
+    package_data= {'VocalTractLab': [ os.path.join( WORKING_PATH, 'VocalTractLab/speaker/*'),
+                              os.path.join( WORKING_PATH, 'VocalTractLab/data/*'), 
+                              os.path.join( WORKING_PATH, 'VocalTractLab/data/dictionaries/phonecodes/*'), 
+                              os.path.join( WORKING_PATH,'./VocalTractLab/*' ) ]},
     include_package_data = True,
     install_requires=DEPENDENCIES,
     #zip_safe= False,
