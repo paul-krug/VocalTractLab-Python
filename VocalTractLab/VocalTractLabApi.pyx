@@ -724,7 +724,7 @@ def _tract_state_to_transfer_function( args ):
 		magnitude_spectrum = np.array( magnitude )
 	if save_phase_spectrum:
 		phase_spectrum = np.array( phase_rad )
-	return fds.Transfer_Function( magnitude_spectrum, phase_spectrum, n_spectrum_samples )
+	return Transfer_Function( magnitude_spectrum, phase_spectrum, n_spectrum_samples )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_tube_state( args ):
 	tract_state, save_tube_length, save_tube_area, save_tube_articulator, save_incisor_position, save_tongue_tip_side_elevation, save_velum_opening = args

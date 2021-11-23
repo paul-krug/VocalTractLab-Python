@@ -194,13 +194,13 @@ class Segment_Sequence():
 		return seg_file_path
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, axs = None, **kwargs ):
-			figure, ax = get_plot( 1, axs )
+			figure, axs = get_plot( n_rows = 1, axs = axs )
 			data = self._get_data()
 			for index, (onset, duration, phoneme) in enumerate( zip( data.loc[ :, 'onset' ], data.loc[ :, 'duration' ], data.loc[ :, 'phoneme' ] ) ):
-				ax.axvline( onset, **PT.segment_plot_kwargs.get( 'boundaries' ) )
-				ax.set( ylim = [ 0, 1 ] )
-				ax.text( onset + 0.5 * duration, 0.5, phoneme, **PT.segment_plot_kwargs.get( 'phonemes' ) )
-			ax.axvline( data[ 'offset' ].iloc[ -1 ], **PT.segment_plot_kwargs.get( 'boundaries' ) )
+				axs[0].axvline( onset, **PT.segment_plot_kwargs.get( 'boundaries' ) )
+				axs[0].set( ylim = [ 0, 1 ] )
+				axs[0].text( onset + 0.5 * duration, 0.5, phoneme, **PT.segment_plot_kwargs.get( 'phonemes' ) )
+			axs[0].axvline( data[ 'offset' ].iloc[ -1 ], **PT.segment_plot_kwargs.get( 'boundaries' ) )
 			plt.tick_params(
 				axis = 'y',          # changes apply to the x-axis
 				which = 'both',      # both major and minor ticks are affected
@@ -209,5 +209,5 @@ class Segment_Sequence():
 				labelleft = False)   # labels along the left edge are off
 			plt.xlabel( 'Time [s]' )
 			finalize_plot( figure, axs, **kwargs )
-			return
+			return axs
 #####################################################################################################################################################

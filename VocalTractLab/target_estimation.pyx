@@ -441,7 +441,7 @@ def fit(
 		par_epsilon = epsilon,
 		par_patience = patience,
 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
-									fit_results.res_boundaries.at( i + 1 ),
+									target['duration'],
 									target['slope'] * norm_factor_b,
 									target['offset'] * norm_factor_b + norm_factor_a, 
 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code 

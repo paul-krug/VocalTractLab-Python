@@ -133,7 +133,7 @@ class Transfer_Function():
 		      plot_kwargs: list = [ dict( color = 'navy' ), dict( color = 'darkorange' ) ],
 		      **kwargs,
 		      ): #, scale = 'dB' ):
-		figure, axs = get_plot( len( parameters ), axs )
+		figure, axs = get_plot( n_rows = len( parameters ), axs = axs )
 		for index, parameter in enumerate( parameters ):
 			if parameter == 'frequency':
 				y = librosa.amplitude_to_db( self.data[ parameter ] )

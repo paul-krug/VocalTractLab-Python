@@ -42,7 +42,6 @@ from VocalTractLab import function_tools
 from VocalTractLab import g2p
 from VocalTractLab import plotting_tools
 from VocalTractLab.segment_sequence import Segment_Sequence
-from VocalTractLab import target_estimation
 from VocalTractLab.targets import Target
 from VocalTractLab.targets import Target_Sequence
 from VocalTractLab.targets import Target_Score
@@ -50,6 +49,7 @@ from VocalTractLab.targets import Synchronous_Target_Score
 from VocalTractLab.targets import Sub_Glottal_Motor_Score
 from VocalTractLab.targets import Supra_Glottal_Motor_Score
 from VocalTractLab.targets import Motor_Score
+from VocalTractLab import target_estimation
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence
 from VocalTractLab.tract_sequence import Supra_Glottal_Sequence
 from VocalTractLab.tract_sequence import Tract_Sequence

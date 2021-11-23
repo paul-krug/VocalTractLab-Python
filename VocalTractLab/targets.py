@@ -38,7 +38,7 @@ from scipy.special import binom
 from scipy.special import factorial
 import matplotlib.pyplot as plt
 from itertools import zip_longest
-from itertools import 
+from itertools import chain
 from collections import Counter
 
 from VocalTractLab import plotting_tools as PT
@@ -145,7 +145,7 @@ class Target_Sequence():
 	def from_audio_file( cls, audio_file_path, **kwargs ):
 		data = get_f0( audio_file_path )
 		fit_result = fit( data[ 'time' ].to_numpy(), data[ 'f0' ].to_numpy(), **kwargs )
-		return cls( targets = fit_result.out_targets, name = 'f0' )
+		return cls( targets = fit_result.out_targets, name = 'F0' )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
 	def from_data( cls, data, name, **kwargs ):
@@ -161,10 +161,9 @@ class Target_Sequence():
 		if plot_contour:
 			tam = Target_Approximation_Model()
 			contour = tam.response( self.targets )
-			try:
-				contour_kwargs = plot_kwargs.get( self.name )
-			except Exception:
-				warnings.warn( 'The parameter: {} does not exist in the plot_kwargs dict, doing a standard plot now.'.format( parameter ) )
+			contour_kwargs = plot_kwargs.get( self.name )
+			if contour_kwargs == None:
+				warnings.warn( 'The parameter: {} does not exist in the plot_kwargs dict, doing a standard plot now.'.format( self.name ) )
 				contour_kwargs = dict( color = 'navy' )
 			x = contour[ :, 0 ]
 			#if time == 'samples':
