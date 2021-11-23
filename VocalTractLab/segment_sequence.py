@@ -201,7 +201,7 @@ class Segment_Sequence():
 				axs[0].set( ylim = [ 0, 1 ] )
 				axs[0].text( onset + 0.5 * duration, 0.5, phoneme, **PT.segment_plot_kwargs.get( 'phonemes' ) )
 			axs[0].axvline( data[ 'offset' ].iloc[ -1 ], **PT.segment_plot_kwargs.get( 'boundaries' ) )
-			plt.tick_params(
+			axs[0].tick_params(
 				axis = 'y',          # changes apply to the x-axis
 				which = 'both',      # both major and minor ticks are affected
 				left = False,        # ticks along the left edge are off
