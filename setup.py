@@ -74,7 +74,7 @@ log = logging.getLogger()
 if 'all' in sys.warnoptions:
     log.level = logging.DEBUG
 
-# Parse the verison from the VocalTractLab module
+# Get version from the VocalTractLab module
 with open('VocalTractLab/__init__.py') as f:
     for line in f:
         if line.find('__version__') >= 0:
@@ -119,7 +119,7 @@ CLASSIFIERS = """\
 Development Status :: 3 - Alpha
 Intended Audience :: Science/Research
 Intended Audience :: Developers
-License :: OSI Approved :: GPL-3.0 License
+License :: OSI Approved :: GNU General Public License v3 (GPLv3)
 Programming Language :: C++
 Programming Language :: Python
 Programming Language :: Python :: 3
