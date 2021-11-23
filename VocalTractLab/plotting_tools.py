@@ -33,9 +33,9 @@
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
-from PyVTL.function_tools import check_if_list_is_valid
-from PyVTL.function_tools import make_output_path
-from PyVTL.function_tools import is_iterable
+from VocalTractLab.function_tools import check_if_list_is_valid
+from VocalTractLab.function_tools import make_output_path
+from VocalTractLab.function_tools import is_iterable
 
 
 hist_kwargs = dict( bins = 50, histtype = 'step', density = False )

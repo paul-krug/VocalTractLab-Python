@@ -34,16 +34,16 @@ import os
 import warnings
 import pandas as pd
 import numpy as np
-import PyVTL.VocalTractLabApi as vtl
-import PyVTL.function_tools as FT
+import VocalTractLab.VocalTractLabApi as vtl
+import VocalTractLab.function_tools as FT
 import matplotlib.pyplot as plt
 from  itertools import chain
 import math
-import PyVTL.plotting_tools as PT
-from PyVTL.plotting_tools import finalize_plot
-from PyVTL.plotting_tools import get_plot
-from PyVTL.plotting_tools import get_plot_limits
-from PyVTL.plotting_tools import get_valid_tiers
+import VocalTractLab.plotting_tools as PT
+from VocalTractLab.plotting_tools import finalize_plot
+from VocalTractLab.plotting_tools import get_plot
+from VocalTractLab.plotting_tools import get_plot_limits
+from VocalTractLab.plotting_tools import get_valid_tiers
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 

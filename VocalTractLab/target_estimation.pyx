@@ -60,7 +60,7 @@ import utils_method as um
 import matplotlib.pyplot as plt
 from itertools import cycle
 
-import PyVTL.targets as tg
+import VocalTractLab.targets as tg
 
 
 

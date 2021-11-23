@@ -31,11 +31,11 @@
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 '''Load essential packages:'''
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-import PyVTL.VocalTractLabApi as vtl
-import PyVTL.plotting_tools as PT
-from PyVTL.plotting_tools import finalize_plot
-from PyVTL.plotting_tools import get_plot
-from PyVTL.plotting_tools import get_plot_limits
+#import VocalTractLab.VocalTractLabApi as vtl
+# VocalTractLab.plotting_tools as PT
+from VocalTractLab.plotting_tools import finalize_plot
+from VocalTractLab.plotting_tools import get_plot
+from VocalTractLab.plotting_tools import get_plot_limits
 import numpy as np
 import matplotlib.pyplot as plt
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

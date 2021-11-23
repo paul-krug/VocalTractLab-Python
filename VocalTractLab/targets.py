@@ -38,19 +38,20 @@ from scipy.special import binom
 from scipy.special import factorial
 import matplotlib.pyplot as plt
 from itertools import zip_longest
-from itertools import chain
-from PyVTL import plotting_tools as PT
-from PyVTL.plotting_tools import finalize_plot
-from PyVTL.plotting_tools import get_plot
-from PyVTL.plotting_tools import get_plot_limits
-from PyVTL.plotting_tools import get_valid_tiers
-from PyVTL import function_tools as FT
-from PyVTL import tract_sequence as TS
-from PyVTL.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
-from PyVTL.audio_tools import get_f0
-import PyVTL.VocalTractLabApi as vtl
+from itertools import 
 from collections import Counter
-from PyVTL.target_estimation import fit
+
+from VocalTractLab import plotting_tools as PT
+from VocalTractLab.plotting_tools import finalize_plot
+from VocalTractLab.plotting_tools import get_plot
+from VocalTractLab.plotting_tools import get_plot_limits
+from VocalTractLab.plotting_tools import get_valid_tiers
+from VocalTractLab import function_tools as FT
+from VocalTractLab import tract_sequence as TS
+from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
+from VocalTractLab.audio_tools import get_f0
+import VocalTractLab.VocalTractLabApi as vtl
+from VocalTractLab.target_estimation import fit
 
 def get_name_of( variable ):
 	return [ k for k, v in locals().items() if v is variable ][ 0 ]
