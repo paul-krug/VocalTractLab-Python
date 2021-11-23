@@ -33,7 +33,6 @@
 import soundfile
 import numpy as np
 import pandas as pd
-import parselmouth
 
 from scipy.spatial.distance import canberra
 from scipy.spatial.distance import cityblock
@@ -80,6 +79,10 @@ def _calculate_spectral_distance( args ):
 	return spectral_distance
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_f0( audio_file_path, lower_limit = 50, upper_limit = 250 ):
+	try:
+		import parselmouth
+	except Exception:
+		raise ModuleNotFoundError( 'Can not load praat-parselmouth module, which is needed for f0 estimation. Is it installed?' )
 	pitch = parselmouth.Sound( audio_file_path ).to_pitch()
 	pitch_times  = pitch.xs()
 	pitch_values = pitch.selected_array[ 'frequency' ]

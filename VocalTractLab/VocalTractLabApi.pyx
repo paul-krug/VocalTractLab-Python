@@ -55,12 +55,14 @@ from cpython.pycapsule cimport *
 #from cpython cimport array
 #from libc.stdlib cimport malloc, free
 
-import PyVTL.tract_sequence as ts
-from PyVTL.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
-import PyVTL.frequency_domain as fds
-import PyVTL.audio_tools as AT
-import PyVTL.function_tools as FT
-from PyVTL.tube_states import Tube_State
+
+from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
+from VocalTractLab.frequency_domain import Transfer_Function
+from VocalTractLab.tube_states import Tube_State
+import VocalTractLab.audio_tools as AT
+import VocalTractLab.function_tools as FT
+
+
 import librosa
 import multiprocessing as mp
 import tqdm
@@ -422,7 +424,7 @@ def tract_sequence_to_audio( tract_sequence_list,
 	                         verbose: bool = False,
 	                         ):
 	tract_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, audio_file_path_list ], 
-																		           [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
+																		           [ ( str, Tract_Sequence ),
 	                                                                                 ( str, type(None) ),
 	                                                                               ]
 	                                                                             )
@@ -434,14 +436,14 @@ def tract_sequence_to_audio( tract_sequence_list,
 def tract_sequence_to_limited_tract_sequence( tract_sequence,
 	                                          workers: int = None, 
 	                                        ):
-	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
+	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ state for state in tract_sequence.tract.to_numpy() ]
 	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
-	limited_supra_glottal_sequence = ts.Supra_Glottal_Sequence( np.array( tract_param_data ) )
-	if isinstance( tract_sequence,  ts.Tract_Sequence ):
-		return ts.Tract_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = tract_sequence.sub_glottal_sequence )
+	limited_supra_glottal_sequence = Supra_Glottal_Sequence( np.array( tract_param_data ) )
+	if isinstance( tract_sequence,  Tract_Sequence ):
+		return Tract_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = tract_sequence.sub_glottal_sequence )
 	else:
 		return limited_supra_glottal_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -452,7 +454,7 @@ def tract_sequence_to_svg( tract_sequence_list,
 	                       workers: int = None,
 	                       ):
 	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, svg_dir_list ],
-	                                                                       [ ( str, ts.Tract_Sequence, ts.Target_Sequence ),
+	                                                                       [ ( str, Tract_Sequence ),
 	                                                                         ( str, type(None) ),
 	                                                                       ]
 	                                                                     )
@@ -467,7 +469,7 @@ def tract_sequence_to_transfer_functions( tract_sequence,
 	                                      save_phase_spectrum: bool = True,
 	                                      workers: int = None,
 	                                    ):
-	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
+	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ [ state,
@@ -487,7 +489,7 @@ def tract_sequence_to_tube_states( tract_sequence,
 	                               save_velum_opening: bool = True,
 	                               workers: int = None,
 	                             ):
-	if not isinstance( tract_sequence, ( ts.Tract_Sequence, ts.Supra_Glottal_Sequence ) ):
+	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
 	tract_param_data = []
 	args = [ [ state,
@@ -606,7 +608,7 @@ def _gestural_score_to_tract_sequence( args ):
 			while processing gestural score file (input): {}, tract sequence file (output): {}'.format(value, ges_file_path, tract_file_path) )
 	log.info( 'Created tractsequence file {} from gestural score file: {}'.format( tract_file_path, ges_file_path ) )
 	if return_sequence:
-		return ts.Tract_Sequence.from_tract_file( tract_file_path )
+		return Tract_Sequence.from_tract_file( tract_file_path )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _segment_sequence_to_gestural_score( args ):
@@ -649,10 +651,10 @@ def _tract_sequence_to_audio( args ):
 		if not os.path.exists( tract_file_path ):
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
-		tract_sequence = ts.Tract_Sequence.from_file( tract_file_path )
-	elif isinstance( tract_sequence_data, ts.Target_Sequence ):
-		target_sequence = tract_sequence_data
-		tract_sequence = target_sequence.to_tract_sequence()
+		tract_sequence = Tract_Sequence.from_file( tract_file_path )
+	#elif isinstance( tract_sequence_data, ts.Target_Sequence ):
+	#	target_sequence = tract_sequence_data
+	#	tract_sequence = target_sequence.to_tract_sequence()
 	else:
 		tract_sequence = tract_sequence_data
 	audio = _synth_block( ( tract_sequence, None, verbose ) )
@@ -685,7 +687,7 @@ def _tract_sequence_to_svg( args ):
 		if not os.path.exists( tract_file_path ) :
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
-		tract_sequence = ts.Tract_Sequence.from_tract_file( tract_file_path )
+		tract_sequence = Tract_Sequence.from_tract_file( tract_file_path )
 	#elif isinstance( tract_sequence, ts.Target_Sequence ) :
 	#	target_sequence = tract_sequence
 	#	tract_sequence = target_sequence.to_tract_sequence()

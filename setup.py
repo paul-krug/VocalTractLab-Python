@@ -181,11 +181,11 @@ cmdclass = dict( build_target_optimizer = Build_Target_Optimizer,
 #cmdclass['build_py'] = my_build
 
 setup_args = dict(
-    name='PyVTL',
+    name='VocalTractLab',
     version=version,
     description='Articulatory (text-to-) speech synthesis for Python',
     long_description=open('README.md').read(),
-    url='http://pypi.python.org/pypi/PackageName/',
+    url='https://github.com/paul-krug/VocalTractLab',
     author='Paul Konstantin Krug',
     author_email='paul_konstantin.krug@tu-dresden.de',
     license='GPL-3.0',
