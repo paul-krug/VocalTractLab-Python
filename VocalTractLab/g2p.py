@@ -33,6 +33,7 @@
 import os
 import sys
 import pandas as pd
+from VocalTractLab.function_tools import check_if_list_is_valid
 WORKING_PATH = os.getcwd()
 sys.path.append( os.path.join( os.path.dirname(__file__), 'data', 'dictionaries', 'phonecodes' ) )
 import phonecodes as pc
@@ -44,6 +45,7 @@ vtl_phonemes = pd.read_csv( os.path.join( os.path.dirname(__file__), 'data', 'vt
 #print( vtl_phonemes )
 
 def text_to_phonemes( sentences, phoneme_style = 'vtl', language = 'en' ):
+	sentences = check_if_list_is_valid( sentences, str )
 	available_styles = [ 'ipa', 'arpabet', 'xsampa', 'vtl', 'vtlsampa', 'vtl_sampa', 'disc', 'callhome' ]
 	if phoneme_style not in available_styles:
 		raise ValueError( 'The specified phoneme style must be one of the following: {}, not {}!'.format( available_styles, phoneme_style ) )
@@ -54,9 +56,25 @@ def text_to_phonemes( sentences, phoneme_style = 'vtl', language = 'en' ):
 	if language == 'de':
 		out = _de_to_phonemes( sentences, alphabet )
 	elif language == 'en':
-		out = _en_to_phonemes( sentences, alphabet )
-	if phoneme_style in [ 'vtl', 'vtlsampa', 'vtl_sampa' ]:
-		out = [ get_vtl_phonemes( x ) for x in out ]
+		direct_out = _en_to_phonemes( sentences, alphabet )
+		out = []
+		out_phones = []
+		tmp = []
+		for sentence in direct_out:
+			out_phones = []
+			tmp = []
+			for x in sentence:
+				if x not in [ ' ', '.' ]:
+					tmp.append( x )
+				else:
+					vtl_tmp = get_vtl_phonemes( tmp )
+					if vtl_tmp != []:
+						out_phones.append( vtl_tmp )
+					tmp = []
+			out.append( out_phones )
+		#print( out )
+	#if phoneme_style in [ 'vtl', 'vtlsampa', 'vtl_sampa' ]:
+	#	out = [ get_vtl_phonemes( x ) for sentence in out for x in sentence ]
 	return out
 
 def _de_to_phonemes( sentences, phoneme_style ):
@@ -119,3 +137,27 @@ def get_vtl_phonemes( sampa, drop = [ ',','^','_','.','/','\\','"','%','[',']','
 		phoneme_list_flat.insert(0, '?')
 	#print( 'List of phonemes: {}'.format( phoneme_list_flat ) )
 	return phoneme_list_flat
+
+
+def lookup( text, remove_punctuation = True, language = 'de' ):
+	if remove_punctuation:
+		for char in [ ',','^','_','.','/','\\','"','%','[',']','=',"'",'!','?' ]:
+			text = text.replace(char, '')
+	dictionary = pd.read_csv( 'Dictionaries/de-ipa.txt', sep='\t' )
+	dictionary['de'] = dictionary['de'].apply( lambda x: x.lower() )
+	#print( dictionary)
+	input_words = text.split(' ')
+	#input_words = [ x.lower() for x in input_words ]
+	input_words = [ x for x in input_words if x not in [ None, '', ' ' ] ]
+	input_words = [ x.lower() for x in input_words ]
+	print( input_words )
+	ipa_words = []
+	#ipa_sub_words = []
+	#valid_sub_words = []
+	for word in input_words:
+		occurences = dictionary.loc[ ( dictionary['de'] == word ) ]
+		if len( occurences ) > 0:
+			ipa_words.append( occurences[0] )
+		else:
+			ipa_words.append( None )
+	return ipa_words

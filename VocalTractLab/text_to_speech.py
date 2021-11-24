@@ -30,16 +30,37 @@
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # Load essential packages:
-from PyVTL.g2p import text_to_phonemes
+from VocalTractLab.g2p import text_to_phonemes
+from VocalTractLab.function_tools import check_if_list_is_valid
+from VocalTractLab.segment_sequence import Segment_Sequence
+from VocalTractLab.VocalTractLabApi import gestural_score_to_audio
+from VocalTractLab.VocalTractLabApi import segment_sequence_to_gestural_score
 
 
 
-def text_to_speech( sentence_list, language = 'de', **kwargs ):
-	sentence_list = FT.check_if_input_list_is_valid( sentence_list, str )
+def text_to_speech( sentence_list, language = 'en', **kwargs ):
+	sentence_list = check_if_list_is_valid( sentence_list, str )
 	phonemes_list = text_to_phonemes( sentence_list, phoneme_style = 'vtl_sampa', language = language )
-	durations_list = get_phone_durations( phonemes_list, method = 'naive', language = language )
-	segment_sequences = Segment_Sequence( phonemes_list, durations )
-	audio = segment_sequence.to_audio_file( **kwargs )
-	return audio
+	segment_sequences = get_phone_durations( phonemes_list, method = 'naive', language = language )
+	for index, seg in enumerate( segment_sequences ):
+		seg.to_seg_file( 'tts_tmp_{}.seg'.format( index ) )
+	segment_sequence_to_gestural_score( [ 'tts_tmp_{}.seg'.format( index ) for index, _ in enumerate( segment_sequences ) ] )
+	audio_data = gestural_score_to_audio( [ 'tts_tmp_{}.ges'.format( index ) for index, _ in enumerate( segment_sequences ) ],
+		                                  save_file = False,
+		                                  normalize_audio = -1,
+		                                  sr = 16000,
+		                                  return_data = True,
+		                                  )
+	return audio_data
 def tts( text, language = 'de', **kwargs ):
 	return text_to_speech( text, language = language, **kwargs )
+
+def get_phone_durations( phonemes_list, method = 'naive', language = 'en' ):
+	segment_sequences = []
+	for phonemes in phonemes_list:
+		phonemes_flat = []
+		for _list in phonemes:
+			phonemes_flat += _list
+		segment_sequence = Segment_Sequence( phonemes_flat, [ 0.2 for _ in phonemes_flat ] )
+		segment_sequences.append( segment_sequence )
+	return segment_sequences

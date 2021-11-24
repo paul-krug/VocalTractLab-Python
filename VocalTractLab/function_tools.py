@@ -76,7 +76,7 @@ def is_iterable( query ):
 def check_if_list_is_valid( input_list, instances ):
 	#is_iterable = is_iterable( input_list )
 	if isinstance( input_list, str ) or not is_iterable( input_list ):
-		warnings.warn( 'input is either not iterable or a single string. The input gets turned into a list now.' )
+		log.info( 'input is either not iterable or a single string. The input gets turned into a list now.' )
 		input_list = [ input_list ]
 	if input_list and all( isinstance( x, instances ) for x in input_list ):
 		return input_list
