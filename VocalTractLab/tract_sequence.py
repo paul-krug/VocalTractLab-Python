@@ -89,7 +89,7 @@ class State_Sequence():
 			y = self.states.loc[ :, parameter ]
 			x = np.array( range( 0, len( y ) ) )
 			if time == 'seconds':
-				x /= constants[ 'samplerate_internal' ]
+				x = x / constants[ 'samplerate_internal' ]
 			axs[ index ].plot( x, y, **plot_kwargs.get( parameter ) )
 			axs[ index ].set( ylabel = parameter, ylim = get_plot_limits( y ) )
 		if time == 'seconds':
