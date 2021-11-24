@@ -1,5 +1,0 @@
-inlcude VocalTractLab/*
-include VocalTractLab/data/* 
-include VocalTractLab/data/dictionaries/phonecodes/*
-include VocalTractLab/speaker/*
-include VocalTractLab/src/targetoptimizer-backend/*
