@@ -1,4 +1,22 @@
 #!/usr/bin/env python
+""" This Python library provides an implementation of the articulatory synthesizer VocalTractLab.
+
+Core features are:
+- a one dimensional aero-acoustic simulation of vocal tract dynamics using a
+  vocal tract model based on MRI scans of a human vocal tract
+- synthesis of artificial speech through high-level gestural control or low-
+  level motor control of individual articulators through dynamic targets
+- extensive visualization options
+- estimation of articulatory targets from audio files directly (pitch target-
+  estimation) or from arbitrary data (e.g. articulatory measurements)
+- phoneme-to-speech functionality and a basic text-to-speech pipeline
+- and much more
+
+Besides the scientific purpose, this module is well suited for any production
+environments that need to access the VocalTractLab-backend.
+VocalTractLab and its Python module are licensed under GPL-3.0.
+"""
+DOCLINES = (__doc__ or '').split("\n")
 
 import os, sys
 import logging
@@ -153,7 +171,7 @@ setup_args = dict(
     name='VocalTractLab',
     version=version,
     description='Articulatory (text-to-) speech synthesis for Python',
-    long_description=open('README.md').read(),
+    long_description=DOCLINES,
     url='https://github.com/paul-krug/VocalTractLab',
     #download_url='https://github.com/paul-krug/VocalTractLab/archive/v_0.3.tar.gz',
     author='Paul Krug',
