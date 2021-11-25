@@ -35,7 +35,7 @@ class Build_Target_Optimizer( build_py ):
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         os.chdir( WORKING_PATH )
-        build_py.run( self )
+        #build_py.run( self )
 
 class Build_VTL( build_py ):
     """Build VocalTractLab-Backend API"""
@@ -54,8 +54,14 @@ class Build_VTL( build_py ):
         shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        #print( ' chir dir: ' )
+        #print( os.listdir( os.getcwd() ) )
         os.chdir( WORKING_PATH )
-        build_py.run( self )
+        #print( 'working dir:' )
+        #print( os.listdir( os.getcwd() ) )
+        #print( 'VocalTractLab dir:' )
+        #print( os.listdir( os.getcwd()+'/VocalTractLab' ) )
+        #build_py.run( self )
 
 class Build_Backends( build_py ):
     def run(self):
