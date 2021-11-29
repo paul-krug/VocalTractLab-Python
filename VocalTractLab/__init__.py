@@ -41,6 +41,7 @@ from VocalTractLab.frequency_domain import Transfer_Function
 from VocalTractLab import function_tools
 from VocalTractLab import g2p
 from VocalTractLab import plotting_tools
+from VocalTractLab import mc_generator
 from VocalTractLab.segment_sequence import Segment_Sequence
 from VocalTractLab.targets import Target
 from VocalTractLab.targets import Target_Sequence

@@ -68,7 +68,8 @@ class Target():
 		          duration: float = 1.0, 
 		          slope: float = 0.0, 
 		          offset: float = 1.0, 
-		          time_constant = 0.015,
+		          time_constant: float = 0.015,
+		          onset_state: float = None,
 		          ):
 		self.onset_time = onset_time
 		self.offset_time = onset_time + duration
@@ -79,16 +80,8 @@ class Target():
 		self.m = slope
 		self.b = offset
 		self.tau = time_constant
+		self.onset_state = onset_state
 		return
-	# def __init__( self, onset_time, offset_time, slope, offset, time_constant ):
-	# 	self.onset_time = onset_time
-	# 	self.offset_time = offset_time
-	# 	self.duration = offset_time - onset_time
-	# 	self.slope = slope
-	# 	self.offset = offset
-	# 	self.time_constant = time_constant
-	# 	self.tau = time_constant
-	# 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -117,13 +110,14 @@ class Target_Sequence():
 	"""PyVTL articulatory target""" 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def __init__( self,
-		          onset_time = 0.0,
+		          onset_time: float = 0.0,
 		          durations: list = [],
 		          slopes: list = [],
 		          offsets: list = [],
-		          time_constants: list = [], 
+		          time_constants: list = [],
+		          onset_state: float = None,
 		          targets: list = None,
-		          name = '',
+		          name: str = '',
 		          ):
 		if targets != None:
 			self.targets = targets
@@ -138,6 +132,8 @@ class Target_Sequence():
 						kwargs[ function_argument_names[ idx_member ] ] = arg
 				self.targets.append( Target( **kwargs ) )
 				onset_time += self.targets[-1].duration
+		self.onset_time = self.targets[0].onset_time
+		self.onset_state = self.targets[0].onset_state
 		self.name = name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -155,6 +151,14 @@ class Target_Sequence():
 	def __str__( self, ):
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_contour( self, sr ):
+		tam = Target_Approximation_Model()
+		contour = tam.response( target_sequence = self.targets,
+			                    discretization_rate = sr,
+			                    onset_state = self.onset_state,
+			                    )
+		return contour
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, plot_contour = True, plot_targets = True, ax = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ): #, time = 'seconds'
 		figure, ax = get_plot( n_rows = 1, axs = ax )
