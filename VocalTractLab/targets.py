@@ -131,8 +131,8 @@ class Target_Sequence():
 					if arg != None:
 						kwargs[ function_argument_names[ idx_member ] ] = arg
 				self.targets.append( Target( **kwargs ) )
-				onset_time += self.targets[-1].duration
-		self.onset_time = onset_time
+				onset_time += self.targets[ -1 ].duration
+		self.onset_time =  self.targets[ 0 ].onset_time
 		self.onset_state = onset_state
 		self.name = name
 		return
@@ -153,9 +153,11 @@ class Target_Sequence():
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_boundaries( self, ):
+		#print( 'in get bound 1: {}'.format( self.onset_time ) )
 		boundaries = [ self.onset_time ]
 		for target in self.targets:
 			boundaries.append( boundaries[ -1 ] + target.duration )
+		#print( 'in get bound 2: {}'.format( self.onset_time ) )
 		return boundaries
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_contour( self, sr = 400 ):
