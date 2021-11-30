@@ -152,9 +152,15 @@ class Target_Sequence():
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_boundaries( self, ):
+		boundaries = [ self.onset_time ]
+		for target in self.targets:
+			boundaries.append( boundaries[ -1 ] + target.duration )
+		return boundaries
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_contour( self, sr = 400 ):
 		tam = Target_Approximation_Model()
-		print( 'get contour: {}'.format(self.onset_state) )
+		#print( 'get contour: {}'.format(self.onset_state) )
 		contour = tam.response( target_sequence = self.targets,
 			                    discretization_rate = sr,
 			                    onset_state = self.onset_state,
@@ -405,7 +411,7 @@ class Target_Approximation_Model():
 		duration = end - start
 		n_samples = duration * discretization_rate
 		sample_times = np.arange( start, end, duration / n_samples )
-		print( 'tam onset: {}'.format(onset_state) )
+		#print( 'tam onset: {}'.format(onset_state) )
 		if onset_state == None:
 			onset_state = target_sequence[0].offset
 		current_state = [ onset_state ]

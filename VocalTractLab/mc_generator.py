@@ -100,7 +100,7 @@ def _generate_target_sequence( args ):
 		onset_state = random.uniform( onset_state_range[0], onset_state_range[1] )
 	else:
 		onset_state = None
-	print( onset_state )
+	#print( onset_state )
 	durations = np.random.uniform( duration_range[0], duration_range[1], n_targets )
 	slopes = [ 0 if ( balance_slope and getrandbits(1) ) else np.random.uniform( slope_range[0], slope_range[1] ) for _ in range(0, n_targets) ]
 	offsets = np.random.uniform( offset_range[0], offset_range[1], n_targets )
