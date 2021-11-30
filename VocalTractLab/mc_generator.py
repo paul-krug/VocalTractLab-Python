@@ -56,9 +56,9 @@ import bisect
 def generate_target_sequences(
 	n_samples,
 	onset_time_range = [ 0.0, 1.0 ],
-	onset_state_range = None,
+	onset_state_range = [ 0, 1 ],
 	duration_range = [ 0.1, 0.4 ],
-	slope_range = [ -0.25, 0.25 ],
+	slope_range = [ -0.75, 0.75 ],
 	offset_range = [ 0, 1 ],
 	tau_range = [ 0.005, 0.025 ],
 	n_targets_range = [1, 20],
@@ -76,7 +76,7 @@ def generate_target_contours(
 	augmentation_kwargs = dict(
 		resample_range = 100, # can be tuple or single float
 		masking_range = [ 0.4, 0.6 ],
-		random_shift_x = True,
+		random_shift_x = False,
 		random_shift_y = True,
 		random_masking = True,
 		fixed_length = False,
@@ -100,6 +100,7 @@ def _generate_target_sequence( args ):
 		onset_state = random.uniform( onset_state_range[0], onset_state_range[1] )
 	else:
 		onset_state = None
+	print( onset_state )
 	durations = np.random.uniform( duration_range[0], duration_range[1], n_targets )
 	slopes = [ 0 if ( balance_slope and getrandbits(1) ) else np.random.uniform( slope_range[0], slope_range[1] ) for _ in range(0, n_targets) ]
 	offsets = np.random.uniform( offset_range[0], offset_range[1], n_targets )
@@ -125,7 +126,7 @@ def _generate_augmented_target_contours(
 	target_sequence,
 	resample_range = 100, # can be tuple or single float
 	masking_range = [ 0.4, 0.6 ],
-	random_shift_x = True,
+	random_shift_x = False,
 	random_shift_y = True,
 	random_masking = True,
 	fixed_length = False,

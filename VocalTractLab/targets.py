@@ -132,8 +132,8 @@ class Target_Sequence():
 						kwargs[ function_argument_names[ idx_member ] ] = arg
 				self.targets.append( Target( **kwargs ) )
 				onset_time += self.targets[-1].duration
-		self.onset_time = self.targets[0].onset_time
-		self.onset_state = self.targets[0].onset_state
+		self.onset_time = onset_time
+		self.onset_state = onset_state
 		self.name = name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -152,8 +152,9 @@ class Target_Sequence():
 		columns = [ 'onset_time', 'duration', 'slope', 'offset', 'time_constant' ]
 		return str( pd.DataFrame( [ [ tar.onset_time, tar.duration, tar.m, tar.b, tar.tau ] for tar in self.targets ], columns = columns ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_contour( self, sr ):
+	def get_contour( self, sr = 400 ):
 		tam = Target_Approximation_Model()
+		print( 'get contour: {}'.format(self.onset_state) )
 		contour = tam.response( target_sequence = self.targets,
 			                    discretization_rate = sr,
 			                    onset_state = self.onset_state,
@@ -163,8 +164,9 @@ class Target_Sequence():
 	def plot( self, plot_contour = True, plot_targets = True, ax = None, plot_kwargs = PT.state_plot_kwargs, **kwargs ): #, time = 'seconds'
 		figure, ax = get_plot( n_rows = 1, axs = ax )
 		if plot_contour:
-			tam = Target_Approximation_Model()
-			contour = tam.response( self.targets )
+			#tam = Target_Approximation_Model()
+			#contour = tam.response( self.targets )
+			contour = self.get_contour()
 			contour_kwargs = plot_kwargs.get( self.name )
 			if contour_kwargs == None:
 				warnings.warn( 'The parameter: {} does not exist in the plot_kwargs dict, doing a standard plot now.'.format( self.name ) )
@@ -403,6 +405,7 @@ class Target_Approximation_Model():
 		duration = end - start
 		n_samples = duration * discretization_rate
 		sample_times = np.arange( start, end, duration / n_samples )
+		print( 'tam onset: {}'.format(onset_state) )
 		if onset_state == None:
 			onset_state = target_sequence[0].offset
 		current_state = [ onset_state ]
