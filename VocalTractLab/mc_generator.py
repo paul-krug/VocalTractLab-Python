@@ -30,6 +30,8 @@
 #####################################################################################################################################################
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # Load essential packages:
+import VocalTractLab.VocalTractLabApi as vtl
+from VocalTractLab.tract_sequence import Supra_Glottal_Sequence
 from VocalTractLab.targets import Target
 from VocalTractLab.targets import Target_Sequence
 from VocalTractLab.multiprocessing_tools import _run_multiprocessing
@@ -87,6 +89,30 @@ def generate_target_contours(
 	contour_list = _run_multiprocessing( _generate_target_contours, args, True, workers )
 	return contour_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def generate_supra_glottal_states(
+	n_samples,
+	parameter_kwargs = None,
+	):
+	tract_param_info = vtl.get_param_info( 'tract' )
+	supra_glottal_states = []
+	for parameter in tract_param_info.index:
+		try:
+			_min = parameter_kwargs[ parameter ][0]
+			_max = parameter_kwargs[ parameter ][1]
+			print('success in dict try')
+		except Exception:
+			_min = float( tract_param_info.loc[ parameter, 'min' ] )
+			_max = float( tract_param_info.loc[ parameter, 'max' ] )
+		supra_glottal_states.append( np.random.uniform( _min, _max, n_samples ) )
+	supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_states ).T )
+	try:
+		for parameter, value in parameter_kwargs.items():
+			supra_glottal_sequence.tract[ parameter ] = value
+	except Exception:
+		pass
+	return supra_glottal_sequence
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+
 
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

@@ -296,6 +296,7 @@ def get_param_info( str params ):
 	df = pd.DataFrame( np.array( [ descriptions, units, paramMin, paramMax, paramStandard ] ).T, columns = [ 'description', 'unit', 'min', 'max', 'standard' ] )
 	df.index = names.decode().replace('\x00','').strip( ' ' ).strip('').split( '\t' )
 	return df
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_shape( shape_list, str params = None, return_tract_sequence = True ):
 	return get_shapes( shape_list,  params, return_tract_sequence )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
