@@ -64,10 +64,10 @@ class Tube_State():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, 
-	          ax = None, 
+	          axs = None, 
 			  **kwargs,
 	          ):
-		figure, ax = get_plot( 1, ax )
+		figure, axs = get_plot( n_rows = 1, axs = axs )
 		tube_x = [ self.tube_length[ 0 ] ]
 		for length in self.tube_length[ 1: ]:
 			tube_x.append( tube_x[ -1 ] + length )
@@ -82,13 +82,13 @@ class Tube_State():
 					else:
 						tmp_length = tube_x[ index ]
 						break
-		ax.set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
+		axs[0].set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
 		#y = [ val for val in x  ]
 		#x = [ self.tube_length[ 0 ] ]
 		#for length in self.tube_length[ 1: ]:
 		#	x.append( x[ -1 ] + length )
-		ax.plot( x, y )
-		finalize_plot( figure, ax, **kwargs )
+		axs[0].plot( x, y )
+		finalize_plot( figure, axs, **kwargs )
 		#ax.set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
-		return ax
+		return axs
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
