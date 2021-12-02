@@ -98,7 +98,7 @@ class Transfer_Function():
 		if not isinstance( n_spectrum_samples, int ):
 			raise ValueError( 'n_spectrum_samples must be an integer and should be a power of 2! Passed type is: {}'.format( type( n_spectrum_samples ) ) )
 		self.constants = vtl.get_constants()
-		self.delta_frequency = self.constants[ 'samplerate' ] / n_spectrum_samples
+		self.delta_frequency = self.constants[ 'samplerate_audio' ] / n_spectrum_samples
 		max_bin = round( n_spectrum_samples / self.delta_frequency )
 		self.n_spectrum_samples = n_spectrum_samples
 		if isinstance( magnitude_spectrum, np.ndarray ):
@@ -115,7 +115,7 @@ class Transfer_Function():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_formants( self, peak_distance = 1, sr = 44100 ):
-		sr = self.constants[ 'samplerate' ]
+		sr = self.constants[ 'samplerate_audio' ]
 		peaks, _ = find_peaks( self.magnitude_spectrum, distance = peak_distance )
 		peaks = [ peak * sr/self.n_spectrum_samples for peak in peaks ]
 		while peaks[ 0 ] < 100:
@@ -149,9 +149,11 @@ class Transfer_Function():
 				y = self.data[ parameter ]
 				tmp_idx = 0
 				for idx in range( 0, len(y) - 1 ):
-					if np.abs( y[idx] - y[idx+1] ) > 1.552:
+					if np.abs( y[idx] - y[idx+1] ) > 1.5:
 						continuities.append( slice( tmp_idx, idx+1 ) )
 						tmp_idx = idx + 1
+				if tmp_idx != len( y ):
+					continuities.append( slice( tmp_idx, len( y ) ) )
 
 				y = self.data[ parameter ]
 				y_title = 'Phase'
