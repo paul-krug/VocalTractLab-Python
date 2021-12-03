@@ -94,6 +94,9 @@ def generate_supra_glottal_states(
 	parameter_kwargs = None,
 	):
 	tract_param_info = vtl.get_param_info( 'tract' )
+	for parameter in parameter_kwargs:
+		if parameter not in tract_param_info.index:
+			raise ValueError( 'Specified parameter: {} is not a supra-glottal parameter.'.format( parameter ) )
 	supra_glottal_states = []
 	for parameter in tract_param_info.index:
 		try:

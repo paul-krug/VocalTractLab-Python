@@ -61,7 +61,25 @@ class Tube_State():
 		self.incisor_position = incisor_position
 		self.tongue_tip_side_elevation = tongue_tip_side_elevation
 		self.velum_opening = velum_opening
+		self.constriction = self.get_constriction()
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_constriction( self, return_str = False ):
+		open_limit = 0.3  # 0.3 cm^2 for open tracts
+		tight_limit = 0.001 # above 0.001 tight, below or equal closed
+		constriction_strings = [ 'open', 'tight', 'closed' ]
+		min_area = np.min( self.tube_area )
+		constriction = None
+		if min_area >= open_limit:
+			constriction = 0
+		elif min_area > tight_limit:
+			constriction = 1
+		elif min_area <= tight_limit:
+			constriction = 2
+		if not return_str:
+			return constriction
+		else:
+			return constriction_strings[ constriction ]
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, 
 	          axs = None, 

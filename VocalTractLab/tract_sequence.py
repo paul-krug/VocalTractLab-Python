@@ -186,17 +186,17 @@ class Supra_Glottal_Sequence( State_Sequence ):
 		self.name = self.name + ',' + supra_glottal_sequence.name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def apply_biomechanical_constraints():
-		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
+#	def apply_biomechanical_constraints():
+#		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
 #####################################################################################################################################################
 
 
 
 #####################################################################################################################################################
-class Tract_Sequence( State_Sequence ):
+class Motor_Sequence( State_Sequence ):
 	def __init__( self,
-		          tract_states: Supra_Glottal_Sequence,
-		          glottis_states: Sub_Glottal_Sequence,
+		          supra_glottal_sequence: Supra_Glottal_Sequence,
+		          sub_glottal_sequence: Sub_Glottal_Sequence,
 		          name: str = 'sequence',
 		          extension: str = '.tract',
 		          ):
@@ -210,11 +210,9 @@ class Tract_Sequence( State_Sequence ):
 		self.param_info = dict( tract = tract_states.param_info, glottis = glottis_states.param_info )
 		self.name = name
 		self.extension = extension
-		self.states = pd.concat( [ tract_states.tract, glottis_states.glottis ], axis = 1 )
-		self.tract = self.states[ self.param_info[ 'tract' ].index ]
-		self.glottis = self.states[ self.param_info[ 'glottis' ].index ]
-		#self.supra_glottal_sequence = tract_states
-		#self.sub_glottal_sequence = glottis_states
+		self.states = pd.concat( [ supra_glottal_sequence.states, sub_glottal_sequence.states ], axis = 1 )
+
+
 		lengths_difference = np.abs( tract_states.length - glottis_states.length )
 		if tract_states.length > glottis_states.length:
 			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
@@ -230,7 +228,7 @@ class Tract_Sequence( State_Sequence ):
 				                      )
 		if len( self.tract.index ) != len( self.glottis.index ):
 			raise ValueError( 'Lengths of supra- and sub-glottal parts do not match in tract_sequence: {}'.format( self.name + self.extension ) )
-		self.length = len( self.tract.index )
+		self.length = len( self.states.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -239,24 +237,18 @@ class Tract_Sequence( State_Sequence ):
 		df_VTP = pd.read_csv( tract_file_path, delim_whitespace = True, skiprows= lambda x: read_tract_seq_VTP(x) , header = None )
 		return cls( Supra_Glottal_Sequence( df_VTP.to_numpy() ), Sub_Glottal_Sequence( df_GLP.to_numpy() ), tract_file_path )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def append( self, tract_sequence ):
-		if not isinstance( tract_sequence, Tract_Sequence ):
-			raise ValueError( 'Trying to append a {} type object to a {} type object.'.format( type( self ), type( tract_sequence ) ) )
-		self.states = pd.concat( [ self.states, tract_sequence.states ] )
-		self.tract = pd.concat( [self.tract, tract_sequence.tract ] )
-		self.name = self.name + ',' + supra_glottal_sequence.name
+	def append( self, motor_sequence ):
+		if not isinstance( motor_sequence, Motor_Sequence ):
+			raise ValueError( 'Trying to append a {} type object to a {} type object.'.format( type( self ), type( motor_sequence ) ) )
+		self.states = pd.concat( [ self.states, motor_sequence.states ] )
+		self.name = self.name + ',' + motor_sequence.name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def apply_biomechanical_constraints( self, ):
-		self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
+	# def apply_biomechanical_constraints( self, ):
+		# self.tract = vtl.tract_sequence_to_limited_tract_sequence( self.tract ).tract
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def insert( self, parameter, trajectory, trajectory_sr = None, start = 0, time_axis = 'samples', padding = None, smooth = True ):
-		if parameter in self.tract.columns:
-			feature = self.tract
-		elif parameter in self.glottis.columns:
-			feature = self.glottis
-		else:
-			#if parameter not in chain( *[ self.tract.columns, self.glottis.columns ] ):
+		if parameter not in self.states.columns:
 			raise ValueError( 'The specified parameter: {} is neither a supra glottal nor a sub glottal parameter!'.format( parameter ) )
 		if time_axis not in [ 'seconds', 'samples' ]:
 			raise ValueError( 'Argument "time_axis" must be "seconds" or "samples", not "{}"!'.format( time_axis ) )
@@ -269,13 +261,13 @@ class Tract_Sequence( State_Sequence ):
 		if padding == 'same':
 			trajectory = [ trajectory[0] 
 			               for _ in range(0, start) ] + trajectory + [ trajectory[-1] 
-			               for _ in range( start + len( trajectory ), len(feature[parameter]) ) 
+			               for _ in range( start + len( trajectory ), len( self.states[parameter] ) ) 
 			               ] 
 			#plt.plot(trajectory)
 			#plt.show()
-			feature[ parameter ] = trajectory
+			self.states[ parameter ] = trajectory
 		else:	
-			feature.loc[ start : start + len( trajectory ) - 1, parameter ] = trajectory
+			self.states.loc[ start : start + len( trajectory ) - 1, parameter ] = trajectory
 		#values_a = feature.loc[ : start, parameter ].to_list()
 		#values_b = feature.loc[ : start, parameter ].to_list()
 		#smooth_values_1 = transition( values_a, resampled_values, 40, fade='in' )
@@ -285,10 +277,10 @@ class Tract_Sequence( State_Sequence ):
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def to_sub_glottal_sequence( self ):
-		return Sub_Glottal_Sequence( self.glottis.to_numpy(), name = '' ) #TODO name
+		return Sub_Glottal_Sequence( self.states[ self.param_info[ 'glottis' ].index ].to_numpy(), name = '' ) #TODO name
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def to_supra_glottal_sequence( self ):
-		return Supra_Glottal_Sequence( self.tract.to_numpy(), name = '' ) #TODO name
+		return Supra_Glottal_Sequence( self.states[ self.param_info[ 'tract' ].index ].to_numpy(), name = '' ) #TODO name
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	# def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
 	# 	figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )
