@@ -95,7 +95,7 @@ class State_Sequence():
 		if time == 'seconds':
 			plt.xlabel( 'Time [s]' )
 		else:
-			plt.xlabel( 'Tract state' )
+			plt.xlabel( 'State' )
 		#for ax in axs:
 		#	ax.label_outer()
 		finalize_plot( figure, axs, **kwargs )
@@ -121,8 +121,7 @@ class Sub_Glottal_Sequence( State_Sequence ):
 		self.name = name
 		self.extension = extension
 		self.states = pd.DataFrame( states, columns = self.param_info.index )
-		self.glottis = self.states
-		self.length = len( self.glottis.index )
+		self.length = len( self.states.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -140,7 +139,7 @@ class Sub_Glottal_Sequence( State_Sequence ):
 	def append( self, sub_glottal_sequence ):
 		if not isinstance( sub_glottal_sequence, Sub_Glottal_Sequence ):
 			raise ValueError( 'Trying to append an object of type {} to an object of type {}'.format( type( self ), type( sub_glottal_sequence ) ) )
-		self.glottis = pd.concat( [self.glottis, sub_glottal_sequence.glottis ] )
+		self.states = pd.concat( [self.states, sub_glottal_sequence.states ] )
 		self.name = self.name + ',' + sub_glottal_sequence.name
 		return
 #####################################################################################################################################################
@@ -163,8 +162,7 @@ class Supra_Glottal_Sequence( State_Sequence ):
 		self.name = name
 		self.extension = extension
 		self.states = pd.DataFrame( states, columns = self.param_info.index )
-		self.tract = self.states
-		self.length = len( self.tract.index )
+		self.length = len( self.states.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
@@ -182,7 +180,7 @@ class Supra_Glottal_Sequence( State_Sequence ):
 	def append( self, supra_glottal_sequence ):
 		if not isinstance( supra_glottal_sequence, Supra_Glottal_Sequence ):
 			raise ValueError( 'Trying to append a {} type object to a {} type object.'.format( type( self ), type( supra_glottal_sequence ) ) )
-		self.tract = pd.concat( [ self.tract, supra_glottal_sequence.tract ] )
+		self.states = pd.concat( [ self.states, supra_glottal_sequence.states ] )
 		self.name = self.name + ',' + supra_glottal_sequence.name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -198,36 +196,39 @@ class Motor_Sequence( State_Sequence ):
 		          supra_glottal_sequence: Supra_Glottal_Sequence,
 		          sub_glottal_sequence: Sub_Glottal_Sequence,
 		          name: str = 'sequence',
-		          extension: str = '.tract',
+		          extension: str = '.motor',
 		          ):
-		if not isinstance( tract_states, Supra_Glottal_Sequence ):
-			raise TypeError( '{} type object was passed, but {} was expected.'.format( tract_states, Supra_Glottal_Sequence ) )
-		if not isinstance( glottis_states, Sub_Glottal_Sequence ):
-			raise TypeError( '{} type object was passed, but {} was expected.'.format( glottis_states, Sub_Glottal_Sequence ) )
-		for key in tract_states.constants:
-			if tract_states.constants[ key ] != glottis_states.constants[ key ]:
+		if not isinstance( supra_glottal_sequence, Supra_Glottal_Sequence ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( supra_glottal_sequence, Supra_Glottal_Sequence ) )
+		if not isinstance( sub_glottal_sequence, Sub_Glottal_Sequence ):
+			raise TypeError( '{} type object was passed, but {} was expected.'.format( sub_glottal_sequence, Sub_Glottal_Sequence ) )
+		for key in supra_glottal_sequence.constants:
+			if supra_glottal_sequence.constants[ key ] != sub_glottal_sequence.constants[ key ]:
 				raise ValueError( 'API constant {} is different for supra and sub glottal state sequence.'.format( key ) )
-		self.param_info = dict( tract = tract_states.param_info, glottis = glottis_states.param_info )
+		self.param_info = dict( tract = supra_glottal_sequence.param_info, glottis = sub_glottal_sequence.param_info )
 		self.name = name
 		self.extension = extension
-		self.states = pd.concat( [ supra_glottal_sequence.states, sub_glottal_sequence.states ], axis = 1 )
 
-
-		lengths_difference = np.abs( tract_states.length - glottis_states.length )
-		if tract_states.length > glottis_states.length:
+		lengths_difference = np.abs( supra_glottal_sequence.length - sub_glottal_sequence.length )
+		if supra_glottal_sequence.length > sub_glottal_sequence.length:
 			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
-			self.glottis = pd.concat( [ self.glottis, 
-				                        pd.DataFrame( [ self.glottis.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
-				                        ], ignore_index = True,
-				                        )
-		elif tract_states.length < glottis_states.length:
+			sub_glotal_states = pd.concat(
+				[ sub_glottal_sequence.states, 
+					pd.DataFrame( [ sub_glottal_sequence.states.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
+				], ignore_index = True )
+		elif supra_glottal_sequence.length < sub_glottal_sequence.length:
 			warnings.warn( 'lengths of supra glottal sequence is shorter than sub glottal sequence. Will pad the supra glottal sequence now.' )
-			self.tract = pd.concat( [ self.tract, 
-				                      pd.DataFrame( [ self.tract.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
+			supra_glottal_states = pd.concat( [ supra_glottal_sequence.states, 
+				                      pd.DataFrame( [ supra_glottal_sequence.states.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
 				                      ], ignore_index = True,
 				                      )
-		if len( self.tract.index ) != len( self.glottis.index ):
-			raise ValueError( 'Lengths of supra- and sub-glottal parts do not match in tract_sequence: {}'.format( self.name + self.extension ) )
+		else:
+			supra_glottal_states = supra_glottal_sequence.states
+			sub_glotal_states = sub_glottal_sequence.states
+		if len( supra_glottal_states.index ) != len( sub_glotal_states.index ):
+			raise ValueError( 'Lengths of supra- and sub-glottal parts do not match in motor_sequence: {}'.format( self.name + self.extension ) )
+
+		self.states = pd.concat( [ supra_glottal_states, sub_glottal_states ], axis = 1 )
 		self.length = len( self.states.index )
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
