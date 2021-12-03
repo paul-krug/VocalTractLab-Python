@@ -48,7 +48,7 @@ from VocalTractLab.plotting_tools import get_plot_limits
 from VocalTractLab.plotting_tools import get_valid_tiers
 from VocalTractLab import function_tools as FT
 from VocalTractLab import tract_sequence as TS
-from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
+from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.audio_tools import get_f0
 import VocalTractLab.VocalTractLabApi as vtl
 from VocalTractLab.target_estimation import fit

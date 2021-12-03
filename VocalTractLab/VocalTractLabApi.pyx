@@ -56,7 +56,7 @@ from cpython.pycapsule cimport *
 #from libc.stdlib cimport malloc, free
 
 
-from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Tract_Sequence
+from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.frequency_domain import Transfer_Function
 from VocalTractLab.tube_states import Tube_State
 import VocalTractLab.audio_tools as AT
