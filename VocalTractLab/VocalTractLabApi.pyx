@@ -472,12 +472,14 @@ def tract_sequence_to_transfer_functions( tract_sequence,
 	                                    ):
 	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
+	if isinstance( tract_sequence, Tract_Sequence ):
+		tract_sequence = tract_sequence.to_supra_glottal_sequence()
 	tract_param_data = []
 	args = [ [ state,
 	           n_spectrum_samples,
 	           save_magnitude_spectrum,
 	           save_phase_spectrum ] 
-		for state in tract_sequence.tract.to_numpy() ]
+		for state in tract_sequence.states.to_numpy() ]
 	transfer_functions = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
 	return transfer_functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -492,6 +494,8 @@ def tract_sequence_to_tube_states( tract_sequence,
 	                             ):
 	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
+	if isinstance( tract_sequence, Tract_Sequence ):
+		tract_sequence = tract_sequence.to_supra_glottal_sequence()
 	tract_param_data = []
 	args = [ [ state,
 	           save_tube_length,
@@ -500,7 +504,7 @@ def tract_sequence_to_tube_states( tract_sequence,
 	           save_incisor_position,
 	           save_tongue_tip_side_elevation,
 	           save_velum_opening ] 
-		for state in tract_sequence.tract.to_numpy() ]
+		for state in tract_sequence.states.to_numpy() ]
 	tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
 	return tube_states
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
