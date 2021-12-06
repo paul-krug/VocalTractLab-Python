@@ -209,10 +209,13 @@ class Motor_Sequence( State_Sequence ):
 		self.name = name
 		self.extension = extension
 
+		supra_glottal_states = supra_glottal_sequence.states
+		sub_glottal_states = sub_glottal_sequence.states
+
 		lengths_difference = np.abs( supra_glottal_sequence.length - sub_glottal_sequence.length )
 		if supra_glottal_sequence.length > sub_glottal_sequence.length:
 			warnings.warn( 'lengths of supra glottal sequence is longer than sub glottal sequence. Will pad the sub glottal sequence now.' )
-			sub_glotal_states = pd.concat(
+			sub_glottal_states = pd.concat(
 				[ sub_glottal_sequence.states, 
 					pd.DataFrame( [ sub_glottal_sequence.states.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
 				], ignore_index = True )
@@ -222,10 +225,10 @@ class Motor_Sequence( State_Sequence ):
 				                      pd.DataFrame( [ supra_glottal_sequence.states.iloc[ -1, : ] for _ in range(0, lengths_difference ) ] )
 				                      ], ignore_index = True,
 				                      )
-		else:
-			supra_glottal_states = supra_glottal_sequence.states
-			sub_glotal_states = sub_glottal_sequence.states
-		if len( supra_glottal_states.index ) != len( sub_glotal_states.index ):
+		#else:
+		#	supra_glottal_states = supra_glottal_sequence.states
+		#	sub_glotal_states = sub_glottal_sequence.states
+		if len( supra_glottal_states.index ) != len( sub_glottal_states.index ):
 			raise ValueError( 'Lengths of supra- and sub-glottal parts do not match in motor_sequence: {}'.format( self.name + self.extension ) )
 
 		self.states = pd.concat( [ supra_glottal_states, sub_glottal_states ], axis = 1 )
@@ -280,8 +283,14 @@ class Motor_Sequence( State_Sequence ):
 	def to_sub_glottal_sequence( self ):
 		return Sub_Glottal_Sequence( self.states[ self.param_info[ 'glottis' ].index ].to_numpy(), name = '' ) #TODO name
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_sub_glottal_states( self ):
+		return self.states[ self.param_info[ 'glottis' ].index ].to_numpy()
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def to_supra_glottal_sequence( self ):
 		return Supra_Glottal_Sequence( self.states[ self.param_info[ 'tract' ].index ].to_numpy(), name = '' ) #TODO name
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_supra_glottal_states( self ):
+		return self.states[ self.param_info[ 'tract' ].index ].to_numpy()
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	# def plot( self, parameters = ['LP','JA','LD','HX','HY'], n_params = 19 ):
 	# 	figure, axs = plt.subplots( len(parameters), figsize = (8, 4/3 *len(parameters) ), sharex = True, gridspec_kw = {'hspace': 0} )

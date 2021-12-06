@@ -55,7 +55,7 @@ from VocalTractLab.targets import Motor_Score
 from VocalTractLab import target_estimation
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence
 from VocalTractLab.tract_sequence import Supra_Glottal_Sequence
-from VocalTractLab.tract_sequence import Tract_Sequence
+from VocalTractLab.tract_sequence import Motor_Sequence
 from VocalTractLab.tube_states import Tube_State
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################

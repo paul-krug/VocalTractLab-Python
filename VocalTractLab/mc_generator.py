@@ -102,7 +102,7 @@ def generate_supra_glottal_states(
 		try:
 			_min = parameter_kwargs[ parameter ][0]
 			_max = parameter_kwargs[ parameter ][1]
-			print('success in dict try')
+			#print('success in dict try')
 		except Exception:
 			_min = float( tract_param_info.loc[ parameter, 'min' ] )
 			_max = float( tract_param_info.loc[ parameter, 'max' ] )
@@ -110,8 +110,8 @@ def generate_supra_glottal_states(
 	supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_states ).T )
 	try:
 		for parameter, value in parameter_kwargs.items():
-			supra_glottal_sequence.tract[ parameter ] = value
-	except Exception:
+			supra_glottal_sequence.states[ parameter ] = value
+	except AttributeError:
 		pass
 	return supra_glottal_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

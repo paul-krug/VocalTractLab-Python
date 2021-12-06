@@ -47,7 +47,7 @@ from VocalTractLab.plotting_tools import get_plot
 from VocalTractLab.plotting_tools import get_plot_limits
 from VocalTractLab.plotting_tools import get_valid_tiers
 from VocalTractLab import function_tools as FT
-from VocalTractLab import tract_sequence as TS
+#from VocalTractLab import tract_sequence as TS
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.audio_tools import get_f0
 import VocalTractLab.VocalTractLabApi as vtl
@@ -300,19 +300,26 @@ class Supra_Glottal_Motor_Score( Target_Score ):
 		                             slopes = None,
 		                             time_constants = None,
 		                             onset_time = 0.0 ):
-		if not isinstance( supra_glottal_sequence, ( TS.Supra_Glottal_Sequence, TS.Tract_Sequence ) ):
+		if not isinstance( supra_glottal_sequence, ( Supra_Glottal_Sequence, Motor_Sequence ) ):
 			raise ValueError( 'Passed argument supra_glottal_sequence is of type {}, but should be {} or {}.'.format( type(supra_glottal_sequence),
-			TS.Supra_Glottal_Sequence, TS.Tract_Sequence ) )
+			Supra_Glottal_Sequence, Motor_Sequence ) )
 		target_scores = []
 		for synchronous_tiers, durations in zip( synchronous, durations ):
 			if 'other' in synchronous_tiers:
-				synchronous_tiers = [ x for x in supra_glottal_sequence.tract.columns if x not in sum( synchronous, [] ) ]
+				synchronous_tiers = [ x for x in supra_glottal_sequence.states.columns if x not in sum( synchronous, [] ) ]
 			#print( synchronous_tiers )
-			offsets = supra_glottal_sequence.tract[ synchronous_tiers ].to_numpy().T
+			offsets = supra_glottal_sequence.states[ synchronous_tiers ].to_numpy().T
 			#print(offsets)
 			target_scores.append( Synchronous_Target_Score( durations, synchronous_tiers, onset_time, offset_score = offsets ) )
 		return cls( target_scores )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_supra_glottal_sequence( self ):
+	 	constants = vtl.get_constants()
+	 	contours = []
+	 	for target_sequence in self.target_sequences:
+	 		contour = target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
+	 		contours.append( contour[ :, 1 ] )
+	 	return Supra_Glottal_Sequence( np.array( contours ).T )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -346,20 +353,27 @@ class Sub_Glottal_Motor_Score( Target_Score ):
 		                           slopes = None,
 		                           time_constants = None,
 		                           onset_time = 0.0 ):
-		if not isinstance( sub_glottal_sequence, ( TS.Sub_Glottal_Sequence, TS.Tract_Sequence ) ):
+		if not isinstance( sub_glottal_sequence, ( Sub_Glottal_Sequence, Motor_Sequence ) ):
 			raise ValueError( 'Passed argument sub_glottal_sequence is of type {}, but should be {} or {}.'.format( type(sub_glottal_sequence),
-			TS.Sub_Glottal_Sequence, TS.Tract_Sequence ) )
+			Sub_Glottal_Sequence, Motor_Sequence ) )
 		target_scores = []
 		for synchronous_tiers, durations in zip( synchronous, durations ):
 			if 'other' in synchronous_tiers:
-				synchronous_tiers = [ x for x in sub_glottal_sequence.glottis.columns if x not in sum( synchronous, [] ) ]
+				synchronous_tiers = [ x for x in sub_glottal_sequence.states.columns if x not in sum( synchronous, [] ) ]
 			#print( synchronous_tiers )
 			#print( sub_glottal_sequence )
-			offsets = sub_glottal_sequence.glottis[ synchronous_tiers ].to_numpy().T
+			offsets = sub_glottal_sequence.states[ synchronous_tiers ].to_numpy().T
 			#print(offsets)
 			target_scores.append( Synchronous_Target_Score( durations, synchronous_tiers, onset_time, offset_score = offsets ) )
 		return cls( target_scores )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def to_sub_glottal_sequence( self ):
+	 	constants = vtl.get_constants()
+	 	contours = []
+	 	for target_sequence in self.target_sequences:
+	 		contour = target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
+	 		contours.append( contour[ :, 1 ] )
+	 	return Sub_Glottal_Sequence( np.array( contours ).T )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -383,12 +397,22 @@ class Motor_Score( Target_Score ):
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	@classmethod
-	def from_tract_sequence( cls, tract_sequence ):
-		supra_glottal_motor_score = Supra_Glottal_Motor_Score.from_supra_glottal_sequence( tract_sequence.to_supra_glottal_sequence() )
-		sub_glottal_motor_score = Sub_Glottal_Motor_Score.from_sub_glottal_sequence( tract_sequence.to_sub_glottal_sequence() )
+	def from_motor_sequence(
+		cls,
+		motor_sequence,
+		synchronous = [],
+		durations = [],
+		):
+		supra_glottal_motor_score = Supra_Glottal_Motor_Score.from_supra_glottal_sequence( motor_sequence.to_supra_glottal_sequence() )
+		sub_glottal_motor_score = Sub_Glottal_Motor_Score.from_sub_glottal_sequence( motor_sequence.to_sub_glottal_sequence() )
 		return cls( supra_glottal_motor_score, sub_glottal_motor_score )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-
+	# def to_motor_sequence( self ):
+	# 	constants = vtl.get_constants()
+	# 	contours = 
+	# 	for target_sequence in self.target_sequences:
+	# 		target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
+	# 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

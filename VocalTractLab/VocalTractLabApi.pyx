@@ -297,10 +297,10 @@ def get_param_info( str params ):
 	df.index = names.decode().replace('\x00','').strip( ' ' ).strip('').split( '\t' )
 	return df
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def get_shape( shape_list, str params = None, return_tract_sequence = True ):
-	return get_shapes( shape_list,  params, return_tract_sequence )
+def get_shape( shape_list, str params = None, return_motor_sequence = True ):
+	return get_shapes( shape_list,  params, return_motor_sequence )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def get_shapes( shape_list, str params = None, return_tract_sequence = True ):
+def get_shapes( shape_list, str params = None, return_motor_sequence = True ):
 	shape_list = FT.check_if_list_is_valid( shape_list, str )
 	constants = get_constants()
 	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = np.empty( shape = constants[ 'n_tract_params' ],  dtype='float64' )
@@ -335,9 +335,9 @@ def get_shapes( shape_list, str params = None, return_tract_sequence = True ):
 	if len( supra_glottal_shapes ) != 0 and len( sub_glottal_shapes ) != 0:
 		supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_shapes ), name = supra_glottal_sequence_name )
 		sub_glottal_sequence = Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
-		if return_tract_sequence:
-			tract_sequence_name = ','.join( [ supra_glottal_sequence_name, sub_glottal_sequence_name ] )
-			return Tract_Sequence( supra_glottal_sequence, sub_glottal_sequence, name = tract_sequence_name )
+		if return_motor_sequence:
+			motor_sequence_name = ','.join( [ supra_glottal_sequence_name, sub_glottal_sequence_name ] )
+			return Motor_Sequence( supra_glottal_sequence, sub_glottal_sequence, name = motor_sequence_name )
 		else:
 			return [ supra_glottal_sequence, sub_glottal_sequence ]
 	elif len( supra_glottal_shapes ) != 0:
@@ -415,7 +415,7 @@ def segment_sequence_to_gestural_score( seg_file_path_list,
 	_run_multiprocessing( _segment_sequence_to_gestural_score, args, False, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_audio( tract_sequence_list,
+def tract_sequence_to_audio( motor_sequence_list,
 	                         audio_file_path_list = None,
 	                         save_file: bool = True,
 	                         normalize_audio: int = None,
@@ -424,66 +424,66 @@ def tract_sequence_to_audio( tract_sequence_list,
 	                         workers: int = None,
 	                         verbose: bool = False,
 	                         ):
-	tract_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, audio_file_path_list ], 
-																		           [ ( str, Tract_Sequence ),
+	motor_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ motor_sequence_list, audio_file_path_list ], 
+																		           [ ( str, Motor_Sequence ),
 	                                                                                 ( str, type(None) ),
 	                                                                               ]
 	                                                                             )
-	args = [ [tract_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
-		for tract_sequence, audio_file_path in itertools.zip_longest( tract_sequence_list, audio_file_path_list ) ]
+	args = [ [motor_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
+		for motor_sequence, audio_file_path in itertools.zip_longest( motor_sequence_list, audio_file_path_list ) ]
 	audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
 	return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_limited_tract_sequence( tract_sequence,
+def tract_sequence_to_limited_tract_sequence( motor_sequence,
 	                                          workers: int = None, 
 	                                        ):
-	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
+	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
+		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
 	tract_param_data = []
-	args = [ state for state in tract_sequence.tract.to_numpy() ]
+	args = [ state for state in motor_sequence.states.to_numpy() ]
 	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
 	limited_supra_glottal_sequence = Supra_Glottal_Sequence( np.array( tract_param_data ) )
-	if isinstance( tract_sequence,  Tract_Sequence ):
-		return Tract_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = tract_sequence.sub_glottal_sequence )
+	if isinstance( motor_sequence,  Motor_Sequence ):
+		return Motor_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = motor_sequence.to_sub_glottal_sequence() )
 	else:
 		return limited_supra_glottal_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_svg( tract_sequence_list,
+def tract_sequence_to_svg( motor_sequence_list,
 	                       svg_dir_list = None,
 	                       fps: int = 60,
 	                       save_video = False,
 	                       workers: int = None,
 	                       ):
-	tract_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ tract_sequence_list, svg_dir_list ],
-	                                                                       [ ( str, Tract_Sequence ),
+	motor_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ motor_sequence_list, svg_dir_list ],
+	                                                                       [ ( str, Motor_Sequence ),
 	                                                                         ( str, type(None) ),
 	                                                                       ]
 	                                                                     )
-	args = [ [tract_sequence, svg_dir, fps ]
-	for tract_sequence, svg_dir in itertools.zip_longest( tract_sequence_list, svg_dir_list ) ]
+	args = [ [motor_sequence, svg_dir, fps ]
+	for motor_sequence, svg_dir in itertools.zip_longest( motor_sequence_list, svg_dir_list ) ]
 	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_transfer_functions( tract_sequence,
+def tract_sequence_to_transfer_functions( motor_sequence,
 	                                      n_spectrum_samples: int = 8192,
 	                                      save_magnitude_spectrum: bool = True,
 	                                      save_phase_spectrum: bool = True,
 	                                      workers: int = None,
 	                                    ):
-	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
-	if isinstance( tract_sequence, Tract_Sequence ):
-		tract_sequence = tract_sequence.to_supra_glottal_sequence()
+	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
+		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
+	if isinstance( motor_sequence, Motor_Sequence ):
+		motor_sequence = motor_sequence.to_supra_glottal_sequence()
 	tract_param_data = []
 	args = [ [ state,
 	           n_spectrum_samples,
 	           save_magnitude_spectrum,
 	           save_phase_spectrum ] 
-		for state in tract_sequence.states.to_numpy() ]
+		for state in motor_sequence.states.to_numpy() ]
 	transfer_functions = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
 	return transfer_functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_tube_states( tract_sequence,
+def tract_sequence_to_tube_states( motor_sequence,
 	                               save_tube_length: bool = True,
 	                               save_tube_area: bool = True,
 	                               save_tube_articulator: bool = True,
@@ -492,10 +492,10 @@ def tract_sequence_to_tube_states( tract_sequence,
 	                               save_velum_opening: bool = True,
 	                               workers: int = None,
 	                             ):
-	if not isinstance( tract_sequence, ( Tract_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'tract_sequence argument must be Tract_Sequence or Supra_Glottal_Sequence, not {}'.format( type( tract_sequence ) ) )
-	if isinstance( tract_sequence, Tract_Sequence ):
-		tract_sequence = tract_sequence.to_supra_glottal_sequence()
+	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
+		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
+	if isinstance( motor_sequence, Motor_Sequence ):
+		motor_sequence = motor_sequence.to_supra_glottal_sequence()
 	tract_param_data = []
 	args = [ [ state,
 	           save_tube_length,
@@ -504,7 +504,7 @@ def tract_sequence_to_tube_states( tract_sequence,
 	           save_incisor_position,
 	           save_tongue_tip_side_elevation,
 	           save_velum_opening ] 
-		for state in tract_sequence.states.to_numpy() ]
+		for state in motor_sequence.states.to_numpy() ]
 	tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
 	return tube_states
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -613,7 +613,7 @@ def _gestural_score_to_tract_sequence( args ):
 			while processing gestural score file (input): {}, tract sequence file (output): {}'.format(value, ges_file_path, tract_file_path) )
 	log.info( 'Created tractsequence file {} from gestural score file: {}'.format( tract_file_path, ges_file_path ) )
 	if return_sequence:
-		return Tract_Sequence.from_tract_file( tract_file_path )
+		return Motor_Sequence.from_tract_file( tract_file_path )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _segment_sequence_to_gestural_score( args ):
@@ -633,15 +633,15 @@ def _segment_sequence_to_gestural_score( args ):
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _synth_block( args ):
-	tract_sequence, state_samples, verbose = args
+	motor_sequence, state_samples, verbose = args
 	if state_samples == None:
 		constants = get_constants()
 		state_samples = constants[ 'n_samples_per_state' ]
-	cdef int numFrames = tract_sequence.length
-	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_sequence.tract.to_numpy().ravel()
-	cdef np.ndarray[ np.float64_t, ndim=1 ] glottisParams = tract_sequence.glottis.to_numpy().ravel()
+	cdef int numFrames = motor_sequence.length
+	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = motor_sequence.to_supra_glottal_states().ravel()
+	cdef np.ndarray[ np.float64_t, ndim=1 ] glottisParams = motor_sequence.to_sub_glottal_states().ravel()
 	cdef int frameStep_samples = state_samples
-	cdef np.ndarray[ np.float64_t, ndim=1 ] audio = np.zeros( tract_sequence.length * state_samples, dtype='float64' )
+	cdef np.ndarray[ np.float64_t, ndim=1 ] audio = np.zeros( motor_sequence.length * state_samples, dtype='float64' )
 	cdef bool enableConsoleOutput = verbose
 	value = vtlSynthBlock( &tractParams[0], &glottisParams[0], numFrames, frameStep_samples, &audio[0], enableConsoleOutput )
 	if value != 0:
@@ -650,31 +650,31 @@ def _synth_block( args ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_sequence_to_audio( args ):
 	# Note that returning the number of samples via numSamples is deprecated, use getGesturalScoreAudioDuration instead!
-	tract_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose = args
-	if isinstance( tract_sequence_data, str ):
-		tract_file_path = tract_sequence_data
+	motor_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose = args
+	if isinstance( motor_sequence_data, str ):
+		tract_file_path = motor_sequence_data
 		if not os.path.exists( tract_file_path ):
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
-		tract_sequence = Tract_Sequence.from_file( tract_file_path )
-	#elif isinstance( tract_sequence_data, ts.Target_Sequence ):
-	#	target_sequence = tract_sequence_data
-	#	tract_sequence = target_sequence.to_tract_sequence()
+		motor_sequence = Motor_Sequence.from_file( tract_file_path )
+	#elif isinstance( motor_sequence_data, ts.Target_Sequence ):
+	#	target_sequence = motor_sequence_data
+	#	motor_sequence = target_sequence.to_motor_sequence()
 	else:
-		tract_sequence = tract_sequence_data
-	audio = _synth_block( ( tract_sequence, None, verbose ) )
+		motor_sequence = motor_sequence_data
+	audio = _synth_block( ( motor_sequence, None, verbose ) )
 	constants = get_constants()
 	if sr == None:
 		sr = constants[ 'samplerate_audio' ]
 	if save_file:
-		audio_file_path = FT.make_output_path( audio_file_path, tract_sequence.name.rsplit( '.' )[0] + '.wav' )
+		audio_file_path = FT.make_output_path( audio_file_path, motor_sequence.name.rsplit( '.' )[0] + '.wav' )
 	if sr != constants[ 'samplerate_audio' ]:
 		audio = librosa.resample( audio, constants[ 'samplerate_audio' ], sr )
 	if normalize_audio != None:
 		audio = AT.normalize( audio, normalize_audio )
 	if save_file:
 		AT.write( audio, audio_file_path, sr )
-	log.info( 'Audio generated from tract_sequence: {}'.format( tract_sequence.name ) )
+	log.info( 'Audio generated from motor_sequence: {}'.format( motor_sequence.name ) )
 	return audio
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_limited_tract_state( args ):
@@ -686,24 +686,24 @@ def _tract_state_to_limited_tract_state( args ):
 	return outTractParams
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_sequence_to_svg( args ):
-	tract_sequence, svg_dir, fps = args
-	if isinstance( tract_sequence, str ) :
-		tract_file_path = tract_sequence
+	motor_sequence, svg_dir, fps = args
+	if isinstance( motor_sequence, str ) :
+		tract_file_path = motor_sequence
 		if not os.path.exists( tract_file_path ) :
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
-		tract_sequence = Tract_Sequence.from_tract_file( tract_file_path )
-	#elif isinstance( tract_sequence, ts.Target_Sequence ) :
-	#	target_sequence = tract_sequence
-	#	tract_sequence = target_sequence.to_tract_sequence()
+		motor_sequence = Motor_Sequence.from_tract_file( tract_file_path )
+	#elif isinstance( motor_sequence, ts.Target_Sequence ) :
+	#	target_sequence = motor_sequence
+	#	motor_sequence = target_sequence.to_motor_sequence()
 	#else:
 	#	#pass
-	#	#tract_sequence = tract_sequence_data
-	svg_dir = FT.make_output_dir( svg_dir, tract_sequence.name.rsplit('.')[0] + '_svg' )
+	#	#motor_sequence = motor_sequence_data
+	svg_dir = FT.make_output_dir( svg_dir, motor_sequence.name.rsplit('.')[0] + '_svg' )
 	constants = get_constants()
 	cdef np.ndarray[np.float64_t, ndim = 1] tractParams = np.zeros( constants['n_tract_params'], dtype = 'float64' )
-	resampled_index = [ round(index * (44100 / 110) / fps) for index in range( 0, tract_sequence.length ) ]
-	resampled_tract_states = [ [ index, tract_state ] for index, tract_state in enumerate( tract_sequence.tract.to_numpy() ) if index in resampled_index ]
+	resampled_index = [ round(index * (44100 / 110) / fps) for index in range( 0, motor_sequence.length ) ]
+	resampled_tract_states = [ [ index, tract_state ] for index, tract_state in enumerate( motor_sequence.states.to_numpy() ) if index in resampled_index ]
 	for pair in resampled_tract_states:
 		index, tract_state = pair
 		tractParams = tract_state.ravel()
