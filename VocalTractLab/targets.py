@@ -407,12 +407,22 @@ class Motor_Score( Target_Score ):
 		sub_glottal_motor_score = Sub_Glottal_Motor_Score.from_sub_glottal_sequence( motor_sequence.to_sub_glottal_sequence() )
 		return cls( supra_glottal_motor_score, sub_glottal_motor_score )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	# def to_motor_sequence( self ):
-	# 	constants = vtl.get_constants()
-	# 	contours = 
-	# 	for target_sequence in self.target_sequences:
-	# 		target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
-	# 	return
+	def to_motor_sequence( self ):
+		constants = vtl.get_constants()
+		tract_info = vtl.get_param_info( 'tract' )
+		glottis_info = vtl.get_param_info( 'glottis' )
+		supra_glottal_contours = []
+		sub_glottal_contours = []
+		for target_sequence in self.target_sequences:
+			if target_sequence.name in tract_info.index:
+				contour = target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
+				supra_glottal_contours.append( contour[ :, 1 ] )
+			elif target_sequence.name in glottis_info.index:
+				contour = target_sequence.get_contour( sr = constants[ 'samplerate_internal' ] )
+				sub_glottal_contours.append( contour[ :, 1 ] )
+		supra_glottal_sequence = Supra_Glottal_Sequence( np.array( supra_glottal_contours ).T )
+		sub_glottal_sequence = Sub_Glottal_Sequence( np.array( sub_glottal_contours ).T )
+		return Motor_Sequence( supra_glottal_sequence, sub_glottal_sequence )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

@@ -57,6 +57,7 @@ from cpython.pycapsule cimport *
 
 
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
+from VocalTractLab.targets import Motor_Score
 from VocalTractLab.frequency_domain import Transfer_Function
 from VocalTractLab.tube_states import Tube_State
 import VocalTractLab.audio_tools as AT
@@ -425,7 +426,7 @@ def tract_sequence_to_audio( motor_sequence_list,
 	                         verbose: bool = False,
 	                         ):
 	motor_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ motor_sequence_list, audio_file_path_list ], 
-																		           [ ( str, Motor_Sequence ),
+																		           [ ( str, Motor_Sequence, Motor_Score ),
 	                                                                                 ( str, type(None) ),
 	                                                                               ]
 	                                                                             )
@@ -657,9 +658,9 @@ def _tract_sequence_to_audio( args ):
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
 		motor_sequence = Motor_Sequence.from_file( tract_file_path )
-	#elif isinstance( motor_sequence_data, ts.Target_Sequence ):
-	#	target_sequence = motor_sequence_data
-	#	motor_sequence = target_sequence.to_motor_sequence()
+	elif isinstance( motor_sequence_data, Motor_Score ):
+		motor_score = motor_sequence_data
+		motor_sequence = motor_score.to_motor_sequence()
 	else:
 		motor_sequence = motor_sequence_data
 	audio = _synth_block( ( motor_sequence, None, verbose ) )
