@@ -32,6 +32,7 @@
 # Load essential packages:
 import os
 import soundfile
+import librosa
 import numpy as np
 import pandas as pd
 import itertools
@@ -45,6 +46,7 @@ from scipy.spatial.distance import sqeuclidean
 from VocalTractLab.multiprocessing_tools import _run_multiprocessing
 from VocalTractLab.function_tools import check_if_input_lists_are_valid
 from VocalTractLab.function_tools import make_output_path
+from VocalTractLab.function_tools import save
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -59,11 +61,41 @@ def calculate_spectral_distances( reference_list,
 								  dfw_correction = False,
 	                              workers = None,
 	                              ):
-	reference_list, query_list = check_if_input_lists_are_valid( [ ges_file_path_list, audio_file_path_list ], [ str, ( str, type(None) ) ] )
+	reference_list, query_list = check_if_input_lists_are_valid( [ reference_list, query_list ], [ str, ( str, type(None) ) ] )
 	args =  [ [reference, query, spectral_feature, distance_metric ]
 		for reference, query in itertools.zip_longest( reference_list, query_list ) ]
 	spectral_ditstance_list = _run_multiprocessing( _calculate_spectral_distance, args, True, workers )
 	return spectral_ditstance_list
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def calculate_spectral_features(
+	audio_file_path_list,
+	spectrogram_file_path_list = None,
+	audio_kwargs = dict(
+		sr = 16000,
+	),
+	spectrogram_kwargs = dict(
+		n_fft = 256,
+		hop_length = 64,
+		win_length = 256,
+	),
+	mel_kwargs = dict(
+		sr = 16000,
+		n_mels = 40,
+		n_fft = 256,
+		hop_length = 64,
+		win_length = 256,
+		fmin = 50,
+		fmax = 8000,
+	),
+	workers = None,
+):
+	audio_file_path_list, spectrogram_file_path_list = check_if_input_lists_are_valid( 
+		[ audio_file_path_list, spectrogram_file_path_list ], [ str, ( str, type(None) ) ] 
+	)
+	args = [ [ audio_file_path, spectrogram_file_path, audio_kwargs, spectrogram_kwargs, mel_kwargs ]
+		for audio_file_path, spectrogram_file_path in itertools.zip_longest( audio_file_path_list, spectrogram_file_path_list ) ]
+	_run_multiprocessing( _calculate_spectral_features, args, False, workers )
+	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_f0( audio_file_path_list,
 	        csv_file_path_list = None,
@@ -95,6 +127,23 @@ def write( audio, audio_file_path, sr ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_distance( args ):
 	return spectral_distance
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _calculate_spectral_features( args ):
+	audio_file_path, spectrogram_file_path, audio_kwargs, spectrogram_kwargs, mel_kwargs  = args
+	audio, sr = librosa.load( audio_file_path, sr = audio_kwargs[ 'sr' ] )
+	#start_sample = df[ 'frame_start' ] * int( sr / video_options[ 'frame_rate' ] )
+	#end_sample = df[ 'frame_end' ] * int( sr / video_options[ 'frame_rate' ] )
+	#roi = audio[ start_sample : end_sample ]
+	#if len( roi ) > 0:
+	#norm_max = np.max( np.abs( roi ) )
+	#roi /= ( norm_max + ( norm_max * 0.122018 ) ) # Normalize audio to -1 dB
+	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+	mel = librosa.feature.melspectrogram( S = spectrogram, **mel_kwargs )
+	#if 'mfcc' in features:
+	#mfcc = librosa.feature.mfcc( S = librosa.power_to_db( mel ), **mel_settings )
+	save( spectrogram, spectrogram_file_path + '.pkl.gzip' )
+	save( mel, spectrogram_file_path + '_mel_{}.pkl.gzip'.format( mel_kwargs[ 'n_mels' ] ) )
+	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _get_f0( args ):
 	try:
