@@ -47,6 +47,7 @@ from VocalTractLab.plotting_tools import get_plot
 from VocalTractLab.plotting_tools import get_plot_limits
 from VocalTractLab.plotting_tools import get_valid_tiers
 from VocalTractLab import function_tools as FT
+from VocalTractLab.function_tools import is_iterable
 #from VocalTractLab import tract_sequence as TS
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.audio_tools import get_f0
@@ -132,8 +133,11 @@ class Target_Sequence():
 						kwargs[ function_argument_names[ idx_member ] ] = arg
 				self.targets.append( Target( **kwargs ) )
 				onset_time += self.targets[ -1 ].duration
-		self.onset_time =  self.targets[ 0 ].onset_time
-		self.onset_state = onset_state
+		self.onset_time = self.targets[ 0 ].onset_time
+		if onset_state != None:
+			self.onset_state = onset_state
+		else:
+			self.onset_state = self.targets[ 0 ].onset_state
 		self.name = name
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -160,12 +164,16 @@ class Target_Sequence():
 		#print( 'in get bound 2: {}'.format( self.onset_time ) )
 		return boundaries
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_contour( self, sr = 400 ):
+	def get_contour( self, sr: float = None, sample_times = None ):
+		if sr == None:
+			constants = vtl.get_constants()
+			sr = constants[ 'samplerate_internal' ]
 		tam = Target_Approximation_Model()
 		#print( 'get contour: {}'.format(self.onset_state) )
 		contour = tam.response( target_sequence = self.targets,
 			                    discretization_rate = sr,
 			                    onset_state = self.onset_state,
+			                    sample_times = sample_times,
 			                    )
 		return contour
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -440,13 +448,14 @@ class Target_Approximation_Model():
 		self.FILTERORDER = order
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def response( self, target_sequence, discretization_rate = 44100 / 110, onset_state = None  ) -> np.array:
+	def response( self, target_sequence, discretization_rate = 44100 / 110, onset_state = None, sample_times = None ) -> np.array:
 		trajectory = []
 		start = target_sequence[ 0 ].onset_time
 		end   = target_sequence[ -1 ].offset_time
 		duration = end - start
 		n_samples = duration * discretization_rate
-		sample_times = np.arange( start, end, duration / n_samples )
+		if not is_iterable( sample_times ):
+			sample_times = np.arange( start, end, duration / n_samples )
 		#print( 'tam onset: {}'.format(onset_state) )
 		if onset_state == None:
 			onset_state = target_sequence[0].offset

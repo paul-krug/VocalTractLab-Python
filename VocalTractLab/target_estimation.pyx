@@ -61,7 +61,7 @@ import matplotlib.pyplot as plt
 from itertools import cycle
 
 import VocalTractLab.targets as tg
-
+#from VocalTractLab.targets import Target_Sequence
 
 
 
@@ -296,6 +296,8 @@ class Sequential_Fit():
 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
 			else:
 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
+				axs[ window.queue_position ].scatter( window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]), 0.5, 
+					s=300, c='red', marker='x', clip_on=False )
 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'green' )
 
 
@@ -360,14 +362,14 @@ def fit(
 		#print( len(boundaries ) )
 	norm_factor_a = np.min( values )
 	norm_factor_b = np.max( values ) - np.min( values ) 
-	values = ( values - norm_factor_a ) / norm_factor_b
+	normalized_values = ( values - norm_factor_a ) / norm_factor_b
  
 
 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_input_times = times
 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_input_values = values
 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_boundaries = boundaries
 	cdef vector[double] c_input_times = times
-	cdef vector[double] c_input_values = values
+	cdef vector[double] c_input_values = normalized_values
 	cdef vector[double] c_boundaries = boundaries
 	#c_boundaries.push_back( 5 ) 
 	#print( c_boundaries )
@@ -419,9 +421,21 @@ def fit(
 					)
 	#print( 'res targets: ------------------------')
 	#print( fit_results.res_targets )
+	out_targets = [
+		tg.Target(
+			onset_time = fit_results.res_boundaries.at( i ),
+			duration = target['duration'],
+			slope = target['slope'] * norm_factor_b,
+			offset = target['offset'] * norm_factor_b + norm_factor_a, 
+			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code 
+		) for i, target in enumerate( fit_results.res_targets )
+	]
+	out_targets[ 0 ].onset_state = values[ 0 ]
+	tgs = tg.Target_Sequence( targets = out_targets, name = 'Joint Optimization' )
+	out_trajectory = tgs.get_contour()
 	fit_info = dict(
 		in_times = np.array( times ),
-		in_values = values * norm_factor_b + norm_factor_a,
+		in_values = values,
 		in_boundaries = boundaries,
 		par_init_bounds = init_bounds,
 		par_weight_slope = weight_slope,
@@ -440,24 +454,14 @@ def fit(
 		par_use_early_stopping = use_early_stopping,
 		par_epsilon = epsilon,
 		par_patience = patience,
-		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
-									target['duration'],
-									target['slope'] * norm_factor_b,
-									target['offset'] * norm_factor_b + norm_factor_a, 
-									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code 
-								) for i, target in enumerate( fit_results.res_targets ) ] ,
-		#out_targets = np.array( [ [ target.slope * norm_factor_b + norm_factor_a, 
-		#							target.offset * norm_factor_b + norm_factor_a, 
-		#							target.tau, 
-		#							target.duration 
-		#						] for target in fit_results.res_targets ] ),
+		out_targets = out_targets,
 		out_boundaries = np.array( fit_results.res_boundaries ),
-		out_trajectory = np.array( [ [ sample.time, sample.value * norm_factor_b + norm_factor_a ] for sample in fit_results.res_trajectory ] ),
+		out_trajectory = out_trajectory,
 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
 		out_ftmp = np.array( fit_results.res_ftmp ),
 		out_fmin = fit_results.res_fmin,
-		out_rmse = fit_results.res_rmse,
-		out_corr = fit_results.res_corr,
+		out_rmse = get_rmse( times, values, tgs ),
+		out_corr = get_correlation( times, values, tgs ),
 		out_time = fit_results.res_time,
 	)
 	return Fit_Result( **fit_info )
@@ -468,7 +472,8 @@ def fit_sequentially( times,
 	                  init_bounds = 9, 
 	                  window_length = 3, 
 	                  hop_length= 1, 
-	                  n_passes = 1, 
+	                  n_passes = 1,
+	                  show_plot = True,
 	                  **kwargs 
 	                  ):
 	if boundaries == [] and init_bounds != 0:
@@ -486,7 +491,8 @@ def fit_sequentially( times,
 	#	print( 'boundaries: {}'.format( window.boundaries ) )
 	#raise ValueError( 'dail ')
 	seq_fit = Sequential_Fit( windows )
-	seq_fit.plot()
+	if show_plot:
+		seq_fit.plot()
 	#for window in windows:
 	#	window.fit()
 		#print()
@@ -494,19 +500,55 @@ def fit_sequentially( times,
 		#	print( 'tg')
 		#	print( 'onset: {}, offset: {}, slope: {}, offset: {}, tau: {}'.format( target.onset_time, target.offset_time, target.slope, target.offset, target.tau ) )
 		#raise ValueError( 'dail ')
-	if 'delta_boundary' in kwargs:
-		if kwargs[ 'delta_boundary' ] > 0:
-			boundaries = get_optimized_boundaries( windows )
-	else:
-		target_sequence = []
-		for window in windows:
-			if window.queue_position == 0:
-				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
-			elif window.queue_position < n_windows - 1:
-				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
-			elif window.queue_position == n_windows - 1:
-				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
-	return
+	target_list = []
+	#if 'delta_boundary' in kwargs:
+	#	if kwargs[ 'delta_boundary' ] > 0:
+	#		out_boundaries = get_optimized_boundaries( windows )
+	#else:
+	out_boundaries = boundaries
+	#target_list = []
+	for window in windows:
+		if window.queue_position == 0:
+			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+		elif window.queue_position < n_windows - 1:
+			target_list.append( window.fit_result.out_targets[ hop_length ] )
+		elif window.queue_position == n_windows - 1:
+			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+
+	out_targets = target_list
+	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )
+	out_trajectory = tgs.get_contour()
+	fit_info = dict(
+		in_times = np.array( times ),
+		in_values = values,
+		in_boundaries = boundaries,
+		par_init_bounds = init_bounds,
+		par_weight_slope = windows[0].fit_result.par_weight_slope,
+		par_weight_offset = windows[0].fit_result.par_weight_offset,
+		par_weight_tau = windows[0].fit_result.par_weight_tau,
+		par_weight_lambda = windows[0].fit_result.par_weight_lambda,
+		par_delta_slope = windows[0].fit_result.par_delta_slope,
+		par_delta_offset = windows[0].fit_result.par_delta_offset,
+		par_delta_tau = windows[0].fit_result.par_delta_tau,
+		par_delta_boundary = windows[0].fit_result.par_delta_boundary,
+		par_mean_slope = windows[0].fit_result.par_mean_slope,
+		par_mean_tau = windows[0].fit_result.par_mean_tau,
+		par_max_iterations = windows[0].fit_result.par_max_iterations,
+		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,
+		par_rho_end = windows[0].fit_result.par_rho_end,
+		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,
+		par_epsilon = windows[0].fit_result.par_epsilon,
+		par_patience = windows[0].fit_result.par_patience,
+		out_targets = out_targets,
+		out_boundaries = np.array( out_boundaries ),
+		out_trajectory = out_trajectory,
+		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),
+		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
+		out_rmse = get_rmse( times, values, tgs ),
+		out_corr = get_correlation( times, values, tgs ),
+		out_time = np.sum( [ window.fit_result.out_time for window in windows ] ),
+	)
+	return Fit_Result( **fit_info )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_optimized_boundaries( windows, window_length, hop_length, o ):
 	boundary_sequence = []
@@ -538,8 +580,23 @@ def get_optimized_targets( windows, hop_length ):
 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
 	return target_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-
-
+def get_correlation( times, values, target_sequence ):
+	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+	x = values - np.mean( values );
+	y = fitted_values - np.mean( fitted_values );
+	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_rmse( times, values, target_sequence ):
+	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+	cnt = target_sequence.get_contour( sample_times = times )
+	cnt2 = target_sequence.get_contour()
+	target_sequence.plot( plot_contour = False, show = False )
+	plt.plot( cnt2[ :, 0 ], cnt2[ :, 1 ] )
+	plt.scatter( times, values )
+	plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
+	plt.show()
+	return np.sqrt( np.mean( ( values - fitted_values )**2 ) )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	#for window in windows:
 	#	for target in window.fit_result.out_targets:
 	#		print( 'tg')
