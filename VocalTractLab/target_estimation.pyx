@@ -61,6 +61,7 @@ import matplotlib.pyplot as plt
 from itertools import cycle
 
 import VocalTractLab.targets as tg
+from VocalTractLab.plotting_tools import get_plot_limits
 #from VocalTractLab.targets import Target_Sequence
 
 
@@ -278,34 +279,50 @@ class Fit_Window():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 class Sequential_Fit():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, windows ):
+	def __init__( self, windows, times, values ):
 		self.windows = windows
+		self.times = times
+		self.values = values
 		for window in self.windows:
 			window.fit()
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, ):
-		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
-		for window in self.windows:
+		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+		low, high = get_plot_limits( self.values, 0.2 )
+		for index, window in enumerate( self.windows ):
 			for boundary in window.boundaries:
-				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
+				for ax in axs:
+					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
+				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
-			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
+			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )
+			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
+			axs[ window.queue_position ].set_ylim( low, high )
+			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )
+			axs[ window.queue_position ].set_yticks([])
+			axs[ window.queue_position ].set_yticklabels([])
 			if window.queue_position == 0:
-				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
+				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
 			else:
 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
-				axs[ window.queue_position ].scatter( window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]), 0.5, 
-					s=300, c='red', marker='x', clip_on=False )
-				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'green' )
+				axs[ window.queue_position ].scatter(
+					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+					low + 0.5 * (high-low), 
+					s=600, c='red', marker='x', zorder= 10 )
+				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
 
 
 
-		#plt.xlabel( 'Tract state' )
+		plt.xlabel( 'Time [s]' )
+		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )
+		#figure.supylabel('Contour [arb]')
 		for ax in axs:
 			ax.label_outer()
 		figure.align_ylabels( axs[:] )
+		plt.tight_layout()
+		plt.savefig( 'sequential_fit_principle.pdf' )
 		plt.show()
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -490,7 +507,7 @@ def fit_sequentially( times,
 	#	print( 'window queue pos: {}'.format( window.queue_position ) )
 	#	print( 'boundaries: {}'.format( window.boundaries ) )
 	#raise ValueError( 'dail ')
-	seq_fit = Sequential_Fit( windows )
+	seq_fit = Sequential_Fit( windows, times, values )
 	if show_plot:
 		seq_fit.plot()
 	#for window in windows:
