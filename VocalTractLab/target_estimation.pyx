@@ -588,13 +588,13 @@ def get_correlation( times, values, target_sequence ):
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_rmse( times, values, target_sequence ):
 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
-	cnt = target_sequence.get_contour( sample_times = times )
-	cnt2 = target_sequence.get_contour()
-	target_sequence.plot( plot_contour = False, show = False )
-	plt.plot( cnt2[ :, 0 ], cnt2[ :, 1 ] )
-	plt.scatter( times, values )
-	plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
-	plt.show()
+	# cnt = target_sequence.get_contour( sample_times = times )
+	# cnt2 = target_sequence.get_contour()
+	# target_sequence.plot( plot_contour = False, show = False )
+	# plt.plot( cnt2[ :, 0 ], cnt2[ :, 1 ] )
+	# plt.scatter( times, values )
+	# plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
+	# plt.show()
 	return np.sqrt( np.mean( ( values - fitted_values )**2 ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	#for window in windows:
