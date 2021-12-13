@@ -249,7 +249,7 @@ class Fit_Result():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 class Fit_Window():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):
+	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):
 		self.times = []
 		self.values = []
 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
@@ -257,6 +257,7 @@ class Fit_Window():
 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:
 				self.times.append( time )
 				self.values.append( value )
+		self.delta_boundary = delta_boundary
 		self.queue_position = queue_position
 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
 		self.window_length = window_length
@@ -266,7 +267,13 @@ class Fit_Window():
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def fit( self, **kwargs ):
-		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
+		self.fit_result = fit(
+			times = self.times,
+			values = self.values,
+			boundaries = self.boundaries,
+			delta_boundary = self.delta_boundary,
+			**self.kwargs
+			)
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot():
@@ -286,6 +293,37 @@ class Sequential_Fit():
 		for window in self.windows:
 			window.fit()
 		return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	#def get_optimized_boundaries( windows, window_length, hop_length ):
+	#	boundary_sequence = []
+	#	n_targets = windows[-1].target_positions[-1] + 1
+	#	target_index = cycle( [ x for x in range(0, window_length) ] )
+	#	for index in range( 0, hop_length +1 ):
+	#		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+	#	for index in range( hop_length + 1, n_targets - 1 ):
+	#		tmp_targets = []
+	#		for window in windows:
+	#			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
+	#				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+	#		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
+	#		boundary_sequence.append( onset_time_mean )
+	#	for index in range( n_targets - 1, n_targets ):
+	#		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+	#	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
+	#	return boundary_sequence
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	#def get_optimized_targets( windows, hop_length ):
+	#	n_windows = len( windows )
+	#	target_list = []
+	#	for window in windows:
+	#		if window.queue_position == 0:
+	#			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+	#		elif window.queue_position < n_windows - 1:
+	#			target_list.append( window.fit_result.out_targets[ hop_length ] )
+	#		elif window.queue_position == n_windows - 1:
+	#			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+	#	return target_list
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def plot( self, ):
 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
@@ -486,10 +524,12 @@ def fit(
 def fit_sequentially( times, 
 	                  values, 
 	                  boundaries = [], 
-	                  init_bounds = 9, 
-	                  window_length = 3, 
-	                  hop_length= 1, 
-	                  n_passes = 1,
+	                  init_bounds: int = 9,
+	                  delta_boundary: int = 0, 
+	                  window_length: int = 3, 
+	                  hop_length: int = 1, 
+	                  n_passes: int = 1,
+	                  underflow_threshold: float = None,
 	                  show_plot = True,
 	                  **kwargs 
 	                  ):
@@ -499,41 +539,61 @@ def fit_sequentially( times,
 	if window_length >= len( boundaries ):
 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
 		return fit( times, values, boundaries, **kwargs )
-	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
-	#print( 'number of windows: ', n_windows )
-	windows = [ Fit_Window( times, values, boundaries, queue_position = x, 
-		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]
-	#for window in windows:
-	#	print( 'window queue pos: {}'.format( window.queue_position ) )
-	#	print( 'boundaries: {}'.format( window.boundaries ) )
-	#raise ValueError( 'dail ')
-	seq_fit = Sequential_Fit( windows, times, values )
-	if show_plot:
-		seq_fit.plot()
-	#for window in windows:
-	#	window.fit()
-		#print()
-		#for target in window.fit_result.out_targets:
-		#	print( 'tg')
-		#	print( 'onset: {}, offset: {}, slope: {}, offset: {}, tau: {}'.format( target.onset_time, target.offset_time, target.slope, target.offset, target.tau ) )
-		#raise ValueError( 'dail ')
-	target_list = []
-	#if 'delta_boundary' in kwargs:
-	#	if kwargs[ 'delta_boundary' ] > 0:
-	#		out_boundaries = get_optimized_boundaries( windows )
-	#else:
+	if delta_boundary == 0 and n_passes != 1:
+		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+		n_passes = 1
+	if delta_boundary > 0 and n_passes == 1:
+		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )
+		n_passes = 2
+	#n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+	# windows = [ Fit_Window( times, values, boundaries, queue_position = x, 
+	# 	window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]
+	# seq_fit = Sequential_Fit( windows, times, values )
+	# if show_plot:
+	# 	seq_fit.plot()
+
+
+	for index in range( 0, n_passes ):
+		if index == n_passes - 1:
+			delta_boundary = 0
+		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+		print( 'Iteration nr: {}'.format( index ) )
+		print( len(boundaries) )
+		print( 'delta bounds: {}'.format(delta_boundary) )
+
+		windows = [
+			Fit_Window(
+				times = times,
+				values = values,
+				boundaries = boundaries,
+				delta_boundary = delta_boundary,
+				queue_position = x, 
+				window_length= window_length,
+				hop_length=hop_length,
+				**kwargs
+			) for x in range( 0, n_windows )
+		]
+		seq_fit = Sequential_Fit( windows, times, values )
+		if show_plot:
+			seq_fit.plot()
+		#seq_fit = Sequential_Fit( windows, times, values )
+		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):
+			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
+			print( 'New boundaries: {}'.format( boundaries ) )
+
 	out_boundaries = boundaries
 	#target_list = []
-	for window in windows:
-		if window.queue_position == 0:
-			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
-		elif window.queue_position < n_windows - 1:
-			target_list.append( window.fit_result.out_targets[ hop_length ] )
-		elif window.queue_position == n_windows - 1:
-			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+	# for window in windows:
+	# 	if window.queue_position == 0:
+	# 		target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+	# 	elif window.queue_position < n_windows - 1:
+	# 		target_list.append( window.fit_result.out_targets[ hop_length ] )
+	# 	elif window.queue_position == n_windows - 1:
+	# 		target_list.extend( window.fit_result.out_targets[ 1 : ] )
 
-	out_targets = target_list
+	out_targets = get_optimized_targets( windows = windows, hop_length = hop_length )
 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )
+	#tgs.plot()
 	out_trajectory = tgs.get_contour()
 	fit_info = dict(
 		in_times = np.array( times ),
@@ -567,35 +627,43 @@ def fit_sequentially( times,
 	)
 	return Fit_Result( **fit_info )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def get_optimized_boundaries( windows, window_length, hop_length, o ):
-	boundary_sequence = []
-	n_targets = windows[-1].target_positions[-1] + 1
-	target_index = cycle( [ x for x in range(0, window_length) ] )
+def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):
+	boundary_list = []
+	n_targets = windows[-1].target_positions[-1]# + 1
+	print( n_targets )
+	target_index = [ x for x in range(0, window_length) ]
 	for index in range( 0, hop_length +1 ):
-		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
 	for index in range( hop_length + 1, n_targets - 1 ):
 		tmp_targets = []
 		for window in windows:
 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
-				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
-		boundary_sequence.append( onset_time_mean )
-	for index in range( n_targets - 1, n_targets ):
-		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
-	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
-	return boundary_sequence
+		boundary_list.append( onset_time_mean )
+	#for index in range( n_targets - 1, n_targets ):
+	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].onset_time )
+	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )
+	boundary_list = sorted( boundary_list )
+	if underflow_threshold != None:
+		boundaries = []
+		for index, x in enumerate( boundary_list ):
+			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+				boundaries.append(x)
+		boundary_list = boundaries
+	return boundary_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_optimized_targets( windows, hop_length ):
 	n_windows = len( windows )
-	target_sequence = []
+	target_list = []
 	for window in windows:
 		if window.queue_position == 0:
-			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
 		elif window.queue_position < n_windows - 1:
-			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+			target_list.append( window.fit_result.out_targets[ hop_length ] )
 		elif window.queue_position == n_windows - 1:
-			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
-	return target_sequence
+			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+	return target_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_correlation( times, values, target_sequence ):
 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
