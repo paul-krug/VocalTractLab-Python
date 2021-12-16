@@ -8,6 +8,7 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
+#include <numeric>
 
 
 
@@ -30,7 +31,7 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 	}
 
 	double contour_onset_value = contour_values.front();
-	double contour_std = get_standard_deviation()
+	double contour_std = get_standard_deviation( contour_values );
 	double onset_min_bound = contour_onset_value - contour_std;
 	double onset_max_bound = contour_onset_value + contour_std;
 
@@ -135,7 +136,7 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 				// random initialization
 				srand(it);
 				x.set_size(number_Targets * number_optVar + 1); // + 1 because of onset optimization
-				x( 0 ) = getRandomValues( onset_min_bound, onset_max_bound );
+				x( 0 ) = getRandomValue( onset_min_bound, onset_max_bound );
 				for (unsigned i = 0; i < number_Targets; ++i)
 				{
 					for (unsigned ssp_bound = 0; ssp_bound < number_optVar; ++ssp_bound)
@@ -329,5 +330,5 @@ double BobyqaOptimizer::get_standard_deviation( const std::vector<double> v )
     	accum += (d - m) * (d - m);
 	});
 	double stdev = sqrt(accum / (v.size()-1));
-	return stdev
+	return stdev;
 }

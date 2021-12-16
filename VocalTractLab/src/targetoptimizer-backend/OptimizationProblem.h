@@ -65,8 +65,13 @@ public:
 	OptimizationProblem(const ParameterSet& parameters, const TimeSignal& originalF0, const BoundaryVector& bounds);
 
 	// public member functions
-	void setOptimum(const BoundaryVector& boundaries, const TargetVector& targets,
-	                const double computationTime, const std::vector<double> optimizationSolutions);
+	void setOptimum(
+		const BoundaryVector& boundaries,
+		const TargetVector& targets,
+		const double onset_value,
+	    const double computationTime,
+	    const std::vector<double> optimizationSolutions
+	    );
 	void setBoundaries(const BoundaryVector& boundaries);
 
 	ParameterSet getParameters() const;

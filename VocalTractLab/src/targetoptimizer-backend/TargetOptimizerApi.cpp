@@ -175,6 +175,7 @@ FitData estimate_targets(	//int init_bounds,
 	fit_results.res_rmse = problem.getRootMeanSquareError();
 	fit_results.res_corr = problem.getCorrelationCoefficient();
 	fit_results.res_time = problem.getComputationTime();
+	fit_results.res_onset= problem.getOnset().value;
 
 	return fit_results;
 }

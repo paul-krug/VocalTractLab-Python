@@ -98,6 +98,7 @@ cdef extern from "TargetOptimizerApi.h":
 		double res_rmse,
 		double res_corr,
 		double res_time,
+		double res_onset,
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	FitData estimate_targets(	
 							#double *arr_times,
@@ -485,7 +486,7 @@ def fit(
 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code 
 		) for i, target in enumerate( fit_results.res_targets )
 	]
-	out_targets[ 0 ].onset_state = values[ 0 ]
+	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a
 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Joint Optimization' )
 	out_trajectory = tgs.get_contour()
 	fit_info = dict(
@@ -594,6 +595,7 @@ def fit_sequentially( times,
 	out_targets = get_optimized_targets( windows = windows, hop_length = hop_length )
 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )
 	#tgs.plot()
+	out_targets[ 0 ].onset_state = windows[0].fit_result.out_targets[ 0 ].onset_state
 	out_trajectory = tgs.get_contour()
 	fit_info = dict(
 		in_times = np.array( times ),
