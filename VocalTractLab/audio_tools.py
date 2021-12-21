@@ -54,17 +54,20 @@ from VocalTractLab.function_tools import save
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def calculate_spectral_distances( reference_list, 
 	                              query_list,
-	                              spectral_feature = 'mfcc_13',
-	                              distance_metric = correlation,
+	                              #spectral_feature = 'mfcc_13',
+	                              distance_metric = sqeuclidean,
 								  batch_size = None,
 	                              dtw_correction = False,
 								  dfw_correction = False,
 	                              workers = None,
 	                              ):
 	reference_list, query_list = check_if_input_lists_are_valid( [ reference_list, query_list ], [ str, ( str, type(None) ) ] )
-	args =  [ [reference, query, spectral_feature, distance_metric ]
-		for reference, query in itertools.zip_longest( reference_list, query_list ) ]
-	spectral_ditstance_list = _run_multiprocessing( _calculate_spectral_distance, args, True, workers )
+	args_list = [ [ [
+		reference, query, distance_metric ]
+		for query in query_listce_list
+		] for reference reference_list
+	]
+	spectral_ditstance_list = [ _run_multiprocessing( _calculate_spectral_distance, args, True, workers ) for args in args_list ]
 	return spectral_ditstance_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def calculate_spectral_features(
@@ -124,9 +127,18 @@ def write( audio, audio_file_path, sr ):
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
+
+
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_distance( args ):
-	return spectral_distance
+	reference, query, distance = args
+	tmp = []
+	for column in range( 0, query.shape[1] ):
+		vec_ref = reference[ :, column ]
+		vec_qry = query[ :, column ]
+		tmp.append( distance( vec_ref, vec_qry ) )
+	return np.mean( tmp )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_features( args ):
 	audio_file_path, spectrogram_file_path, audio_kwargs, spectrogram_kwargs, mel_kwargs  = args

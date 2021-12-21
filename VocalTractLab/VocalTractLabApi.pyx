@@ -346,6 +346,12 @@ def get_shapes( shape_list, str params = None, return_motor_sequence = True ):
 	elif len( sub_glottal_shapes ) != 0:
 		return Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_supra_glottal_state( key ):
+	return get_param_info( 'tract' )[ key ].to_numpy( dtype = float )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_sub_glottal_state( key ):
+	return get_param_info( 'glottis' )[ key ].to_numpy( dtype = float )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def load_speaker_file( str speaker_file_path ):
 	_close()
 	_initialize( speaker_file_path )
