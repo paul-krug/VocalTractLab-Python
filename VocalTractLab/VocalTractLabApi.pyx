@@ -484,6 +484,7 @@ def motor_sequence_to_melspectrogram(
 	save_file: bool = True,
 	normalize_audio: int = -1,
 	sr: int = 16000,
+	log_scale = True,
 	spectrogram_kwargs = AT.standard_16kHz_spectrogram_kwargs,
 	melspectrogram_kwargs = AT.standard_16kHz_melspectrogram_80_kwargs,
 	return_data: bool = True,
@@ -501,6 +502,7 @@ def motor_sequence_to_melspectrogram(
 		save_file,
 		normalize_audio,
 		sr,
+		log_scale,
 		spectrogram_kwargs,
 		melspectrogram_kwargs,
 		verbose,
@@ -783,6 +785,7 @@ def _motor_sequence_to_melspectrogram( args ):
 		save_file,
 		normalize_audio,
 		sr,
+		log_scale,
 		spectrogram_kwargs,
 		melspectrogram_kwargs,
 		verbose,
@@ -792,6 +795,8 @@ def _motor_sequence_to_melspectrogram( args ):
 	#spectrogram_kwargs = dict()
 	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
 	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, **melspectrogram_kwargs )
+	if log_scale == True:
+		melspectrogram = librosa.power_to_db( melspectrogram )
 	if melspectrogram_file_path != None: # TODO: replace with saveFile
 		melspectrogram_file_path = FT.make_output_path( melspectrogram_file_path, '_spectrogram.pkl.gzip' )#motor_sequence.name.rsplit( '.' )[0] +
 		save( melspectrogram, melspectrogram_file_path )
@@ -839,7 +844,7 @@ def _motor_sequence_to_melspectrogram( args ):
 #	audio = self._tract_sequence_to_audio( audio_args )
 #	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
 #	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, sr = sr, **melspectrogram_kwargs )
-#	mfcc = librosa.feature.mfcc( S = librosa.power_to_db( melspectrogram ), sr = sr, **mfcc_kwargs )
+#	mfcc = librosa.feature.mfcc( S = librosa.power_to_b( dmelspectrogram ), sr = sr, **mfcc_kwargs )
 #	if spectrogram_file_path != None:
 #		save( spectrogram, spectrogram_file_path )
 #	if melspectrogram_file_path != None:
