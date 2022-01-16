@@ -538,7 +538,13 @@ def fit_sequentially( times,
 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
 	if window_length >= len( boundaries ):
 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
-		return fit( times, values, boundaries, **kwargs )
+		return fit(
+			times = times,
+			values = values,
+			boundaries = boundaries,
+			delta_boundary = delta_boundary,
+			**kwargs,
+		)
 	if delta_boundary == 0 and n_passes != 1:
 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
 		n_passes = 1
