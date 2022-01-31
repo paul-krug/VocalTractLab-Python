@@ -416,6 +416,12 @@ def fit(
 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
 		#print( boundaries )
 		#print( len(boundaries ) )
+	#if boundaries[ 0 ] > times[ 0 ]:
+	#	boundaries[ 0 ] = times[ 0 ] - 0.01
+	#if boundaries[ -1 ] < times[ -1 ]:
+	#	boundaries[ -1 ] = times[ -1 ] + 0.01
+
+
 	norm_factor_a = np.min( values )
 	norm_factor_b = np.max( values ) - np.min( values ) 
 	normalized_values = ( values - norm_factor_a ) / norm_factor_b
@@ -539,7 +545,13 @@ def fit_sequentially( times,
 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
 	if window_length >= len( boundaries ):
 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
-		return fit( times, values, boundaries, **kwargs )
+		return fit(
+			times = times,
+			values = values,
+			boundaries = boundaries,
+			delta_boundary = delta_boundary,
+			**kwargs,
+		)
 	if delta_boundary == 0 and n_passes != 1:
 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
 		n_passes = 1
@@ -553,7 +565,7 @@ def fit_sequentially( times,
 	# if show_plot:
 	# 	seq_fit.plot()
 
-
+	windows_list = []
 	for index in range( 0, n_passes ):
 		if index == n_passes - 1:
 			delta_boundary = 0
@@ -581,6 +593,7 @@ def fit_sequentially( times,
 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):
 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
 			print( 'New boundaries: {}'.format( boundaries ) )
+		windows_list.append( windows )
 
 	out_boundaries = boundaries
 	#target_list = []
@@ -625,7 +638,7 @@ def fit_sequentially( times,
 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
 		out_rmse = get_rmse( times, values, tgs ),
 		out_corr = get_correlation( times, values, tgs ),
-		out_time = np.sum( [ window.fit_result.out_time for window in windows ] ),
+		out_time = np.sum( [ window.fit_result.out_time for windows in windows_list for window in windows ] ),
 	)
 	return Fit_Result( **fit_info )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -674,14 +687,20 @@ def get_correlation( times, values, target_sequence ):
 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_rmse( times, values, target_sequence ):
+	#print( 'len times: {}'.format( len( times ) ) )
+	#print( 'len values: {}'.format( len( values ) ) )
 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
-	# cnt = target_sequence.get_contour( sample_times = times )
+	#print( 'len fitted values: {}'.format( len( fitted_values ) ) )
+
+	#cnt = target_sequence.get_contour( sample_times = times )
+	#for bound in target_sequence.get_boundaries():
+	#	plt.axvline( bound )
 	# cnt2 = target_sequence.get_contour()
 	# target_sequence.plot( plot_contour = False, show = False )
 	# plt.plot( cnt2[ :, 0 ], cnt2[ :, 1 ] )
-	# plt.scatter( times, values )
-	# plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
-	# plt.show()
+	#plt.scatter( times, values )
+	#plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
+	#plt.show()
 	return np.sqrt( np.mean( ( values - fitted_values )**2 ) )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	#for window in windows:
