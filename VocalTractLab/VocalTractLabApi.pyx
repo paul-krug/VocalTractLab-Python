@@ -59,9 +59,11 @@ from cpython.pycapsule cimport *
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.targets import Motor_Score
 from VocalTractLab.frequency_domain import Transfer_Function
+from VocalTractLab.function_tools import save, load
 from VocalTractLab.tube_states import Tube_State
 import VocalTractLab.audio_tools as AT
 import VocalTractLab.function_tools as FT
+
 
 
 import librosa
@@ -346,6 +348,12 @@ def get_shapes( shape_list, str params = None, return_motor_sequence = True ):
 	elif len( sub_glottal_shapes ) != 0:
 		return Sub_Glottal_Sequence( np.array( sub_glottal_shapes ), name = sub_glottal_sequence_name )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_supra_glottal_state( key ):
+	return get_param_info( 'tract' )[ key ].to_numpy( dtype = float )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def get_sub_glottal_state( key ):
+	return get_param_info( 'glottis' )[ key ].to_numpy( dtype = float )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def load_speaker_file( str speaker_file_path ):
 	_close()
 	_initialize( speaker_file_path )
@@ -419,7 +427,7 @@ def segment_sequence_to_gestural_score( seg_file_path_list,
 def tract_sequence_to_audio( motor_sequence_list,
 	                         audio_file_path_list = None,
 	                         save_file: bool = True,
-	                         normalize_audio: int = None,
+	                         normalize_audio: int = -1,
 	                         sr: int = None,
 	                         return_data: bool = False,
 	                         workers: int = None,
@@ -433,6 +441,78 @@ def tract_sequence_to_audio( motor_sequence_list,
 	args = [ [motor_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
 		for motor_sequence, audio_file_path in itertools.zip_longest( motor_sequence_list, audio_file_path_list ) ]
 	audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
+	return audio_data_list
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def motor_sequence_to_spectrogram(
+	motor_sequence_list,
+	audio_file_path_list = None,
+	spectrogram_file_path_list = None,
+	save_file: bool = True,
+	normalize_audio: int = -1,
+	sr: int = 16000,
+	spectrogram_kwargs = AT.standard_16kHz_spectrogram_kwargs,
+	return_data: bool = True,
+	workers: int = None,
+	verbose: bool = False,
+	):
+	motor_sequence_list, audio_file_path_list, spectrogram_file_path_list = FT.check_if_input_lists_are_valid(
+		[ motor_sequence_list, audio_file_path_list, spectrogram_file_path_list ], 
+		[ ( str, Motor_Sequence, Motor_Score ), ( str, type(None) ), ( str, type(None) ), ]
+	)
+	args = [ [
+		motor_sequence,
+		audio_file_path,
+		spectrogram_file_path,
+		save_file,
+		normalize_audio,
+		sr,
+		spectrogram_kwargs,
+		verbose,
+		] for motor_sequence, audio_file_path, spectrogram_file_path in itertools.zip_longest(
+			motor_sequence_list,
+			audio_file_path_list,
+			spectrogram_file_path_list,
+		)
+	]
+	audio_data_list = _run_multiprocessing( _motor_sequence_to_spectrogram, args, return_data, workers )
+	return audio_data_list
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def motor_sequence_to_melspectrogram(
+	motor_sequence_list,
+	audio_file_path_list = None,
+	spectrogram_file_path_list = None,
+	save_file: bool = True,
+	normalize_audio: int = -1,
+	sr: int = 16000,
+	log_scale = True,
+	spectrogram_kwargs = AT.standard_16kHz_spectrogram_kwargs,
+	melspectrogram_kwargs = AT.standard_16kHz_melspectrogram_80_kwargs,
+	return_data: bool = True,
+	workers: int = None,
+	verbose: bool = False,
+	):
+	motor_sequence_list, audio_file_path_list, spectrogram_file_path_list = FT.check_if_input_lists_are_valid(
+		[ motor_sequence_list, audio_file_path_list, spectrogram_file_path_list ], 
+		[ ( str, Motor_Sequence, Motor_Score ), ( str, type(None) ), ( str, type(None) ), ]
+	)
+	args = [ [
+		motor_sequence,
+		audio_file_path,
+		spectrogram_file_path,
+		save_file,
+		normalize_audio,
+		sr,
+		log_scale,
+		spectrogram_kwargs,
+		melspectrogram_kwargs,
+		verbose,
+		] for motor_sequence, audio_file_path, spectrogram_file_path in itertools.zip_longest(
+			motor_sequence_list,
+			audio_file_path_list,
+			spectrogram_file_path_list,
+		)
+	]
+	audio_data_list = _run_multiprocessing( _motor_sequence_to_melspectrogram, args, return_data, workers )
 	return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def tract_sequence_to_limited_tract_sequence( motor_sequence,
@@ -677,6 +757,101 @@ def _tract_sequence_to_audio( args ):
 		AT.write( audio, audio_file_path, sr )
 	log.info( 'Audio generated from motor_sequence: {}'.format( motor_sequence.name ) )
 	return audio
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _motor_sequence_to_spectrogram( args ):
+	( 
+		motor_sequence_data,
+		audio_file_path,
+		spectrogram_file_path,
+		save_file,
+		normalize_audio,
+		sr,
+		spectrogram_kwargs,
+		verbose,
+	) = args
+	audio_args = ( motor_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose )
+	audio = _tract_sequence_to_audio( audio_args )
+	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+	if spectrogram_file_path != None: # TODO: replace with saveFile
+		spectrogram_file_path = FT.make_output_path( spectrogram_file_path, '_spectrogram.pkl.gzip' )#motor_sequence.name.rsplit( '.' )[0] +
+		save( spectrogram, spectrogram_file_path )
+	return spectrogram
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _motor_sequence_to_melspectrogram( args ):
+	( 
+		motor_sequence_data,
+		audio_file_path,
+		melspectrogram_file_path,
+		save_file,
+		normalize_audio,
+		sr,
+		log_scale,
+		spectrogram_kwargs,
+		melspectrogram_kwargs,
+		verbose,
+	) = args
+	audio_args = ( motor_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose )
+	audio = _tract_sequence_to_audio( audio_args )
+	#spectrogram_kwargs = dict()
+	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, **melspectrogram_kwargs )
+	if log_scale == True:
+		melspectrogram = librosa.power_to_db( melspectrogram )
+	if melspectrogram_file_path != None: # TODO: replace with saveFile
+		melspectrogram_file_path = FT.make_output_path( melspectrogram_file_path, '_spectrogram.pkl.gzip' )#motor_sequence.name.rsplit( '.' )[0] +
+		save( melspectrogram, melspectrogram_file_path )
+	return melspectrogram
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+#def _motor_sequence_to_melspectrogram( args ):
+#	( 
+#		motor_sequence_data,
+#		audio_file_path,
+#		save_file,
+#		normalize_audio,
+#		sr,
+#		spectrogram_file_path,
+#		melspectrogram_file_path,
+#		spectrogram_kwargs,
+#		melspectrogram_kwargs,
+#		verbose,
+#	) = args
+#	audio_args = ( motor_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose )
+#	audio = self._tract_sequence_to_audio( audio_args )
+#	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+#	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, sr = sr, **melspectrogram_kwargs )
+#	if spectrogram_file_path != None:
+#		save( spectrogram, spectrogram_file_path )
+#	if melspectrogram_file_path != None:
+#		save( melspectrogram, melspectrogram_file_path )
+#	return melspectrogram
+##---------------------------------------------------------------------------------------------------------------------------------------------------#
+#def _motor_sequence_to_mfcc( args ):
+#	( 
+#		motor_sequence_data,
+#		audio_file_path,
+#		save_file,
+#		normalize_audio,
+#		sr,
+#		spectrogram_file_path,
+#		melspectrogram_file_path,
+#		mfcc_file_path,
+#		spectrogram_kwargs,
+#		melspectrogram_kwargs,
+#		mfcc_kwargs,
+#		verbose,
+#	) = args
+#	audio_args = ( motor_sequence_data, audio_file_path, save_file, normalize_audio, sr, verbose )
+#	audio = self._tract_sequence_to_audio( audio_args )
+#	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+#	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, sr = sr, **melspectrogram_kwargs )
+#	mfcc = librosa.feature.mfcc( S = librosa.power_to_b( dmelspectrogram ), sr = sr, **mfcc_kwargs )
+#	if spectrogram_file_path != None:
+#		save( spectrogram, spectrogram_file_path )
+#	if melspectrogram_file_path != None:
+#		save( melspectrogram, melspectrogram_file_path )
+#	if mfcc_file_path != None:
+#		save( mfcc, mfcc_file_path )
+#	return mfcc
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_limited_tract_state( args ):
 	tract_state = args

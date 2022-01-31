@@ -28,4 +28,5 @@ public:
 private:
 	// private member functions
 	static double getRandomValue(const double min, const double max);
+	static double get_standard_deviation( const std::vector<double> v );
 };

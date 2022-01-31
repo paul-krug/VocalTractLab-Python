@@ -2,13 +2,28 @@
 #include <iostream>
 
 
-OptimizationProblem::OptimizationProblem(const ParameterSet& parameters, const TimeSignal& originalF0, const BoundaryVector& bounds)
-	: m_computationTime(-1.0), m_parameters(parameters), m_originalF0(originalF0), m_bounds(bounds), m_modelOptimalF0(bounds, originalF0[0].value) {};
+OptimizationProblem::OptimizationProblem(
+	const ParameterSet& parameters,
+	const TimeSignal& originalF0,
+	const BoundaryVector& bounds
+	):
+m_computationTime(-1.0),
+m_parameters(parameters), 
+m_originalF0(originalF0), 
+m_bounds(bounds), 
+m_modelOptimalF0(bounds, 
+originalF0[0].value
+) {};
 
-void OptimizationProblem::setOptimum( const BoundaryVector& boundaries, const TargetVector& targets,
-                                      const double computationTime, const std::vector<double> optimizationSolutions )
+void OptimizationProblem::setOptimum(
+	const BoundaryVector& boundaries,
+	const TargetVector& targets,
+	const double onset_value,
+    const double computationTime,
+    const std::vector<double> optimizationSolutions )
 {
 	//m_modelOptimalF0.setOnset( m_originalF0[0].time * targets[0].slope + targets[0].offset ); // added
+	m_modelOptimalF0.setOnset( onset_value );
 	m_modelOptimalF0.setBoundaries( boundaries );
 	m_modelOptimalF0.setPitchTargets(targets);
 	m_computationTime = computationTime;
@@ -184,33 +199,33 @@ double OptimizationProblem::operator() (const DlibVector& arg) const
 
 
 	double modified_Bound = 0.0;
-	double number_Targets = arg.size() / m_parameters.searchSpaceParameters.numberOptVar;
-	double number_optVar = m_parameters.searchSpaceParameters.numberOptVar;
+	int number_Targets = int( ( arg.size() - 1 ) / m_parameters.searchSpaceParameters.numberOptVar ); // - 1 because of onset optimization
+	int number_optVar = int( m_parameters.searchSpaceParameters.numberOptVar );
 
 	if ( m_parameters.searchSpaceParameters.optimizeBoundaries == true )
 	{
 		for (unsigned i = 0; i < number_Targets; ++i)
 		{
 			if ( relativeDelta ){
-				if ( arg(number_optVar * i + 3) >= 0)
+				if ( arg(number_optVar * i + 3 + 1) >= 0) // + 1 because of onset optimization
 				{
-					boundaries.at(i) += arg(number_optVar * i + 3)*( initialBounds.at(i+1)-initialBounds.at(i) )*0.01;
+					boundaries.at(i) += arg(number_optVar * i + 3 + 1)*( initialBounds.at(i+1)-initialBounds.at(i) )*0.01; // + 1 because of onset optimization
 				}
 				else
 				{
 					if ( i==0 )
 					{
-						boundaries.at(i) += arg(number_optVar * i + 3)*0.1*0.01;
+						boundaries.at(i) += arg(number_optVar * i + 3 + 1) * 0.1 * 0.01; // + 1 because of onset optimization
 					}
 					else
 					{
-						boundaries.at(i) += arg(number_optVar * i + 3)*( initialBounds.at(i)-initialBounds.at(i-1) ) *0.01;
+						boundaries.at(i) += arg(number_optVar * i + 3 + 1)*( initialBounds.at(i)-initialBounds.at(i-1) ) *0.01; // + 1 because of onset optimization
 					}
 				}
 			}
 			else
 			{
-				boundaries.at(i) += arg(m_parameters.searchSpaceParameters.numberOptVar * i +3)/1000;
+				boundaries.at(i) += arg(m_parameters.searchSpaceParameters.numberOptVar * i + 3 + 1)/1000; // + 1 because of onset optimization
 			}
 			if ( (i==0) && (boundaries.at(0) > m_originalF0[0].time))
 			{
@@ -224,9 +239,9 @@ double OptimizationProblem::operator() (const DlibVector& arg) const
 	for (unsigned i = 0; i < number_Targets; ++i)
 	{
 		PitchTarget pt;
-		pt.slope = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 0);
-		pt.offset = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 1);
-		pt.tau = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 2);
+		pt.slope = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 0 + 1); // + 1 because of onset optimization
+		pt.offset = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 1 + 1); // + 1 because of onset optimization
+		pt.tau = arg(m_parameters.searchSpaceParameters.numberOptVar * i + 2 + 1); // + 1 because of onset optimization
 		pt.duration = ( boundaries.at(i+1) - boundaries.at(i) );
 
 		targets.push_back(pt);
@@ -240,7 +255,8 @@ double OptimizationProblem::operator() (const DlibVector& arg) const
 		boundaries.end()[-2] -= 0.001;
 	}
 	// END DEBUG
-	TamModelF0 tamF0(boundaries, m_originalF0[0].value);
+	TamModelF0 tamF0(boundaries, arg( 0 ) );
+	//TamModelF0 tamF0(boundaries, m_originalF0[0].value);
 	//TamModelF0 tamF0(boundaries, m_originalF0[0].time * targets[0].slope + targets[0].offset);
 	tamF0.setPitchTargets(targets);
 

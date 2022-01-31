@@ -456,6 +456,8 @@ class Target_Approximation_Model():
 		n_samples = duration * discretization_rate
 		if not is_iterable( sample_times ):
 			sample_times = np.arange( start, end, duration / n_samples )
+		
+		#print( 'Len of sample times: {}'.format( len(sample_times) ) )
 		#print( 'tam onset: {}'.format(onset_state) )
 		if onset_state == None:
 			onset_state = target_sequence[0].offset
@@ -472,7 +474,9 @@ class Target_Approximation_Model():
 			b_begin = b_end
 			b_end = b_begin + target.duration
 			c = self.calculate_coefficients( target, current_state )
-			while( sample_times[ sample_index ] <= b_end ):
+
+			while( sample_times[ sample_index ] <= b_end +  0.000000000000001 ):
+				#print( 'sample time: {}, b_end: {}'.format( sample_times[ sample_index ], b_end ) )
 				constant = 0.0
 				t = sample_times[ sample_index ] - b_begin
 				for n in range( 0, self.FILTERORDER ):
@@ -482,7 +486,7 @@ class Target_Approximation_Model():
 				trajectory.append( [ time, value ] )
 				sample_index += 1
 				if sample_index >= len( sample_times ):
-					break
+					return np.array( trajectory )
 			current_state = self.calculate_state( current_state, b_end, b_begin, target );
 
 		return np.array( trajectory )

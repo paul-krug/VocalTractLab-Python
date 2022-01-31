@@ -50,21 +50,83 @@ from VocalTractLab.function_tools import save
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
+standard_44kHz_spectrogram_kwargs = dict(
+	n_fft = 512, # corresponds to 256/11025 s = 23.2199... ms @ sr = 44100 Hz
+	hop_length = 110.25, # corresponds to exactly 2.5 ms @ sr = 44100 Hz
+	win_length = 512,
+	)
+
+standard_22kHz_spectrogram_kwargs = dict(
+	n_fft = 512, # corresponds to 256/11025 s = 23.2199... ms @ sr = 22050 Hz
+	hop_length = 55.125, # corresponds to exactly 2.5 ms @ sr = 22050 Hz
+	win_length = 512,
+	)
+
+standard_16kHz_spectrogram_kwargs = dict(
+	n_fft = 256, # corresponds to 2/125 s = 16 ms @ sr = 16000 Hz
+	hop_length = 40, # corresponds to exactly 2.5 ms @ sr = 16000 Hz
+	win_length = 256,
+	)
+
+standard_16kHz_melspectrogram_40_kwargs = dict(
+	n_fft = 256, # corresponds to 2/125 s = 16 ms @ sr = 16000 Hz
+	hop_length = 40, # corresponds to exactly 2.5 ms @ sr = 16000 Hz
+	win_length = 256,
+	sr = 16000,
+	n_mels = 40,
+	fmin = 50,
+	fmax = 8000,
+	)
+
+standard_16kHz_melspectrogram_80_kwargs = dict(
+	n_fft = 256, # corresponds to 2/125 s = 16 ms @ sr = 16000 Hz
+	hop_length = 40, # corresponds to exactly 2.5 ms @ sr = 16000 Hz
+	win_length = 256,
+	sr = 16000,
+	n_mels = 80,
+	fmin = 50,
+	fmax = 8000,
+	)
+
+standard_16kHz_mfcc_13_kwargs = dict(
+	n_fft = 256, # corresponds to 2/125 s = 16 ms @ sr = 16000 Hz
+	hop_length = 40, # corresponds to exactly 2.5 ms @ sr = 16000 Hz
+	win_length = 256,
+	sr = 16000,
+	n_mels = 80,
+	fmin = 50,
+	fmax = 8000,
+	n_mfcc = 13,
+	)
+
+standard_16kHz_mfcc_26_kwargs = dict(
+	n_fft = 256, # corresponds to 2/125 s = 16 ms @ sr = 16000 Hz
+	hop_length = 40, # corresponds to exactly 2.5 ms @ sr = 16000 Hz
+	win_length = 256,
+	sr = 16000,
+	n_mels = 80,
+	fmin = 50,
+	fmax = 8000,
+	n_mfcc = 26,
+	)
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def calculate_spectral_distances( reference_list, 
 	                              query_list,
-	                              spectral_feature = 'mfcc_13',
-	                              distance_metric = correlation,
+	                              #spectral_feature = 'mfcc_13',
+	                              distance_metric = sqeuclidean,
 								  batch_size = None,
 	                              dtw_correction = False,
 								  dfw_correction = False,
 	                              workers = None,
 	                              ):
-	reference_list, query_list = check_if_input_lists_are_valid( [ reference_list, query_list ], [ str, ( str, type(None) ) ] )
-	args =  [ [reference, query, spectral_feature, distance_metric ]
-		for reference, query in itertools.zip_longest( reference_list, query_list ) ]
-	spectral_ditstance_list = _run_multiprocessing( _calculate_spectral_distance, args, True, workers )
+	reference_list, query_list = check_if_input_lists_are_valid( [ reference_list, query_list ], [ np.ndarray, np.ndarray ] )
+	args_list = [ [ [
+		reference, query, distance_metric ]
+		for query in query_list
+		] for reference in reference_list
+	]
+	spectral_ditstance_list = [ _run_multiprocessing( _calculate_spectral_distance, args, True, workers ) for args in args_list ]
 	return spectral_ditstance_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def calculate_spectral_features(
@@ -124,9 +186,18 @@ def write( audio, audio_file_path, sr ):
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
+
+
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_distance( args ):
-	return spectral_distance
+	reference, query, distance = args
+	tmp = []
+	for column in range( 0, query.shape[1] ):
+		vec_ref = reference[ :, column ]
+		vec_qry = query[ :, column ]
+		tmp.append( distance( vec_ref, vec_qry ) )
+	return np.mean( tmp )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _calculate_spectral_features( args ):
 	audio_file_path, spectrogram_file_path, audio_kwargs, spectrogram_kwargs, mel_kwargs  = args

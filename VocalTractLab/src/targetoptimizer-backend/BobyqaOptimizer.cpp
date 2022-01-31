@@ -8,6 +8,7 @@
 #include <fstream>
 #include <chrono>
 #include <ctime>
+#include <numeric>
 
 
 
@@ -22,6 +23,17 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 	BoundaryVector optBoundaries;
 	TargetVector   tmpTargets = op.getPitchTargets();
 
+	TimeSignal original_contour = op.getOriginalF0();
+
+	std::vector<double> contour_values;
+	for( const auto& sample: original_contour ) {
+    	contour_values.push_back( sample.value );
+	}
+
+	double contour_onset_value = contour_values.front();
+	double contour_std = get_standard_deviation( contour_values );
+	double onset_min_bound = contour_onset_value - contour_std;
+	double onset_max_bound = contour_onset_value + contour_std;
 
 	int number_optVar = ps.searchSpaceParameters.numberOptVar; // Optimize the 3 target parameters by default
 
@@ -60,15 +72,18 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 	}
 
 	DlibVector lowerBound, upperBound;
-	lowerBound.set_size(number_Targets * number_optVar);
-	upperBound.set_size(number_Targets * number_optVar);
+	lowerBound.set_size(number_Targets * number_optVar + 1); // + 1 because of onset optimization
+	upperBound.set_size(number_Targets * number_optVar + 1); // + 1 because of onset optimization
+
+	lowerBound( 0 ) = onset_min_bound;
+	upperBound( 0 ) = onset_max_bound;
 
 	for (unsigned i = 0; i < number_Targets; ++i)
 	{
 		for (unsigned ssp_bound = 0; ssp_bound < number_optVar; ++ssp_bound)
 		{
-			lowerBound(number_optVar * i + ssp_bound) = min_bounds.at(ssp_bound);
-			upperBound(number_optVar * i + ssp_bound) = max_bounds.at(ssp_bound);
+			lowerBound(number_optVar * i + ssp_bound + 1) = min_bounds.at(ssp_bound); // + 1 because of onset optimization
+			upperBound(number_optVar * i + ssp_bound + 1) = max_bounds.at(ssp_bound); // + 1 because of onset optimization
 		}
 	}
 
@@ -120,12 +135,13 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 				std::cout << "random iteration: " << it << " begins." << std::endl;
 				// random initialization
 				srand(it);
-				x.set_size(number_Targets * number_optVar);
+				x.set_size(number_Targets * number_optVar + 1); // + 1 because of onset optimization
+				x( 0 ) = getRandomValue( onset_min_bound, onset_max_bound );
 				for (unsigned i = 0; i < number_Targets; ++i)
 				{
 					for (unsigned ssp_bound = 0; ssp_bound < number_optVar; ++ssp_bound)
 					{
-						x(number_optVar * i + ssp_bound) = getRandomValue(min_bounds.at(ssp_bound), max_bounds.at(ssp_bound));
+						x(number_optVar * i + ssp_bound + 1) = getRandomValue(min_bounds.at(ssp_bound), max_bounds.at(ssp_bound)); // + 1 because of onset optimization
 					}
 				}
 			}
@@ -218,7 +234,7 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 	if (fmin == 1e6)
 	{
 		std::cout << "  dlib error!!!!!!!!!!!!! " << std::endl;
-		throw dlib::error("[optimize] BOBYQA algorithms didn't converge! Try to increase number of evaluations");
+		throw dlib::error("[optimize] BOBYQA algorithms didn't converge! Try to increase number of evaluations"); //reason can also be that non-valied numbers are passed as input, e.g. nan
 	}
 
 	// convert result to TargetVector
@@ -235,25 +251,25 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 		for (unsigned i = 0; i < number_Targets; ++i)
 		{
 			if (relativeDelta) {
-				if (xtmp(number_optVar * i + 3) >= 0)
+				if (xtmp(number_optVar * i + 3 + 1) >= 0) // + 1 because of onset optimization
 				{
-					tmpBoundaries.at(i) += xtmp(number_optVar * i + 3) * (initialBoundaries.at(i + 1) - initialBoundaries.at(i)) * 0.01;
+					tmpBoundaries.at(i) += xtmp(number_optVar * i + 3 + 1) * (initialBoundaries.at(i + 1) - initialBoundaries.at(i)) * 0.01; // + 1 because of onset optimization
 				}
 				else
 				{
 					if (i == 0)
 					{
-						tmpBoundaries.at(i) += xtmp(number_optVar * i + 3) * 0.1 * 0.01;
+						tmpBoundaries.at(i) += xtmp(number_optVar * i + 3 + 1) * 0.1 * 0.01; // + 1 because of onset optimization
 					}
 					else
 					{
-						tmpBoundaries.at(i) += xtmp(number_optVar * i + 3) * (initialBoundaries.at(i) - initialBoundaries.at(i - 1)) * 0.01;
+						tmpBoundaries.at(i) += xtmp(number_optVar * i + 3 + 1) * (initialBoundaries.at(i) - initialBoundaries.at(i - 1)) * 0.01; // + 1 because of onset optimization
 					}
 				}
 			}
 			else // for absolute delta (currently disabled)
 			{
-				tmpBoundaries.at(i) += xtmp(number_optVar * i + 3) / 1000; //divide by 1000 because delta is ms
+				tmpBoundaries.at(i) += xtmp(number_optVar * i + 3 + 1) / 1000; //divide by 1000 because delta is ms // + 1 because of onset optimization
 			}
 
 			if ((i == 0) && (tmpBoundaries.at(0) > op.getOriginalF0_Onset()))
@@ -269,18 +285,19 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 	for (unsigned i = 0; i < number_Targets; ++i)
 	{
 		PitchTarget pt;
-		pt.slope = xtmp(number_optVar * i + 0);
-		pt.offset = xtmp(number_optVar * i + 1);
-		pt.tau = xtmp(number_optVar * i + 2);
+		pt.slope = xtmp(number_optVar * i + 0 + 1); // + 1 because of onset optimization
+		pt.offset = xtmp(number_optVar * i + 1 + 1); // + 1 because of onset optimization
+		pt.tau = xtmp(number_optVar * i + 2 + 1); // + 1 because of onset optimization
 		pt.duration = optBoundaries.at(i + 1) - optBoundaries.at(i);
 		optTargets.push_back(pt);
 	}
+	double opt_onset_value = xtmp( 0 );
 
 
 	// store optimum
 	std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
 	double computationTime = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin).count();
-	op.setOptimum(optBoundaries, optTargets, computationTime, ftmp_vector);
+	op.setOptimum(optBoundaries, optTargets, opt_onset_value, computationTime, ftmp_vector);
 	std::cout << "Elapsed time = " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "[s]" << std::endl;
 
 
@@ -290,16 +307,28 @@ void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt)
 //#endif
 }
 
-#ifdef USE_WXWIDGETS
+/*#ifdef USE_WXWIDGETS
 void BobyqaOptimizer::optimize(OptimizationProblem& op, OptimizerOptions optOpt, wxGenericProgressDialog* waitbar)
 {
 	waitbar_ = waitbar;
 	return optimize(op, optOpt);
 }
-#endif
+#endif*/
 
 
 double BobyqaOptimizer::getRandomValue(const double min, const double max)
 {
 	return min + ((double)rand() / RAND_MAX) * (max - min);
+}
+
+double BobyqaOptimizer::get_standard_deviation( const std::vector<double> v )
+{
+	double sum = std::accumulate(std::begin(v), std::end(v), 0.0);
+	double m =  sum / v.size();
+	double accum = 0.0;
+	std::for_each (std::begin(v), std::end(v), [&](const double d) {
+    	accum += (d - m) * (d - m);
+	});
+	double stdev = sqrt(accum / (v.size()-1));
+	return stdev;
 }

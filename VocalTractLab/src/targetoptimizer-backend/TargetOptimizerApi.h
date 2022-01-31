@@ -19,6 +19,7 @@ struct FitData {
 	double res_rmse;
 	double res_corr;
 	double res_time;
+	double res_onset;
 
 	//double res_f0_time_array;
 	//double res_f0_value_array;

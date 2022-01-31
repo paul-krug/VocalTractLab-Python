@@ -49,6 +49,11 @@ log.setLevel(logging.WARNING)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def check_if_input_lists_are_valid( input_lists, instances_list ):
+	if len( input_lists ) != len( instances_list ):
+		raise ValueError( 'len( input_lists ) and len( instances_list ) must be the same but are: {} and {}.'.format( 
+			len( input_lists ), len( instances_list ) 
+			)
+		)
 	valid_lists = []
 	for input_list, instances in zip( input_lists, instances_list ):
 		valid_lists.append( check_if_list_is_valid( input_list, instances ) )
