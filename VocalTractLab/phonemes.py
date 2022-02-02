@@ -51,7 +51,7 @@ from itertools import chain
 #import VocalTractLab.VocalTractLabApi as vtl
 #from VocalTractLab.target_estimation import fit
 
-from vtl_phonemes import phonemes as phonemes
+from VocalTractLab.vtl_phonemes import phonemes as phonemes
 from VocalTractLab.function_tools import check_if_list_is_valid
 
 

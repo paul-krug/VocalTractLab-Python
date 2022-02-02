@@ -30,6 +30,7 @@ from VocalTractLab.text_to_speech import text_to_speech
 from VocalTractLab.text_to_speech import tts
 from VocalTractLab.function_tools import load
 from VocalTractLab.function_tools import save
+from VocalTractLab.phonemes import *
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 

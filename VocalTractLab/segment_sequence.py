@@ -59,6 +59,7 @@ class Segment_Sequence():
 		self.onset_duration = onset_duration
 		self.offset_duration = offset_duration
 		self.effects = [ None for _ in self.phonemes ]
+		self.length = self.onset_duration + np.sum( self.durations ) # + offset_uration if defined
 
 		#self.data = pd.DataFrame( columns = [ 'onset', 'offset', 'duration', 'index', 'phoneme', 'effect', 'degenerated' ] )
 		return
@@ -179,7 +180,7 @@ class Segment_Sequence():
 		return [ phoneme.name for phoneme in self._phonemes ]
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def to_seg_file( self, seg_file_path, account_for_effects = False ):
-		assert len( self.phonemes ) == len( self.durations), 'Lengths do not match'
+		assert len( self.phonemes ) == len( self.durations), 'Lengths do not match: {}, {}'.format( self.phonemes, self.durations )
 		out_file = open( seg_file_path, 'w+' )
 		out_file.write( 'name = {}; duration_s = {};\n'.format( '', self.onset_duration ) )
 		for index, phoneme in enumerate( self.phonemes ):

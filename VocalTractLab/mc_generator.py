@@ -116,21 +116,20 @@ def generate_supra_glottal_states(
 	return supra_glottal_sequence
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
-def generate_phoneme_sequences(
-	n_samples,
-	sequence_length,
-	duration_range,
-	pitch_range,
-	):
-
-	for phoneme in range( 0, sequence_length ):
-		phonemes.append( vtl.phonemes()[ randint() ] )
-	segment_sequence = vtl.Segment_Sequence( phonemes )
-	gestural_score = ...
-	gestural_score.add( pitch )
-	if tract_seq:
-		ges_to_tract #inefficient
-	return
+#def generate_phoneme_sequences(
+#	n_samples,
+#	sequence_length,
+#	duration_range,
+#	pitch_range,
+#	):
+#	for phoneme in range( 0, sequence_length ):
+#		phonemes.append( vtl.phonemes()[ randint() ] )
+#	segment_sequence = vtl.Segment_Sequence( phonemes )
+#	gestural_score = ...
+#	gestural_score.add( pitch )
+#	if tract_seq:
+#		ges_to_tract #inefficient
+#	return
 
 
 
