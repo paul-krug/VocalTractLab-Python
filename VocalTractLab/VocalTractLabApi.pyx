@@ -737,7 +737,7 @@ def _tract_sequence_to_audio( args ):
 		if not os.path.exists( tract_file_path ):
 			warnings.warn( 'the specified tract sequence file path does not exist: {}. API call will be skipped.'.format( tract_file_path ) )
 			return
-		motor_sequence = Motor_Sequence.from_file( tract_file_path )
+		motor_sequence = Motor_Sequence.from_tract_file( tract_file_path )
 	elif isinstance( motor_sequence_data, Motor_Score ):
 		motor_score = motor_sequence_data
 		motor_sequence = motor_score.to_motor_sequence()
