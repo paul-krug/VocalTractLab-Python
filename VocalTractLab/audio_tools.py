@@ -159,6 +159,21 @@ def calculate_spectral_features(
 	_run_multiprocessing( _calculate_spectral_features, args, False, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def calculate_melspectrograms(
+	audio_file_path_list,
+	spectrogram_file_path_list = None,
+	spectrogram_kwargs = standard_16kHz_spectrogram_kwargs,
+	mel_kwargs = standard_16kHz_melspectrogram_80_kwargs,
+	workers = None,
+):
+	audio_file_path_list, spectrogram_file_path_list = check_if_input_lists_are_valid( 
+		[ audio_file_path_list, spectrogram_file_path_list ], [ str, ( str, type(None) ) ] 
+	)
+	args = [ [ audio_file_path, spectrogram_file_path, spectrogram_kwargs, mel_kwargs ]
+		for audio_file_path, spectrogram_file_path in itertools.zip_longest( audio_file_path_list, spectrogram_file_path_list ) ]
+	_run_multiprocessing( _calculate_melscpectrograms, args, False, workers )
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_f0( audio_file_path_list,
 	        csv_file_path_list = None,
 	        lower_f0_limit = 50,
@@ -214,6 +229,18 @@ def _calculate_spectral_features( args ):
 	#mfcc = librosa.feature.mfcc( S = librosa.power_to_db( mel ), **mel_settings )
 	save( spectrogram, spectrogram_file_path + '.pkl.gzip' )
 	save( mel, spectrogram_file_path + '_mel_{}.pkl.gzip'.format( mel_kwargs[ 'n_mels' ] ) )
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _calculate_melscpectrograms( args ):
+	audio_file_path, melspectrogram_file_path, spectrogram_kwargs, melspectrogram_kwargs  = args
+	audio, sr = librosa.load( audio_file_path, sr = melspectrogram_kwargs[ 'sr' ] )
+	spectrogram = np.abs( librosa.stft( y = audio, **spectrogram_kwargs ) )**2
+	melspectrogram = librosa.feature.melspectrogram( S = spectrogram, **melspectrogram_kwargs )
+	#if log_scale == True:
+	melspectrogram = librosa.power_to_db( melspectrogram )
+	if melspectrogram_file_path != None: # TODO: replace with saveFile
+		#melspectrogram_file_path = make_output_path( melspectrogram_file_path )#motor_sequence.name.rsplit( '.' )[0] +
+		save( melspectrogram, melspectrogram_file_path )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _get_f0( args ):
