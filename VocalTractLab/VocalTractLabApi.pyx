@@ -381,6 +381,15 @@ def get_gestural_score_audio_duration( str ges_file_path, return_samples = True 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # 		User mp enabled functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def change_gestural_score(
+	in_ges_file_path_list,
+	out_ges_file_path_list,
+	modification_kwargs,
+	workers: bool = False,
+	):
+	
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def gestural_score_to_audio(	ges_file_path_list,
 								audio_file_path_list = None,
 								save_file: bool = True,
