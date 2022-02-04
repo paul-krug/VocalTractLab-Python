@@ -404,7 +404,10 @@ def gestural_score_to_audio(	ges_file_path_list,
 	                                                                            )
 	args =  [ [ges_file_path, audio_file_path, save_file, normalize_audio, sr, verbose]
 		for ges_file_path, audio_file_path in itertools.zip_longest( ges_file_path_list, audio_file_path_list ) ]
-	audio_data_list = _run_multiprocessing( _gestural_score_to_audio, args, return_data, workers )
+	if len( args ) == 1:
+		audio_data_list = _gestural_score_to_audio( args[ 0 ] )
+	else:
+		audio_data_list = _run_multiprocessing( _gestural_score_to_audio, args, return_data, workers )
 	return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def gestural_score_to_tract_sequence(	ges_file_path_list,  
