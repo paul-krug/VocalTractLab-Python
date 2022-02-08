@@ -149,3 +149,7 @@ def load( filename ):
 	file.close()
 	return object
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def append_before_extension( file_path: str, string: str ):
+	name, ext = os.path.splitext( file_path )
+	return '{name}_{string}{ext}'.format( name = name, string = string, ext = ext )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#

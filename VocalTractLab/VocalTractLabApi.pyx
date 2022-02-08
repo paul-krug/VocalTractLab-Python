@@ -649,6 +649,29 @@ def _close():
 #		raise ValueError('VTL API function vtlExportTractSvg returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
 #	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _modify_gestural_score( args ):
+	in_ges_file_path, out_ges_file_path = args
+	ges_file = open( ges_file_path ).read()
+	ges_soup = BeautifulSoup( ges_file, 'html.parser' )
+	#do manipulations here
+	f = open( ges_file_path, "w" )
+	f.write( ges_soup.prettify( formatter = None ) )
+	f.close()
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _gestural_score_change_voice_quality( args ):
+	gestural_score_soup, voice_quality_new, voice_quality_old = args
+	for element in gestural_score_soup.gestural_score.find( 'gesture_sequence', {'type': 'glottal-shape-gestures'} ):
+		try:
+			if element.value == voice_quality_old:
+				element.value = voice_quality_new
+		except Exception: 
+			ValueError( 'Error at element: {}, element.value: {}, vq old: {}, vq new: {}'.format( element, element.value, voice_quality_old, voice_quality_new ) )
+	return gestural_score_soup
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _gestural_score_change_duration():
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _gestural_score_to_audio( args ):
 	# Note that returning the number of samples via numSamples is deprecated, use getGesturalScoreAudioDuration instead!
 	time_start = time.time()
