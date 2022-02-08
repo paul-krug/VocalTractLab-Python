@@ -47,7 +47,8 @@ class Build_Target_Optimizer( build_py ):
             file_extension = '.dll'
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        print( os.listdir( os.getcwd() ) )
+        shutil.move( os.path.join( 'release', 'lib' + api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( 'release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
