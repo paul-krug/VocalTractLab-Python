@@ -70,6 +70,7 @@ import librosa
 import multiprocessing as mp
 import tqdm
 import itertools
+from bs4 import BeautifulSoup
 #import copy
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -651,10 +652,10 @@ def _close():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _modify_gestural_score( args ):
 	in_ges_file_path, out_ges_file_path = args
-	ges_file = open( ges_file_path ).read()
+	ges_file = open( in_ges_file_path ).read()
 	ges_soup = BeautifulSoup( ges_file, 'html.parser' )
 	#do manipulations here
-	f = open( ges_file_path, "w" )
+	f = open( out_ges_file_path, "w" )
 	f.write( ges_soup.prettify( formatter = None ) )
 	f.close()
 	return
