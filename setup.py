@@ -50,9 +50,8 @@ class Build_Target_Optimizer( build_py ):
         else:
             file_extension = '.so'
             shutil.move( 'lib' + api_name + file_extension, os.path.join( WORKING_PATH, 'VocalTractLab' ) )
-        print( os.listdir( os.getcwd() ) )
-        print( os.listdir( os.path.join( os.getcwd(), 'CMakeFiles' ) ) )
-
+        #print( os.listdir( os.getcwd() ) )
+        #print( os.listdir( os.path.join( os.getcwd(), 'CMakeFiles' ) ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', 'Data.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         os.chdir( WORKING_PATH )
@@ -70,10 +69,11 @@ class Build_VTL( build_py ):
         api_name = 'VocalTractLabApi'
         if sys.platform == 'win32':
             file_extension = '.dll'
+            shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         else:
             file_extension = '.so'
-        shutil.move( os.path.join( 'release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
-        shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            shutil.move( 'lib' + api_name + file_extension, os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         #print( ' chir dir: ' )
         #print( os.listdir( os.getcwd() ) )
