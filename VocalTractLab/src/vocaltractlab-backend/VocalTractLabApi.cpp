@@ -1544,7 +1544,11 @@ int vtlGetGesturalScoreDuration(const char* gesFileName, int* numAudioSamples, i
         *numAudioSamples = ( (int)( ( gesturalScore->getDuration_pt() ) / NUM_CHUNK_SAMPLES ) + 1 )  * NUM_CHUNK_SAMPLES;
     }
 
+  // ****************************************************************
+  // Free the memory and return.
+  // ****************************************************************
 
+    delete gesturalScore;
     return 0;
 }
 
