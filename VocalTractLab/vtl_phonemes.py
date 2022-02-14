@@ -5,7 +5,7 @@
 import pandas as pd
 		
 		
-phonemes = pd.DataFrame( [
+phoneme_data = pd.DataFrame( [
 	dict(
 		phoneme_id = 'v_m_1',
 		sampa = [ 'a', 'a:' ],

@@ -51,7 +51,7 @@ from itertools import chain
 #import VocalTractLab.VocalTractLabApi as vtl
 #from VocalTractLab.target_estimation import fit
 
-from VocalTractLab.vtl_phonemes import phonemes as phonemes
+from VocalTractLab.vtl_phonemes import phoneme_data
 from VocalTractLab.function_tools import check_if_list_is_valid
 
 
@@ -77,12 +77,12 @@ def consonants(
 	**kwargs,
 	):
 	phoneme_classes = check_if_list_is_valid( phoneme_classes, str )
-	vowels = phonemes.loc[
-		( phonemes[ 'phoneme_type' ] == 'consonant' ) &
-		( phonemes[ 'phoneme_class' ].isin( phoneme_classes ) )
+	consonants = phoneme_data.loc[
+		( phoneme_data[ 'phoneme_type' ] == 'consonant' ) &
+		( phoneme_data[ 'phoneme_class' ].isin( phoneme_classes ) )
 		].sampa.to_numpy()
 	return get_phoneme_list(
-		data = vowels,
+		data = consonants,
 		**kwargs,
 		)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -127,14 +127,24 @@ def vowels(
 	**kwargs,
 	):
 	phoneme_classes = check_if_list_is_valid( phoneme_classes, str )
-	vowels = phonemes.loc[
-		( phonemes[ 'phoneme_type' ] == 'vowel' ) &
-		( phonemes[ 'phoneme_class' ].isin( phoneme_classes ) )
+	vowels = phoneme_data.loc[
+		( phoneme_data[ 'phoneme_type' ] == 'vowel' ) &
+		( phoneme_data[ 'phoneme_class' ].isin( phoneme_classes ) )
 		].sampa.to_numpy()
 	return get_phoneme_list(
 		data = vowels,
 		**kwargs,
 		)
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def phonemes(
+	**kwargs,
+	):
+	vowels = vowels( **kwargs )
+	consonants = consonants( **kwargs )
+	return chain( vowels, consonants )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def sampa():
+	return phonemes( unique_phonemes = False )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #print( vowels( phoneme_classes = 'monophthong' ) )
 #print( single_consonants() )
