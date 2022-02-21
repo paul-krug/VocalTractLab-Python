@@ -36,6 +36,8 @@ import librosa
 import numpy as np
 import pandas as pd
 import itertools
+from copy import deepcopy
+
 
 from scipy.spatial.distance import canberra
 from scipy.spatial.distance import cityblock
@@ -264,4 +266,44 @@ def _get_f0( args ):
 		csv_file_path = make_output_path( csv_file_path, audio_file_path.rsplit( '.' )[0] + '.csv' )
 		df.to_csv( csv_file_path )
 	return df
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def fade_in_fade_out( data_in, fade_to_sample, fade_from_sample ):
+	data_faded_in = fade_in(
+		data_in = data_in,
+		fade_to_sample = fade_to_sample,
+		)
+	data_faded_in_out = fade_out(
+		data_in= data_faded_in,
+		fade_from_sample = fade_from_sample,
+		)
+	return data_faded_in_out
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def fade_in( data_in, fade_to_sample ):
+	data_out = deepcopy( data_in )
+	data_out[ : fade_to_sample ] = [
+		x * cosine_window(
+			x = index,
+			a = len( data_in[ : fade_to_sample ] ),
+			b = np.pi,
+			) 
+		for index, x in enumerate(
+			data_in[ : fade_to_sample ]
+			)
+		]
+	return data_out
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def fade_out( data_in, fade_from_sample ):
+	data_out = deepcopy( data_in )
+	data_out[ fade_from_sample : ] = [
+		x * cosine_window(
+			x = index,
+			a = len( data_in[ fade_from_sample : ] )
+			)
+		for index, x in enumerate(
+			data_in[ fade_from_sample : ] )
+		]
+	return data_out
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def cosine_window( x, a = 1, b = 0 ):
+	return  0.5 * np.cos( np.pi * x / a + b ) + 0.5
 #---------------------------------------------------------------------------------------------------------------------------------------------------#

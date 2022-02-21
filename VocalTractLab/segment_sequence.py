@@ -77,9 +77,12 @@ class Segment_Sequence():
 	def from_seg_file( cls, seg_file_path ): #'TODO'
 		phonemes = []
 		durations = []
-		boundary_times = []
+		#boundary_times = []
 		with open( seg_file_path ) as file:
 			for line in file:
+				line = list( filter( None, line.split(' ') ) )
+				print( line )
+				stop
 				if len(line.strip()) != 0 :
 					items = line.strip().split(';')
 					for item in [x for x in items if x]:
