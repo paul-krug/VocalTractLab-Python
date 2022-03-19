@@ -80,9 +80,9 @@ class Segment_Sequence():
 		#boundary_times = []
 		with open( seg_file_path ) as file:
 			for line in file:
-				line = list( filter( None, line.split(' ') ) )
-				print( line )
-				stop
+				#line = list( filter( None, line.split(' ') ) )
+				#print( line )
+				#stop
 				if len(line.strip()) != 0 :
 					items = line.strip().split(';')
 					for item in [x for x in items if x]:
