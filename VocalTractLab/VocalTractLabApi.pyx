@@ -792,7 +792,11 @@ def _tract_sequence_to_audio( args ):
 	if save_file:
 		audio_file_path = FT.make_output_path( audio_file_path, motor_sequence.name.rsplit( '.' )[0] + '.wav' )
 	if sr != constants[ 'samplerate_audio' ]:
-		audio = librosa.resample( audio, constants[ 'samplerate_audio' ], sr )
+		audio = librosa.resample(
+			y = audio,
+			orig_sr = constants[ 'samplerate_audio' ],
+			target_sr = sr,
+			)
 	if normalize_audio != None:
 		audio = AT.normalize( audio, normalize_audio )
 	if save_file:
