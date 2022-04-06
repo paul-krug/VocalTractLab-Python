@@ -453,7 +453,10 @@ def tract_sequence_to_audio( motor_sequence_list,
 	                                                                             )
 	args = [ [motor_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
 		for motor_sequence, audio_file_path in itertools.zip_longest( motor_sequence_list, audio_file_path_list ) ]
-	audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
+	if len( args ) <= 4:
+		audio_data_list = [ _tract_sequence_to_audio( arg ) for arg in args ]
+	else:
+		audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
 	return audio_data_list
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def motor_sequence_to_spectrogram(
@@ -599,7 +602,10 @@ def tract_sequence_to_tube_states( motor_sequence,
 	           save_tongue_tip_side_elevation,
 	           save_velum_opening ] 
 		for state in motor_sequence.states.to_numpy() ]
-	tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
+	if len( args ) <= 4:
+		tube_states = [ _tract_state_to_tube_state( arg ) for arg in args ]
+	else:
+		tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
 	return tube_states
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
