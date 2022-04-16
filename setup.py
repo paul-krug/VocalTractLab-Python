@@ -86,7 +86,7 @@ class Build_VTL( build_py ):
 
 class Build_Backends( build_py ):
     def run(self):
-        self.run_command( 'build_target_optimizer' )
+        #self.run_command( 'build_target_optimizer' )
         self.run_command( 'build_vtl' )
         build_py.run(self)
 
