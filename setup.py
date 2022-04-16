@@ -122,12 +122,12 @@ EXT_MODULES = cythonize(
         #      include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
         #      ),
         Extension( 'VocalTractLab.VocalTractLabApi',
-              ['VocalTractLab/VocalTractLabApi.pyx'],
+              ['./VocalTractLab/VocalTractLabApi.pyx'],
               language="c",
-              libraries=['VocalTractLab/VocalTractLabApi'],
-              library_dirs=['VocalTractLab/'],
-              include_dirs=[np.get_include(), 'VocalTractLab/.'],
-              runtime_library_dirs=[ 'VocalTractLab/' ],
+              libraries=['./VocalTractLab/VocalTractLabApi'],
+              library_dirs=[ './', './VocalTractLab/'],
+              include_dirs=[np.get_include(), './VocalTractLab/'],
+              runtime_library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               ),
     ]
 )
