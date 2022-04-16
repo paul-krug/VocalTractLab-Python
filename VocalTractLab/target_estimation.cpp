@@ -1451,6 +1451,36 @@ static PyObject* __Pyx_PyObject_CallMethod1(PyObject* obj, PyObject* method_name
 /* append.proto */
 static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x);
 
+/* PyObjectCallMethod0.proto */
+static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name);
+
+/* RaiseNoneIterError.proto */
+static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
+
+/* UnpackTupleError.proto */
+static void __Pyx_UnpackTupleError(PyObject *, Py_ssize_t index);
+
+/* UnpackTuple2.proto */
+#define __Pyx_unpack_tuple2(tuple, value1, value2, is_tuple, has_known_size, decref_tuple)\
+    (likely(is_tuple || PyTuple_Check(tuple)) ?\
+        (likely(has_known_size || PyTuple_GET_SIZE(tuple) == 2) ?\
+            __Pyx_unpack_tuple2_exact(tuple, value1, value2, decref_tuple) :\
+            (__Pyx_UnpackTupleError(tuple, 2), -1)) :\
+        __Pyx_unpack_tuple2_generic(tuple, value1, value2, has_known_size, decref_tuple))
+static CYTHON_INLINE int __Pyx_unpack_tuple2_exact(
+    PyObject* tuple, PyObject** value1, PyObject** value2, int decref_tuple);
+static int __Pyx_unpack_tuple2_generic(
+    PyObject* tuple, PyObject** value1, PyObject** value2, int has_known_size, int decref_tuple);
+
+/* dict_iter.proto */
+static CYTHON_INLINE PyObject* __Pyx_dict_iterator(PyObject* dict, int is_dict, PyObject* method_name,
+                                                   Py_ssize_t* p_orig_length, int* p_is_dict);
+static CYTHON_INLINE int __Pyx_dict_iter_next(PyObject* dict_or_iter, Py_ssize_t orig_length, Py_ssize_t* ppos,
+                                              PyObject** pkey, PyObject** pvalue, PyObject** pitem, int is_dict);
+
+/* MergeKeywords.proto */
+static int __Pyx_MergeKeywords(PyObject *kwdict, PyObject *source_mapping);
+
 /* PyIntCompare.proto */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_EqObjC(PyObject *op1, PyObject *op2, long intval, long inplace);
 
@@ -1482,39 +1512,12 @@ static CYTHON_INLINE int __Pyx_ListComp_Append(PyObject* list, PyObject* x) {
 #define __Pyx_ListComp_Append(L,x) PyList_Append(L,x)
 #endif
 
-/* PyObjectCallMethod0.proto */
-static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name);
+/* None.proto */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
 
-/* RaiseNoneIterError.proto */
-static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void);
-
-/* UnpackTupleError.proto */
-static void __Pyx_UnpackTupleError(PyObject *, Py_ssize_t index);
-
-/* UnpackTuple2.proto */
-#define __Pyx_unpack_tuple2(tuple, value1, value2, is_tuple, has_known_size, decref_tuple)\
-    (likely(is_tuple || PyTuple_Check(tuple)) ?\
-        (likely(has_known_size || PyTuple_GET_SIZE(tuple) == 2) ?\
-            __Pyx_unpack_tuple2_exact(tuple, value1, value2, decref_tuple) :\
-            (__Pyx_UnpackTupleError(tuple, 2), -1)) :\
-        __Pyx_unpack_tuple2_generic(tuple, value1, value2, has_known_size, decref_tuple))
-static CYTHON_INLINE int __Pyx_unpack_tuple2_exact(
-    PyObject* tuple, PyObject** value1, PyObject** value2, int decref_tuple);
-static int __Pyx_unpack_tuple2_generic(
-    PyObject* tuple, PyObject** value1, PyObject** value2, int has_known_size, int decref_tuple);
-
-/* dict_iter.proto */
-static CYTHON_INLINE PyObject* __Pyx_dict_iterator(PyObject* dict, int is_dict, PyObject* method_name,
-                                                   Py_ssize_t* p_orig_length, int* p_is_dict);
-static CYTHON_INLINE int __Pyx_dict_iter_next(PyObject* dict_or_iter, Py_ssize_t orig_length, Py_ssize_t* ppos,
-                                              PyObject** pkey, PyObject** pvalue, PyObject** pitem, int is_dict);
-
-/* MergeKeywords.proto */
-static int __Pyx_MergeKeywords(PyObject *kwdict, PyObject *source_mapping);
-
-/* PyDictContains.proto */
-static CYTHON_INLINE int __Pyx_PyDict_ContainsTF(PyObject* item, PyObject* dict, int eq) {
-    int result = PyDict_Contains(dict, item);
+/* PySequenceContains.proto */
+static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
+    int result = PySequence_Contains(seq, item);
     return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
 }
 
@@ -1538,15 +1541,6 @@ static PyObject* __Pyx_PyInt_AddCObj(PyObject *op1, PyObject *op2, long intval, 
 #define __Pyx_PyInt_AddCObj(op1, op2, intval, inplace, zerodivision_check)\
     (inplace ? PyNumber_InPlaceAdd(op1, op2) : PyNumber_Add(op1, op2))
 #endif
-
-/* PySequenceContains.proto */
-static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
-    int result = PySequence_Contains(seq, item);
-    return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
-}
-
-/* None.proto */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname);
 
 /* GetTopmostException.proto */
 #if CYTHON_USE_EXC_INFO_STACK
@@ -1798,6 +1792,13 @@ static PyObject* __pyx_convert__to_py_struct__Sample(struct Sample s);
 #endif
 
 static PyObject* __pyx_convert__to_py_struct__PitchTarget(struct PitchTarget s);
+/* Print.proto */
+static int __Pyx_Print(PyObject*, PyObject *, int);
+#if CYTHON_COMPILING_IN_PYPY || PY_MAJOR_VERSION >= 3
+static PyObject* __pyx_print = 0;
+static PyObject* __pyx_print_kwargs = 0;
+#endif
+
 /* RealImag.proto */
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -1905,6 +1906,9 @@ static CYTHON_INLINE int __Pyx_PyInt_As_int(PyObject *);
 /* CIntFromPy.proto */
 static CYTHON_INLINE size_t __Pyx_PyInt_As_size_t(PyObject *);
 
+/* PrintOne.proto */
+static int __Pyx_PrintOne(PyObject* stream, PyObject *o);
+
 /* CIntFromPy.proto */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *);
 
@@ -1990,9 +1994,10 @@ static PyObject *__pyx_builtin_ImportError;
 static const char __pyx_k_[] = "\t";
 static const char __pyx_k_c[] = "c";
 static const char __pyx_k_i[] = "i";
-static const char __pyx_k_o[] = "o";
+static const char __pyx_k_s[] = "s";
 static const char __pyx_k_w[] = "w";
 static const char __pyx_k_x[] = "x";
+static const char __pyx_k_y[] = "y";
 static const char __pyx_k__5[] = "--";
 static const char __pyx_k__8[] = "{} {} {}\n";
 static const char __pyx_k__9[] = "{}\t{}\n";
@@ -2005,31 +2010,43 @@ static const char __pyx_k_pd[] = "pd";
 static const char __pyx_k_st[] = "st";
 static const char __pyx_k_tg[] = "tg";
 static const char __pyx_k_um[] = "um";
-static const char __pyx_k__15[] = "*";
+static const char __pyx_k_va[] = "va";
+static const char __pyx_k__10[] = "{}";
+static const char __pyx_k__18[] = "*";
 static const char __pyx_k_abs[] = "abs";
 static const char __pyx_k_axs[] = "axs";
 static const char __pyx_k_cls[] = "cls";
 static const char __pyx_k_doc[] = "__doc__";
+static const char __pyx_k_dot[] = "dot";
+static const char __pyx_k_end[] = "end";
 static const char __pyx_k_fit[] = "fit";
 static const char __pyx_k_log[] = "log";
+static const char __pyx_k_low[] = "low";
 static const char __pyx_k_max[] = "max";
 static const char __pyx_k_min[] = "min";
 static const char __pyx_k_plt[] = "plt";
 static const char __pyx_k_red[] = "red";
 static const char __pyx_k_sep[] = "sep";
+static const char __pyx_k_sum[] = "sum";
 static const char __pyx_k_tau[] = "tau";
+static const char __pyx_k_tgs[] = "tgs";
 static const char __pyx_k_zip[] = "zip";
+static const char __pyx_k_file[] = "file";
+static const char __pyx_k_gray[] = "gray";
+static const char __pyx_k_high[] = "high";
 static const char __pyx_k_init[] = "__init__";
 static const char __pyx_k_main[] = "__main__";
 static const char __pyx_k_mean[] = "mean";
-static const char __pyx_k_name[] = "__name__";
+static const char __pyx_k_name[] = "name";
 static const char __pyx_k_navy[] = "navy";
 static const char __pyx_k_open[] = "open";
 static const char __pyx_k_plot[] = "plot";
 static const char __pyx_k_self[] = "self";
 static const char __pyx_k_show[] = "show";
+static const char __pyx_k_sqrt[] = "sqrt";
 static const char __pyx_k_step[] = "step";
 static const char __pyx_k_test[] = "__test__";
+static const char __pyx_k_text[] = "text";
 static const char __pyx_k_time[] = "time";
 static const char __pyx_k_unit[] = "unit";
 static const char __pyx_k_ylim[] = "ylim";
@@ -2040,10 +2057,10 @@ static const char __pyx_k_array[] = "array";
 static const char __pyx_k_black[] = "black";
 static const char __pyx_k_color[] = "color";
 static const char __pyx_k_cycle[] = "cycle";
-static const char __pyx_k_green[] = "green";
 static const char __pyx_k_index[] = "index";
 static const char __pyx_k_items[] = "items";
 static const char __pyx_k_numpy[] = "numpy";
+static const char __pyx_k_print[] = "print";
 static const char __pyx_k_range[] = "range";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_slope[] = "slope";
@@ -2051,14 +2068,18 @@ static const char __pyx_k_times[] = "times";
 static const char __pyx_k_value[] = "value";
 static const char __pyx_k_write[] = "write";
 static const char __pyx_k_Target[] = "Target";
+static const char __pyx_k_Time_s[] = "Time [s]";
 static const char __pyx_k_append[] = "append";
+static const char __pyx_k_center[] = "center";
 static const char __pyx_k_figure[] = "figure";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_header[] = "header";
 static const char __pyx_k_hspace[] = "hspace";
 static const char __pyx_k_import[] = "__import__";
 static const char __pyx_k_kwargs[] = "kwargs";
+static const char __pyx_k_marker[] = "marker";
 static const char __pyx_k_module[] = "__module__";
+static const char __pyx_k_name_2[] = "__name__";
 static const char __pyx_k_offset[] = "offset";
 static const char __pyx_k_pandas[] = "pandas";
 static const char __pyx_k_sample[] = "sample";
@@ -2067,6 +2088,8 @@ static const char __pyx_k_target[] = "target";
 static const char __pyx_k_to_csv[] = "to_csv";
 static const char __pyx_k_values[] = "values";
 static const char __pyx_k_window[] = "window";
+static const char __pyx_k_xlabel[] = "xlabel";
+static const char __pyx_k_zorder[] = "zorder";
 static const char __pyx_k_WARNING[] = "WARNING";
 static const char __pyx_k_axvline[] = "axvline";
 static const char __pyx_k_axvspan[] = "axvspan";
@@ -2077,8 +2100,10 @@ static const char __pyx_k_logging[] = "logging";
 static const char __pyx_k_prepare[] = "__prepare__";
 static const char __pyx_k_rho_end[] = "rho_end";
 static const char __pyx_k_samples[] = "samples";
+static const char __pyx_k_savefig[] = "savefig";
 static const char __pyx_k_scatter[] = "scatter";
 static const char __pyx_k_seq_fit[] = "seq_fit";
+static const char __pyx_k_targets[] = "targets";
 static const char __pyx_k_warning[] = "warning";
 static const char __pyx_k_windows[] = "windows";
 static const char __pyx_k_autoargs[] = "autoargs";
@@ -2088,6 +2113,7 @@ static const char __pyx_k_fit_info[] = "fit_info";
 static const char __pyx_k_from_csv[] = "from_csv";
 static const char __pyx_k_ges_file[] = "ges_file";
 static const char __pyx_k_ges_type[] = "ges_type";
+static const char __pyx_k_get_rmse[] = "get_rmse";
 static const char __pyx_k_in_times[] = "in_times";
 static const char __pyx_k_mean_tau[] = "mean_tau";
 static const char __pyx_k_n_passes[] = "n_passes";
@@ -2099,10 +2125,13 @@ static const char __pyx_k_out_time[] = "out_time";
 static const char __pyx_k_patience[] = "patience";
 static const char __pyx_k_qualname[] = "__qualname__";
 static const char __pyx_k_read_csv[] = "read_csv";
+static const char __pyx_k_rotation[] = "rotation";
 static const char __pyx_k_setLevel[] = "setLevel";
+static const char __pyx_k_set_ylim[] = "set_ylim";
 static const char __pyx_k_skiprows[] = "skiprows";
 static const char __pyx_k_subplots[] = "subplots";
 static const char __pyx_k_to_numpy[] = "to_numpy";
+static const char __pyx_k_vertical[] = "vertical";
 static const char __pyx_k_warnings[] = "warnings";
 static const char __pyx_k_PitchTier[] = "PitchTier\n";
 static const char __pyx_k_c_epsilon[] = "c_epsilon";
@@ -2117,6 +2146,7 @@ static const char __pyx_k_lightgray[] = "lightgray";
 static const char __pyx_k_metaclass[] = "__metaclass__";
 static const char __pyx_k_n_targets[] = "n_targets";
 static const char __pyx_k_n_windows[] = "n_windows";
+static const char __pyx_k_show_plot[] = "show_plot";
 static const char __pyx_k_Fit_Result[] = "Fit_Result";
 static const char __pyx_k_Fit_Window[] = "Fit_Window";
 static const char __pyx_k_boundaries[] = "boundaries";
@@ -2126,10 +2156,14 @@ static const char __pyx_k_darkorange[] = "darkorange";
 static const char __pyx_k_file_onset[] = "file_onset";
 static const char __pyx_k_fit_result[] = "fit_result";
 static const char __pyx_k_hop_length[] = "hop_length";
+static const char __pyx_k_lightgreen[] = "lightgreen";
 static const char __pyx_k_mean_slope[] = "mean_slope";
 static const char __pyx_k_onset_time[] = "onset_time";
 static const char __pyx_k_ooTextFile[] = "ooTextFile\n";
+static const char __pyx_k_set_ylabel[] = "set_ylabel";
+static const char __pyx_k_set_yticks[] = "set_yticks";
 static const char __pyx_k_weight_tau[] = "weight_tau";
+static const char __pyx_k_Contour_arb[] = "Contour [arb]";
 static const char __pyx_k_ImportError[] = "ImportError";
 static const char __pyx_k_Time_Signal[] = "Time_Signal";
 static const char __pyx_k_basicConfig[] = "basicConfig";
@@ -2138,6 +2172,7 @@ static const char __pyx_k_delta_slope[] = "delta_slope";
 static const char __pyx_k_f0_gestures[] = "f0-gestures";
 static const char __pyx_k_file_offset[] = "file_offset";
 static const char __pyx_k_fit_results[] = "fit_results";
+static const char __pyx_k_get_contour[] = "get_contour";
 static const char __pyx_k_get_samples[] = "get_samples";
 static const char __pyx_k_gridspec_kw[] = "gridspec_kw";
 static const char __pyx_k_in_boundary[] = "in_boundary";
@@ -2145,13 +2180,17 @@ static const char __pyx_k_init_bounds[] = "init_bounds";
 static const char __pyx_k_input_times[] = "input_times";
 static const char __pyx_k_label_outer[] = "label_outer";
 static const char __pyx_k_offset_time[] = "offset_time";
+static const char __pyx_k_onset_state[] = "onset_state";
 static const char __pyx_k_out_targets[] = "out_targets";
 static const char __pyx_k_par_epsilon[] = "par_epsilon";
 static const char __pyx_k_par_rho_end[] = "par_rho_end";
+static const char __pyx_k_target_list[] = "target_list";
 static const char __pyx_k_tmp_targets[] = "tmp_targets";
+static const char __pyx_k_Iteration_nr[] = "Iteration nr: {}";
 static const char __pyx_k_c_boundaries[] = "c_boundaries";
 static const char __pyx_k_c_mean_slope[] = "c_mean_slope";
 static const char __pyx_k_c_weight_tau[] = "c_weight_tau";
+static const char __pyx_k_delta_bounds[] = "delta bounds: {}";
 static const char __pyx_k_delta_offset[] = "delta_offset";
 static const char __pyx_k_input_values[] = "input_values";
 static const char __pyx_k_max_in_value[] = "max_in_value";
@@ -2159,26 +2198,34 @@ static const char __pyx_k_min_in_value[] = "min_in_value";
 static const char __pyx_k_out_boundary[] = "out_boundary";
 static const char __pyx_k_par_mean_tau[] = "par_mean_tau";
 static const char __pyx_k_par_patience[] = "par_patience";
+static const char __pyx_k_sample_times[] = "sample_times";
 static const char __pyx_k_target_index[] = "target_index";
+static const char __pyx_k_tight_layout[] = "tight_layout";
 static const char __pyx_k_utils_method[] = "utils_method";
 static const char __pyx_k_weight_slope[] = "weight_slope";
+static const char __pyx_k_windows_list[] = "windows_list";
 static const char __pyx_k_align_ylabels[] = "align_ylabels";
+static const char __pyx_k_boundary_list[] = "boundary_list";
 static const char __pyx_k_c_delta_slope[] = "c_delta_slope";
 static const char __pyx_k_c_init_bounds[] = "c_init_bounds";
 static const char __pyx_k_c_input_times[] = "c_input_times";
 static const char __pyx_k_csv_file_path[] = "csv_file_path";
 static const char __pyx_k_df_pitch_tier[] = "df_pitch_tier";
+static const char __pyx_k_fitted_values[] = "fitted_values";
 static const char __pyx_k_ges_file_path[] = "ges_file_path";
 static const char __pyx_k_in_boundaries[] = "in_boundaries";
 static const char __pyx_k_norm_factor_a[] = "norm_factor_a";
 static const char __pyx_k_norm_factor_b[] = "norm_factor_b";
 static const char __pyx_k_par_delta_tau[] = "par_delta_tau";
+static const char __pyx_k_time_constant[] = "time_constant";
 static const char __pyx_k_to_pitch_tier[] = "to_pitch_tier";
 static const char __pyx_k_weight_lambda[] = "weight_lambda";
 static const char __pyx_k_weight_offset[] = "weight_offset";
 static const char __pyx_k_window_length[] = "window_length";
 static const char __pyx_k_Fit_Window_fit[] = "Fit_Window.fit";
+static const char __pyx_k_New_boundaries[] = "New boundaries: {}";
 static const char __pyx_k_Sequential_Fit[] = "Sequential_Fit";
+static const char __pyx_k_Sequential_fit[] = "Sequential fit";
 static const char __pyx_k_c_delta_offset[] = "c_delta_offset";
 static const char __pyx_k_c_input_values[] = "c_input_values";
 static const char __pyx_k_c_weight_slope[] = "c_weight_slope";
@@ -2192,12 +2239,16 @@ static const char __pyx_k_par_weight_tau[] = "par_weight_tau";
 static const char __pyx_k_queue_position[] = "queue_position";
 static const char __pyx_k_Fit_Result_plot[] = "Fit_Result.plot";
 static const char __pyx_k_Fit_Window_plot[] = "Fit_Window.plot";
+static const char __pyx_k_Target_Sequence[] = "Target_Sequence";
 static const char __pyx_k_c_weight_lambda[] = "c_weight_lambda";
 static const char __pyx_k_c_weight_offset[] = "c_weight_offset";
+static const char __pyx_k_get_correlation[] = "get_correlation";
+static const char __pyx_k_get_plot_limits[] = "get_plot_limits";
 static const char __pyx_k_onset_time_mean[] = "onset_time_mean";
 static const char __pyx_k_par_delta_slope[] = "par_delta_slope";
 static const char __pyx_k_par_init_bounds[] = "par_init_bounds";
 static const char __pyx_k_pitch_tier_file[] = "pitch_tier_file";
+static const char __pyx_k_set_yticklabels[] = "set_yticklabels";
 static const char __pyx_k_target_sequence[] = "target_sequence";
 static const char __pyx_k_c_delta_boundary[] = "c_delta_boundary";
 static const char __pyx_k_c_max_iterations[] = "c_max_iterations";
@@ -2211,17 +2262,19 @@ static const char __pyx_k_target_positions[] = "target_positions";
 static const char __pyx_k_Fit_Result___init[] = "Fit_Result.__init__";
 static const char __pyx_k_Fit_Result_to_csv[] = "Fit_Result.to_csv";
 static const char __pyx_k_Fit_Window___init[] = "Fit_Window.__init__";
-static const char __pyx_k_boundary_sequence[] = "boundary_sequence";
 static const char __pyx_k_matplotlib_pyplot[] = "matplotlib.pyplot";
+static const char __pyx_k_normalized_values[] = "normalized_values";
 static const char __pyx_k_par_weight_lambda[] = "par_weight_lambda";
 static const char __pyx_k_par_weight_offset[] = "par_weight_offset";
 static const char __pyx_k_to_gestural_score[] = "to_gestural_score";
+static const char __pyx_k_Joint_Optimization[] = "Joint Optimization";
 static const char __pyx_k_Time_Signal___init[] = "Time_Signal.__init__";
 static const char __pyx_k_cline_in_traceback[] = "cline_in_traceback";
 static const char __pyx_k_par_delta_boundary[] = "par_delta_boundary";
 static const char __pyx_k_par_max_iterations[] = "par_max_iterations";
 static const char __pyx_k_use_early_stopping[] = "use_early_stopping";
 static const char __pyx_k_Sequential_Fit_plot[] = "Sequential_Fit.plot";
+static const char __pyx_k_underflow_threshold[] = "underflow_threshold";
 static const char __pyx_k_Time_Signal_from_csv[] = "Time_Signal.from_csv";
 static const char __pyx_k_c_use_early_stopping[] = "c_use_early_stopping";
 static const char __pyx_k_from_pitch_tier_file[] = "from_pitch_tier_file";
@@ -2238,14 +2291,19 @@ static const char __pyx_k_get_optimized_boundaries[] = "get_optimized_boundaries
 static const char __pyx_k_par_max_cost_evaluations[] = "par_max_cost_evaluations";
 static const char __pyx_k_gesture_sequence_type_unit[] = "\t<gesture_sequence type=\"{}\" unit=\"{}\">\n";
 static const char __pyx_k_Fit_Result_to_gestural_score[] = "Fit_Result.to_gestural_score";
+static const char __pyx_k_VocalTractLab_plotting_tools[] = "VocalTractLab.plotting_tools";
+static const char __pyx_k_sequential_fit_principle_pdf[] = "sequential_fit_principle.pdf";
 static const char __pyx_k_gesture_value_slope_duration_s[] = "\t\t<gesture value=\"{}\" slope=\"{}\" duration_s=\"{}\" time_constant_s=\"{}\" neutral=\"0\" />\n";
+static const char __pyx_k_Passed_argument_n_passes_1_does[] = "Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.";
 static const char __pyx_k_VocalTractLab_target_estimation[] = "VocalTractLab.target_estimation";
 static const char __pyx_k_numpy_core_multiarray_failed_to[] = "numpy.core.multiarray failed to import";
+static const char __pyx_k_Passed_argument_n_passes_is_deac[] = "Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).";
 static const char __pyx_k_Time_Signal_from_pitch_tier_file[] = "Time_Signal.from_pitch_tier_file";
 static const char __pyx_k_numpy_core_umath_failed_to_impor[] = "numpy.core.umath failed to import";
 static const char __pyx_k_window_length_must_be_smaller_th[] = "window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.";
 static const char __pyx_k_VocalTractLab_target_estimation_2[] = "VocalTractLab\\target_estimation.pyx";
 static PyObject *__pyx_kp_s_;
+static PyObject *__pyx_kp_s_Contour_arb;
 static PyObject *__pyx_n_s_Fit_Result;
 static PyObject *__pyx_n_s_Fit_Result___init;
 static PyObject *__pyx_n_s_Fit_Result_plot;
@@ -2257,21 +2315,31 @@ static PyObject *__pyx_n_s_Fit_Window___init;
 static PyObject *__pyx_n_s_Fit_Window_fit;
 static PyObject *__pyx_n_s_Fit_Window_plot;
 static PyObject *__pyx_n_s_ImportError;
+static PyObject *__pyx_kp_s_Iteration_nr;
+static PyObject *__pyx_kp_s_Joint_Optimization;
+static PyObject *__pyx_kp_s_New_boundaries;
+static PyObject *__pyx_kp_s_Passed_argument_n_passes_1_does;
+static PyObject *__pyx_kp_s_Passed_argument_n_passes_is_deac;
 static PyObject *__pyx_n_s_PitchTier;
 static PyObject *__pyx_n_s_Sequential_Fit;
 static PyObject *__pyx_n_s_Sequential_Fit___init;
 static PyObject *__pyx_n_s_Sequential_Fit_plot;
+static PyObject *__pyx_kp_s_Sequential_fit;
 static PyObject *__pyx_n_s_Target;
+static PyObject *__pyx_n_s_Target_Sequence;
 static PyObject *__pyx_n_s_Time_Signal;
 static PyObject *__pyx_n_s_Time_Signal___init;
 static PyObject *__pyx_n_s_Time_Signal_from_csv;
 static PyObject *__pyx_n_s_Time_Signal_from_pitch_tier_file;
 static PyObject *__pyx_n_s_Time_Signal_get_samples;
+static PyObject *__pyx_kp_s_Time_s;
+static PyObject *__pyx_n_s_VocalTractLab_plotting_tools;
 static PyObject *__pyx_n_s_VocalTractLab_target_estimation;
 static PyObject *__pyx_kp_s_VocalTractLab_target_estimation_2;
 static PyObject *__pyx_n_s_VocalTractLab_targets;
 static PyObject *__pyx_n_s_WARNING;
-static PyObject *__pyx_n_s__15;
+static PyObject *__pyx_kp_s__10;
+static PyObject *__pyx_n_s__18;
 static PyObject *__pyx_kp_s__5;
 static PyObject *__pyx_kp_s__8;
 static PyObject *__pyx_kp_s__9;
@@ -2289,7 +2357,7 @@ static PyObject *__pyx_n_s_basicConfig;
 static PyObject *__pyx_n_s_black;
 static PyObject *__pyx_n_s_boundaries;
 static PyObject *__pyx_n_s_boundary;
-static PyObject *__pyx_n_s_boundary_sequence;
+static PyObject *__pyx_n_s_boundary_list;
 static PyObject *__pyx_n_s_c;
 static PyObject *__pyx_n_s_c_boundaries;
 static PyObject *__pyx_n_s_c_delta_boundary;
@@ -2311,6 +2379,7 @@ static PyObject *__pyx_n_s_c_weight_lambda;
 static PyObject *__pyx_n_s_c_weight_offset;
 static PyObject *__pyx_n_s_c_weight_slope;
 static PyObject *__pyx_n_s_c_weight_tau;
+static PyObject *__pyx_n_s_center;
 static PyObject *__pyx_n_s_cline_in_traceback;
 static PyObject *__pyx_n_s_cls;
 static PyObject *__pyx_n_s_color;
@@ -2320,18 +2389,22 @@ static PyObject *__pyx_n_s_csv_file_path;
 static PyObject *__pyx_n_s_cycle;
 static PyObject *__pyx_n_s_darkorange;
 static PyObject *__pyx_n_s_delta_boundary;
+static PyObject *__pyx_kp_s_delta_bounds;
 static PyObject *__pyx_n_s_delta_offset;
 static PyObject *__pyx_n_s_delta_slope;
 static PyObject *__pyx_n_s_delta_tau;
 static PyObject *__pyx_n_s_df;
 static PyObject *__pyx_n_s_df_pitch_tier;
 static PyObject *__pyx_n_s_doc;
+static PyObject *__pyx_n_s_dot;
 static PyObject *__pyx_n_s_duration;
+static PyObject *__pyx_n_s_end;
 static PyObject *__pyx_n_s_enumerate;
 static PyObject *__pyx_n_s_epsilon;
 static PyObject *__pyx_kp_s_f0_gestures;
 static PyObject *__pyx_n_s_figsize;
 static PyObject *__pyx_n_s_figure;
+static PyObject *__pyx_n_s_file;
 static PyObject *__pyx_n_s_file_offset;
 static PyObject *__pyx_n_s_file_onset;
 static PyObject *__pyx_n_s_fit;
@@ -2339,6 +2412,7 @@ static PyObject *__pyx_n_s_fit_info;
 static PyObject *__pyx_n_s_fit_result;
 static PyObject *__pyx_n_s_fit_results;
 static PyObject *__pyx_n_s_fit_sequentially;
+static PyObject *__pyx_n_s_fitted_values;
 static PyObject *__pyx_n_s_format;
 static PyObject *__pyx_n_s_from_csv;
 static PyObject *__pyx_n_s_from_pitch_tier_file;
@@ -2351,12 +2425,17 @@ static PyObject *__pyx_kp_s_gesture_sequence;
 static PyObject *__pyx_kp_s_gesture_sequence_type_unit;
 static PyObject *__pyx_kp_s_gesture_value_slope_duration_s;
 static PyObject *__pyx_n_s_getLogger;
+static PyObject *__pyx_n_s_get_contour;
+static PyObject *__pyx_n_s_get_correlation;
 static PyObject *__pyx_n_s_get_optimized_boundaries;
 static PyObject *__pyx_n_s_get_optimized_targets;
+static PyObject *__pyx_n_s_get_plot_limits;
+static PyObject *__pyx_n_s_get_rmse;
 static PyObject *__pyx_n_s_get_samples;
-static PyObject *__pyx_n_s_green;
+static PyObject *__pyx_n_s_gray;
 static PyObject *__pyx_n_s_gridspec_kw;
 static PyObject *__pyx_n_s_header;
+static PyObject *__pyx_n_s_high;
 static PyObject *__pyx_n_s_hop_length;
 static PyObject *__pyx_n_s_hop_lenth;
 static PyObject *__pyx_n_s_hspace;
@@ -2376,10 +2455,13 @@ static PyObject *__pyx_n_s_itertools;
 static PyObject *__pyx_n_s_kwargs;
 static PyObject *__pyx_n_s_label_outer;
 static PyObject *__pyx_n_s_lightgray;
+static PyObject *__pyx_n_s_lightgreen;
 static PyObject *__pyx_n_s_log;
 static PyObject *__pyx_n_s_logging;
+static PyObject *__pyx_n_s_low;
 static PyObject *__pyx_n_s_ls;
 static PyObject *__pyx_n_s_main;
+static PyObject *__pyx_n_s_marker;
 static PyObject *__pyx_n_s_matplotlib_pyplot;
 static PyObject *__pyx_n_s_max;
 static PyObject *__pyx_n_s_max_cost_evaluations;
@@ -2396,16 +2478,18 @@ static PyObject *__pyx_n_s_n_passes;
 static PyObject *__pyx_n_s_n_targets;
 static PyObject *__pyx_n_s_n_windows;
 static PyObject *__pyx_n_s_name;
+static PyObject *__pyx_n_s_name_2;
 static PyObject *__pyx_n_s_navy;
 static PyObject *__pyx_n_s_norm_factor_a;
 static PyObject *__pyx_n_s_norm_factor_b;
+static PyObject *__pyx_n_s_normalized_values;
 static PyObject *__pyx_n_s_np;
 static PyObject *__pyx_n_s_numpy;
 static PyObject *__pyx_kp_s_numpy_core_multiarray_failed_to;
 static PyObject *__pyx_kp_s_numpy_core_umath_failed_to_impor;
-static PyObject *__pyx_n_s_o;
 static PyObject *__pyx_n_s_offset;
 static PyObject *__pyx_n_s_offset_time;
+static PyObject *__pyx_n_s_onset_state;
 static PyObject *__pyx_n_s_onset_time;
 static PyObject *__pyx_n_s_onset_time_mean;
 static PyObject *__pyx_n_s_ooTextFile;
@@ -2445,35 +2529,54 @@ static PyObject *__pyx_n_s_pitch_tier_file_path;
 static PyObject *__pyx_n_s_plot;
 static PyObject *__pyx_n_s_plt;
 static PyObject *__pyx_n_s_prepare;
+static PyObject *__pyx_n_s_print;
 static PyObject *__pyx_n_s_qualname;
 static PyObject *__pyx_n_s_queue_position;
 static PyObject *__pyx_n_s_range;
 static PyObject *__pyx_n_s_read_csv;
 static PyObject *__pyx_n_s_red;
 static PyObject *__pyx_n_s_rho_end;
+static PyObject *__pyx_n_s_rotation;
+static PyObject *__pyx_n_s_s;
 static PyObject *__pyx_n_s_sample;
+static PyObject *__pyx_n_s_sample_times;
 static PyObject *__pyx_n_s_samples;
+static PyObject *__pyx_n_s_savefig;
 static PyObject *__pyx_n_s_scatter;
 static PyObject *__pyx_n_s_self;
 static PyObject *__pyx_n_s_sep;
 static PyObject *__pyx_n_s_seq_fit;
+static PyObject *__pyx_kp_s_sequential_fit_principle_pdf;
 static PyObject *__pyx_n_s_setLevel;
+static PyObject *__pyx_n_s_set_ylabel;
+static PyObject *__pyx_n_s_set_ylim;
+static PyObject *__pyx_n_s_set_yticklabels;
+static PyObject *__pyx_n_s_set_yticks;
 static PyObject *__pyx_n_s_shape;
 static PyObject *__pyx_n_s_sharex;
 static PyObject *__pyx_n_s_show;
+static PyObject *__pyx_n_s_show_plot;
 static PyObject *__pyx_n_s_skiprows;
 static PyObject *__pyx_n_s_slope;
+static PyObject *__pyx_n_s_sqrt;
 static PyObject *__pyx_n_s_st;
 static PyObject *__pyx_n_s_step;
 static PyObject *__pyx_n_s_subplots;
+static PyObject *__pyx_n_s_sum;
 static PyObject *__pyx_n_s_target;
 static PyObject *__pyx_n_s_target_index;
+static PyObject *__pyx_n_s_target_list;
 static PyObject *__pyx_n_s_target_positions;
 static PyObject *__pyx_n_s_target_sequence;
+static PyObject *__pyx_n_s_targets;
 static PyObject *__pyx_n_s_tau;
 static PyObject *__pyx_n_s_test;
+static PyObject *__pyx_n_s_text;
 static PyObject *__pyx_n_s_tg;
+static PyObject *__pyx_n_s_tgs;
+static PyObject *__pyx_n_s_tight_layout;
 static PyObject *__pyx_n_s_time;
+static PyObject *__pyx_n_s_time_constant;
 static PyObject *__pyx_n_s_times;
 static PyObject *__pyx_n_s_tmp_targets;
 static PyObject *__pyx_n_s_to_csv;
@@ -2481,11 +2584,14 @@ static PyObject *__pyx_n_s_to_gestural_score;
 static PyObject *__pyx_n_s_to_numpy;
 static PyObject *__pyx_n_s_to_pitch_tier;
 static PyObject *__pyx_n_s_um;
+static PyObject *__pyx_n_s_underflow_threshold;
 static PyObject *__pyx_n_s_unit;
 static PyObject *__pyx_n_s_use_early_stopping;
 static PyObject *__pyx_n_s_utils_method;
+static PyObject *__pyx_n_s_va;
 static PyObject *__pyx_n_s_value;
 static PyObject *__pyx_n_s_values;
+static PyObject *__pyx_n_s_vertical;
 static PyObject *__pyx_n_s_w;
 static PyObject *__pyx_n_s_warning;
 static PyObject *__pyx_n_s_warnings;
@@ -2497,12 +2603,16 @@ static PyObject *__pyx_n_s_window;
 static PyObject *__pyx_n_s_window_length;
 static PyObject *__pyx_kp_s_window_length_must_be_smaller_th;
 static PyObject *__pyx_n_s_windows;
+static PyObject *__pyx_n_s_windows_list;
 static PyObject *__pyx_n_s_write;
 static PyObject *__pyx_n_s_x;
+static PyObject *__pyx_n_s_xlabel;
+static PyObject *__pyx_n_s_y;
 static PyObject *__pyx_n_s_ylim;
 static PyObject *__pyx_n_s_ymax;
 static PyObject *__pyx_n_s_ymin;
 static PyObject *__pyx_n_s_zip;
+static PyObject *__pyx_n_s_zorder;
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_input_times, PyObject *__pyx_v_input_values); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2from_pitch_tier_file(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_cls, PyObject *__pyx_v_pitch_tier_file_path); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4from_csv(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_cls, PyObject *__pyx_v_csv_file_path, PyObject *__pyx_v_kwargs); /* proto */
@@ -2512,26 +2622,31 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_4to_csv(CYTHON_UNUSED PyObject *__pyx_self, CYTHON_UNUSED PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_csv_file_path); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_gestural_score(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_ges_file_path, PyObject *__pyx_v_ges_type, PyObject *__pyx_v_unit); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_pitch_tier(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_pitch_tier_file_path); /* proto */
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_queue_position, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_kwargs); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_delta_boundary, PyObject *__pyx_v_queue_position, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_2fit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, CYTHON_UNUSED PyObject *__pyx_v_kwargs); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_4plot(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_windows); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_times, PyObject *__pyx_v_values); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2plot(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_values); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_init_bounds, PyObject *__pyx_v_weight_slope, PyObject *__pyx_v_weight_offset, PyObject *__pyx_v_weight_tau, PyObject *__pyx_v_weight_lambda, PyObject *__pyx_v_delta_slope, PyObject *__pyx_v_delta_offset, PyObject *__pyx_v_delta_tau, PyObject *__pyx_v_delta_boundary, PyObject *__pyx_v_mean_slope, PyObject *__pyx_v_mean_tau, PyObject *__pyx_v_max_iterations, PyObject *__pyx_v_max_cost_evaluations, PyObject *__pyx_v_rho_end, PyObject *__pyx_v_use_early_stopping, PyObject *__pyx_v_epsilon, PyObject *__pyx_v_patience); /* proto */
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_init_bounds, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, CYTHON_UNUSED PyObject *__pyx_v_n_passes, PyObject *__pyx_v_kwargs); /* proto */
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, CYTHON_UNUSED PyObject *__pyx_v_o); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_init_bounds, PyObject *__pyx_v_delta_boundary, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_n_passes, PyObject *__pyx_v_underflow_threshold, PyObject *__pyx_v_show_plot, PyObject *__pyx_v_kwargs); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_underflow_threshold); /* proto */
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_targets(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_hop_length); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10get_correlation(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_target_sequence); /* proto */
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_12get_rmse(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_target_sequence); /* proto */
 static PyObject *__pyx_float_0_0;
 static PyObject *__pyx_float_0_1;
 static PyObject *__pyx_float_0_2;
 static PyObject *__pyx_float_0_5;
+static PyObject *__pyx_float_0_6;
 static PyObject *__pyx_float_1_0;
 static PyObject *__pyx_float_1e6;
 static PyObject *__pyx_float_0_01;
+static PyObject *__pyx_float_0_02;
 static PyObject *__pyx_float_0_95;
 static PyObject *__pyx_float_1eneg_6;
 static PyObject *__pyx_float_20_0;
+static PyObject *__pyx_float_0_010;
 static PyObject *__pyx_float_100_0;
 static PyObject *__pyx_int_0;
 static PyObject *__pyx_int_1;
@@ -2539,64 +2654,71 @@ static PyObject *__pyx_int_2;
 static PyObject *__pyx_int_3;
 static PyObject *__pyx_int_4;
 static PyObject *__pyx_int_5;
-static PyObject *__pyx_int_8;
 static PyObject *__pyx_int_9;
+static PyObject *__pyx_int_10;
 static PyObject *__pyx_int_12;
 static PyObject *__pyx_int_20;
+static PyObject *__pyx_int_600;
 static PyObject *__pyx_int_1000;
 static PyObject *__pyx_int_neg_1;
-static PyObject *__pyx_k__10;
-static PyObject *__pyx_k__11;
+static PyObject *__pyx_k__13;
+static PyObject *__pyx_k__14;
 static PyObject *__pyx_slice__2;
 static PyObject *__pyx_tuple__3;
 static PyObject *__pyx_tuple__4;
 static PyObject *__pyx_tuple__6;
 static PyObject *__pyx_tuple__7;
-static PyObject *__pyx_slice__12;
-static PyObject *__pyx_tuple__13;
-static PyObject *__pyx_tuple__14;
+static PyObject *__pyx_slice__15;
+static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__12;
 static PyObject *__pyx_tuple__16;
-static PyObject *__pyx_tuple__18;
-static PyObject *__pyx_tuple__20;
-static PyObject *__pyx_tuple__22;
-static PyObject *__pyx_tuple__24;
-static PyObject *__pyx_tuple__26;
-static PyObject *__pyx_tuple__28;
-static PyObject *__pyx_tuple__30;
-static PyObject *__pyx_tuple__32;
+static PyObject *__pyx_tuple__17;
+static PyObject *__pyx_tuple__19;
+static PyObject *__pyx_tuple__21;
+static PyObject *__pyx_tuple__23;
+static PyObject *__pyx_tuple__25;
+static PyObject *__pyx_tuple__27;
+static PyObject *__pyx_tuple__29;
+static PyObject *__pyx_tuple__31;
 static PyObject *__pyx_tuple__33;
 static PyObject *__pyx_tuple__35;
-static PyObject *__pyx_tuple__37;
+static PyObject *__pyx_tuple__36;
 static PyObject *__pyx_tuple__38;
+static PyObject *__pyx_tuple__40;
 static PyObject *__pyx_tuple__41;
-static PyObject *__pyx_tuple__43;
-static PyObject *__pyx_tuple__45;
-static PyObject *__pyx_tuple__47;
-static PyObject *__pyx_tuple__49;
-static PyObject *__pyx_tuple__51;
-static PyObject *__pyx_tuple__53;
-static PyObject *__pyx_codeobj__17;
-static PyObject *__pyx_codeobj__19;
-static PyObject *__pyx_codeobj__21;
-static PyObject *__pyx_codeobj__23;
-static PyObject *__pyx_codeobj__25;
-static PyObject *__pyx_codeobj__27;
-static PyObject *__pyx_codeobj__29;
-static PyObject *__pyx_codeobj__31;
+static PyObject *__pyx_tuple__44;
+static PyObject *__pyx_tuple__46;
+static PyObject *__pyx_tuple__48;
+static PyObject *__pyx_tuple__50;
+static PyObject *__pyx_tuple__52;
+static PyObject *__pyx_tuple__54;
+static PyObject *__pyx_tuple__56;
+static PyObject *__pyx_tuple__58;
+static PyObject *__pyx_tuple__60;
+static PyObject *__pyx_codeobj__20;
+static PyObject *__pyx_codeobj__22;
+static PyObject *__pyx_codeobj__24;
+static PyObject *__pyx_codeobj__26;
+static PyObject *__pyx_codeobj__28;
+static PyObject *__pyx_codeobj__30;
+static PyObject *__pyx_codeobj__32;
 static PyObject *__pyx_codeobj__34;
-static PyObject *__pyx_codeobj__36;
+static PyObject *__pyx_codeobj__37;
 static PyObject *__pyx_codeobj__39;
-static PyObject *__pyx_codeobj__40;
 static PyObject *__pyx_codeobj__42;
-static PyObject *__pyx_codeobj__44;
-static PyObject *__pyx_codeobj__46;
-static PyObject *__pyx_codeobj__48;
-static PyObject *__pyx_codeobj__50;
-static PyObject *__pyx_codeobj__52;
-static PyObject *__pyx_codeobj__54;
+static PyObject *__pyx_codeobj__43;
+static PyObject *__pyx_codeobj__45;
+static PyObject *__pyx_codeobj__47;
+static PyObject *__pyx_codeobj__49;
+static PyObject *__pyx_codeobj__51;
+static PyObject *__pyx_codeobj__53;
+static PyObject *__pyx_codeobj__55;
+static PyObject *__pyx_codeobj__57;
+static PyObject *__pyx_codeobj__59;
+static PyObject *__pyx_codeobj__61;
 /* Late includes */
 
-/* "VocalTractLab/target_estimation.pyx":143
+/* "VocalTractLab/target_estimation.pyx":145
  * class Time_Signal():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):             # <<<<<<<<<<<<<<
@@ -2642,17 +2764,17 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_1__i
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_input_times)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); __PYX_ERR(0, 143, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 1); __PYX_ERR(0, 145, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_input_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); __PYX_ERR(0, 143, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, 2); __PYX_ERR(0, 145, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 143, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 145, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
       goto __pyx_L5_argtuple_error;
@@ -2667,7 +2789,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_1__i
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 143, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 145, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Time_Signal.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2688,25 +2810,25 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal___in
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":144
+  /* "VocalTractLab/target_estimation.pyx":146
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):
  * 		self.times = input_times             # <<<<<<<<<<<<<<
  * 		self.values = input_values
  * 		return
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_times, __pyx_v_input_times) < 0) __PYX_ERR(0, 144, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_times, __pyx_v_input_times) < 0) __PYX_ERR(0, 146, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":145
+  /* "VocalTractLab/target_estimation.pyx":147
  * 	def __init__( self, input_times, input_values ):
  * 		self.times = input_times
  * 		self.values = input_values             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_values, __pyx_v_input_values) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_values, __pyx_v_input_values) < 0) __PYX_ERR(0, 147, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":146
+  /* "VocalTractLab/target_estimation.pyx":148
  * 		self.times = input_times
  * 		self.values = input_values
  * 		return             # <<<<<<<<<<<<<<
@@ -2717,7 +2839,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal___in
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":143
+  /* "VocalTractLab/target_estimation.pyx":145
  * class Time_Signal():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):             # <<<<<<<<<<<<<<
@@ -2735,7 +2857,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal___in
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":149
+/* "VocalTractLab/target_estimation.pyx":151
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
@@ -2778,11 +2900,11 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_3fro
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pitch_tier_file_path)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("from_pitch_tier_file", 1, 2, 2, 1); __PYX_ERR(0, 149, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("from_pitch_tier_file", 1, 2, 2, 1); __PYX_ERR(0, 151, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "from_pitch_tier_file") < 0)) __PYX_ERR(0, 149, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "from_pitch_tier_file") < 0)) __PYX_ERR(0, 151, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -2795,7 +2917,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_3fro
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("from_pitch_tier_file", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 149, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("from_pitch_tier_file", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 151, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Time_Signal.from_pitch_tier_file", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2824,29 +2946,29 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("from_pitch_tier_file", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":150
+  /* "VocalTractLab/target_estimation.pyx":152
  * 	@classmethod
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):
  * 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )             # <<<<<<<<<<<<<<
  * 		df_pitch_tier.columns = [ 'time', 'value' ]
  * 		#print( df_pitch_tier )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_pd); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_pd); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read_csv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read_csv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_pitch_tier_file_path);
   __Pyx_GIVEREF(__pyx_v_pitch_tier_file_path);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_pitch_tier_file_path);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_sep, __pyx_kp_s_) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_skiprows, __pyx_int_3) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_header, Py_None) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_sep, __pyx_kp_s_) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_skiprows, __pyx_int_3) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_header, Py_None) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -2854,14 +2976,14 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   __pyx_v_df_pitch_tier = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":151
+  /* "VocalTractLab/target_estimation.pyx":153
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):
  * 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )
  * 		df_pitch_tier.columns = [ 'time', 'value' ]             # <<<<<<<<<<<<<<
  * 		#print( df_pitch_tier )
  * 		return cls( df_pitch_tier[ 'time' ].to_numpy(), df_pitch_tier[ 'value' ].to_numpy() )
  */
-  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_n_s_time);
   __Pyx_GIVEREF(__pyx_n_s_time);
@@ -2869,10 +2991,10 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   __Pyx_INCREF(__pyx_n_s_value);
   __Pyx_GIVEREF(__pyx_n_s_value);
   PyList_SET_ITEM(__pyx_t_4, 1, __pyx_n_s_value);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_df_pitch_tier, __pyx_n_s_columns, __pyx_t_4) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_df_pitch_tier, __pyx_n_s_columns, __pyx_t_4) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":153
+  /* "VocalTractLab/target_estimation.pyx":155
  * 		df_pitch_tier.columns = [ 'time', 'value' ]
  * 		#print( df_pitch_tier )
  * 		return cls( df_pitch_tier[ 'time' ].to_numpy(), df_pitch_tier[ 'value' ].to_numpy() )             # <<<<<<<<<<<<<<
@@ -2880,9 +3002,9 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
  * 	@classmethod
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df_pitch_tier, __pyx_n_s_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df_pitch_tier, __pyx_n_s_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_to_numpy); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_to_numpy); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -2897,12 +3019,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   }
   __pyx_t_3 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df_pitch_tier, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df_pitch_tier, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_to_numpy); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_to_numpy); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -2917,7 +3039,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   }
   __pyx_t_2 = (__pyx_t_1) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_INCREF(__pyx_v_cls);
@@ -2936,7 +3058,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_5)) {
     PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_3, __pyx_t_2};
-    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2946,7 +3068,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
     PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_t_3, __pyx_t_2};
-    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -2954,7 +3076,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_1) {
       __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1); __pyx_t_1 = NULL;
@@ -2965,7 +3087,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_2);
     __pyx_t_3 = 0;
     __pyx_t_2 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
@@ -2974,7 +3096,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":149
+  /* "VocalTractLab/target_estimation.pyx":151
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
@@ -2999,7 +3121,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_2fro
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":156
+/* "VocalTractLab/target_estimation.pyx":158
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_csv( cls, csv_file_path, **kwargs ):             # <<<<<<<<<<<<<<
@@ -3045,11 +3167,11 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_5fro
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_csv_file_path)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("from_csv", 1, 2, 2, 1); __PYX_ERR(0, 156, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("from_csv", 1, 2, 2, 1); __PYX_ERR(0, 158, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "from_csv") < 0)) __PYX_ERR(0, 156, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "from_csv") < 0)) __PYX_ERR(0, 158, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -3062,7 +3184,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11Time_Signal_5fro
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("from_csv", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 156, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("from_csv", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 158, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Time_Signal.from_csv", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -3093,26 +3215,26 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("from_csv", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":157
+  /* "VocalTractLab/target_estimation.pyx":159
  * 	@classmethod
  * 	def from_csv( cls, csv_file_path, **kwargs ):
  * 		df = pd.read_csv( csv_file_path , **kwargs )             # <<<<<<<<<<<<<<
  * 		#df.columns = [ 'time', 'value' ]
  * 		return cls( df[ 'time' ], df[ 'value' ] )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_pd); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_pd); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read_csv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read_csv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_csv_file_path);
   __Pyx_GIVEREF(__pyx_v_csv_file_path);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_csv_file_path);
-  __pyx_t_3 = PyDict_Copy(__pyx_v_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = PyDict_Copy(__pyx_v_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -3120,7 +3242,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   __pyx_v_df = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":159
+  /* "VocalTractLab/target_estimation.pyx":161
  * 		df = pd.read_csv( csv_file_path , **kwargs )
  * 		#df.columns = [ 'time', 'value' ]
  * 		return cls( df[ 'time' ], df[ 'value' ] )             # <<<<<<<<<<<<<<
@@ -3128,9 +3250,9 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
  * 	def get_samples( self, ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df, __pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df, __pyx_n_s_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 159, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_df, __pyx_n_s_value); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_cls);
   __pyx_t_2 = __pyx_v_cls; __pyx_t_5 = NULL;
@@ -3148,7 +3270,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_3, __pyx_t_1};
-    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3158,7 +3280,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_3, __pyx_t_1};
-    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -3166,7 +3288,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -3177,7 +3299,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_t_1);
     __pyx_t_3 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 159, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
@@ -3186,7 +3308,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":156
+  /* "VocalTractLab/target_estimation.pyx":158
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_csv( cls, csv_file_path, **kwargs ):             # <<<<<<<<<<<<<<
@@ -3211,7 +3333,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_4fro
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":161
+/* "VocalTractLab/target_estimation.pyx":163
  * 		return cls( df[ 'time' ], df[ 'value' ] )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def get_samples( self, ):             # <<<<<<<<<<<<<<
@@ -3254,18 +3376,18 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_samples", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":164
+  /* "VocalTractLab/target_estimation.pyx":166
  * 		cdef vector[ Sample ] samples
  * 		cdef Sample sample
  * 		for time, value in zip( self.times, self.values ):             # <<<<<<<<<<<<<<
  * 			sample.time = time
  * 			sample.value = value
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
@@ -3273,16 +3395,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
   PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_2);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_3 = __pyx_t_2; __Pyx_INCREF(__pyx_t_3); __pyx_t_4 = 0;
     __pyx_t_5 = NULL;
   } else {
-    __pyx_t_4 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
+    __pyx_t_4 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_5 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 164, __pyx_L1_error)
+    __pyx_t_5 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 166, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -3290,17 +3412,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 166, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 166, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -3310,7 +3432,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 164, __pyx_L1_error)
+          else __PYX_ERR(0, 166, __pyx_L1_error)
         }
         break;
       }
@@ -3322,7 +3444,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 164, __pyx_L1_error)
+        __PYX_ERR(0, 166, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -3335,15 +3457,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       __Pyx_INCREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_t_6);
       #else
-      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+      __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
+      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       #endif
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 164, __pyx_L1_error)
+      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 166, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_8 = Py_TYPE(__pyx_t_7)->tp_iternext;
@@ -3351,7 +3473,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       __Pyx_GOTREF(__pyx_t_1);
       index = 1; __pyx_t_6 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_6)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_6);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 166, __pyx_L1_error)
       __pyx_t_8 = NULL;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       goto __pyx_L6_unpacking_done;
@@ -3359,7 +3481,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __pyx_t_8 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 164, __pyx_L1_error)
+      __PYX_ERR(0, 166, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
     __Pyx_XDECREF_SET(__pyx_v_time, __pyx_t_1);
@@ -3367,27 +3489,27 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
     __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":165
+    /* "VocalTractLab/target_estimation.pyx":167
  * 		cdef Sample sample
  * 		for time, value in zip( self.times, self.values ):
  * 			sample.time = time             # <<<<<<<<<<<<<<
  * 			sample.value = value
  * 			samples.push_back( sample )
  */
-    __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_time); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 165, __pyx_L1_error)
+    __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_time); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 167, __pyx_L1_error)
     __pyx_v_sample.time = __pyx_t_9;
 
-    /* "VocalTractLab/target_estimation.pyx":166
+    /* "VocalTractLab/target_estimation.pyx":168
  * 		for time, value in zip( self.times, self.values ):
  * 			sample.time = time
  * 			sample.value = value             # <<<<<<<<<<<<<<
  * 			samples.push_back( sample )
  * 		return samples
  */
-    __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_value); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 166, __pyx_L1_error)
+    __pyx_t_9 = __pyx_PyFloat_AsDouble(__pyx_v_value); if (unlikely((__pyx_t_9 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 168, __pyx_L1_error)
     __pyx_v_sample.value = __pyx_t_9;
 
-    /* "VocalTractLab/target_estimation.pyx":167
+    /* "VocalTractLab/target_estimation.pyx":169
  * 			sample.time = time
  * 			sample.value = value
  * 			samples.push_back( sample )             # <<<<<<<<<<<<<<
@@ -3398,10 +3520,10 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
       __pyx_v_samples.push_back(__pyx_v_sample);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 167, __pyx_L1_error)
+      __PYX_ERR(0, 169, __pyx_L1_error)
     }
 
-    /* "VocalTractLab/target_estimation.pyx":164
+    /* "VocalTractLab/target_estimation.pyx":166
  * 		cdef vector[ Sample ] samples
  * 		cdef Sample sample
  * 		for time, value in zip( self.times, self.values ):             # <<<<<<<<<<<<<<
@@ -3411,7 +3533,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":168
+  /* "VocalTractLab/target_estimation.pyx":170
  * 			sample.value = value
  * 			samples.push_back( sample )
  * 		return samples             # <<<<<<<<<<<<<<
@@ -3419,13 +3541,13 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = __pyx_convert_vector_to_py_struct__Sample(__pyx_v_samples); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_t_3 = __pyx_convert_vector_to_py_struct__Sample(__pyx_v_samples); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":161
+  /* "VocalTractLab/target_estimation.pyx":163
  * 		return cls( df[ 'time' ], df[ 'value' ] )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def get_samples( self, ):             # <<<<<<<<<<<<<<
@@ -3450,7 +3572,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_11Time_Signal_6get
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":177
+/* "VocalTractLab/target_estimation.pyx":179
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()
  * 	def __init__(             # <<<<<<<<<<<<<<
@@ -3574,173 +3696,173 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_1__in
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_in_times)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 1); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 1); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_in_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 2); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 2); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_in_boundaries)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 3); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 3); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_init_bounds)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 4); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 4); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_weight_slope)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 5); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 5); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (likely((values[6] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_weight_offset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 6); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 6); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  7:
         if (likely((values[7] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_weight_tau)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 7); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 7); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  8:
         if (likely((values[8] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_weight_lambda)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 8); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 8); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  9:
         if (likely((values[9] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_delta_slope)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 9); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 9); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 10:
         if (likely((values[10] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_delta_offset)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 10); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 10); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 11:
         if (likely((values[11] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_delta_tau)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 11); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 11); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 12:
         if (likely((values[12] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_delta_boundary)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 12); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 12); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 13:
         if (likely((values[13] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_mean_slope)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 13); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 13); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 14:
         if (likely((values[14] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_mean_tau)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 14); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 14); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 15:
         if (likely((values[15] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_max_iterations)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 15); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 15); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 16:
         if (likely((values[16] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_max_cost_evaluations)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 16); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 16); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 17:
         if (likely((values[17] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_rho_end)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 17); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 17); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 18:
         if (likely((values[18] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_use_early_stopping)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 18); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 18); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 19:
         if (likely((values[19] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_epsilon)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 19); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 19); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 20:
         if (likely((values[20] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_par_patience)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 20); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 20); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 21:
         if (likely((values[21] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_targets)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 21); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 21); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 22:
         if (likely((values[22] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_boundaries)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 22); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 22); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 23:
         if (likely((values[23] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_trajectory)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 23); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 23); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 24:
         if (likely((values[24] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_ftmp)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 24); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 24); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 25:
         if (likely((values[25] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_fmin)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 25); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 25); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 26:
         if (likely((values[26] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_rmse)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 26); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 26); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 27:
         if (likely((values[27] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_corr)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 27); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 27); __PYX_ERR(0, 179, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case 28:
         if (likely((values[28] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_out_time)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 28); __PYX_ERR(0, 177, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, 28); __PYX_ERR(0, 179, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 177, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 179, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 29) {
       goto __pyx_L5_argtuple_error;
@@ -3807,7 +3929,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_1__in
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 177, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 29, 29, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 179, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Result.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -3832,7 +3954,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result___ini
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":211
+/* "VocalTractLab/target_estimation.pyx":213
  * 		pass
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
@@ -3876,19 +3998,19 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("plot", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":212
+  /* "VocalTractLab/target_estimation.pyx":214
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):
  * 		min_in_value = np.min( self.in_values )             # <<<<<<<<<<<<<<
  * 		max_in_value = np.max( self.in_values )
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_min); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_min); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
@@ -3903,25 +4025,25 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_4, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 212, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_min_in_value = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":213
+  /* "VocalTractLab/target_estimation.pyx":215
  * 	def plot( self, ):
  * 		min_in_value = np.min( self.in_values )
  * 		max_in_value = np.max( self.in_values )             # <<<<<<<<<<<<<<
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_max); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_max); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -3936,29 +4058,29 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_max_in_value = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":214
+  /* "VocalTractLab/target_estimation.pyx":216
  * 		min_in_value = np.min( self.in_values )
  * 		max_in_value = np.max( self.in_values )
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )             # <<<<<<<<<<<<<<
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_scatter); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_scatter); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_times); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_times); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
@@ -3966,39 +4088,39 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 214, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_c, __pyx_n_s_darkorange) < 0) __PYX_ERR(0, 214, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_c, __pyx_n_s_darkorange) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":215
+  /* "VocalTractLab/target_estimation.pyx":217
  * 		max_in_value = np.max( self.in_values )
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )             # <<<<<<<<<<<<<<
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_plot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_plot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_tuple__3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_tuple__3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_tuple__4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_tuple__4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
@@ -4006,28 +4128,28 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
   __pyx_t_4 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_navy) < 0) __PYX_ERR(0, 215, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_navy) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":216
+  /* "VocalTractLab/target_estimation.pyx":218
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):             # <<<<<<<<<<<<<<
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )
  * 			plt.axvline( out_boundary, ymax = 0.95, color = 'lightgray', ls = '--' )
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_boundaries); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_in_boundaries); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_GIVEREF(__pyx_t_4);
   PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_4);
@@ -4035,16 +4157,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
   __pyx_t_4 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_5 = 0;
     __pyx_t_6 = NULL;
   } else {
-    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+    __pyx_t_5 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 216, __pyx_L1_error)
+    __pyx_t_6 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 218, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -4052,17 +4174,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 218, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_5); __Pyx_INCREF(__pyx_t_2); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 218, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -4072,7 +4194,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 216, __pyx_L1_error)
+          else __PYX_ERR(0, 218, __pyx_L1_error)
         }
         break;
       }
@@ -4084,7 +4206,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 216, __pyx_L1_error)
+        __PYX_ERR(0, 218, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -4097,15 +4219,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
       __Pyx_INCREF(__pyx_t_4);
       __Pyx_INCREF(__pyx_t_3);
       #else
-      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       #endif
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 216, __pyx_L1_error)
+      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 218, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_8 = Py_TYPE(__pyx_t_7)->tp_iternext;
@@ -4113,7 +4235,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
       __Pyx_GOTREF(__pyx_t_4);
       index = 1; __pyx_t_3 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_3)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_3);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 218, __pyx_L1_error)
       __pyx_t_8 = NULL;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       goto __pyx_L6_unpacking_done;
@@ -4121,7 +4243,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __pyx_t_8 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 216, __pyx_L1_error)
+      __PYX_ERR(0, 218, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
     __Pyx_XDECREF_SET(__pyx_v_in_boundary, __pyx_t_4);
@@ -4129,64 +4251,64 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
     __Pyx_XDECREF_SET(__pyx_v_out_boundary, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":217
+    /* "VocalTractLab/target_estimation.pyx":219
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )             # <<<<<<<<<<<<<<
  * 			plt.axvline( out_boundary, ymax = 0.95, color = 'lightgray', ls = '--' )
  * 		plt.ylim( [ min_in_value - 0.2 * np.abs( max_in_value - min_in_value ), max_in_value + 0.2 * np.abs( max_in_value - min_in_value ) ] )
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 219, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axvline); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axvline); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 219, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_v_in_boundary);
     __Pyx_GIVEREF(__pyx_v_in_boundary);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_in_boundary);
-    __pyx_t_4 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 217, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_ymin, __pyx_float_0_95) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_color, __pyx_n_s_black) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 217, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_ymin, __pyx_float_0_95) < 0) __PYX_ERR(0, 219, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_color, __pyx_n_s_black) < 0) __PYX_ERR(0, 219, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 219, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":218
+    /* "VocalTractLab/target_estimation.pyx":220
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )
  * 			plt.axvline( out_boundary, ymax = 0.95, color = 'lightgray', ls = '--' )             # <<<<<<<<<<<<<<
  * 		plt.ylim( [ min_in_value - 0.2 * np.abs( max_in_value - min_in_value ), max_in_value + 0.2 * np.abs( max_in_value - min_in_value ) ] )
  * 		plt.show()
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_plt); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_plt); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 220, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_axvline); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_axvline); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 220, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_INCREF(__pyx_v_out_boundary);
     __Pyx_GIVEREF(__pyx_v_out_boundary);
     PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_v_out_boundary);
-    __pyx_t_2 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 218, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_ymax, __pyx_float_0_95) < 0) __PYX_ERR(0, 218, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 218, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_ls, __pyx_kp_s__5) < 0) __PYX_ERR(0, 218, __pyx_L1_error)
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 218, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_ymax, __pyx_float_0_95) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_ls, __pyx_kp_s__5) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 220, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":216
+    /* "VocalTractLab/target_estimation.pyx":218
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):             # <<<<<<<<<<<<<<
@@ -4196,24 +4318,24 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":219
+  /* "VocalTractLab/target_estimation.pyx":221
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )
  * 			plt.axvline( out_boundary, ymax = 0.95, color = 'lightgray', ls = '--' )
  * 		plt.ylim( [ min_in_value - 0.2 * np.abs( max_in_value - min_in_value ), max_in_value + 0.2 * np.abs( max_in_value - min_in_value ) ] )             # <<<<<<<<<<<<<<
  * 		plt.show()
  * 		return
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ylim); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ylim); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_abs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_abs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyNumber_Subtract(__pyx_v_max_in_value, __pyx_v_min_in_value); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Subtract(__pyx_v_max_in_value, __pyx_v_min_in_value); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_9 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -4228,21 +4350,21 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_t_3 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_9, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_7);
   __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Multiply(__pyx_float_0_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_float_0_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Subtract(__pyx_v_min_in_value, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Subtract(__pyx_v_min_in_value, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_abs); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_abs); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyNumber_Subtract(__pyx_v_max_in_value, __pyx_v_min_in_value); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Subtract(__pyx_v_max_in_value, __pyx_v_min_in_value); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __pyx_t_10 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_9))) {
@@ -4257,16 +4379,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_t_4 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_9, __pyx_t_10, __pyx_t_7) : __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_7);
   __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyNumber_Multiply(__pyx_float_0_2, __pyx_t_4); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_9 = PyNumber_Multiply(__pyx_float_0_2, __pyx_t_4); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Add(__pyx_v_max_in_value, __pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Add(__pyx_v_max_in_value, __pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyList_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_9 = PyList_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_3);
   PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_3);
@@ -4287,21 +4409,21 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_9) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_9);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 219, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":220
+  /* "VocalTractLab/target_estimation.pyx":222
  * 			plt.axvline( out_boundary, ymax = 0.95, color = 'lightgray', ls = '--' )
  * 		plt.ylim( [ min_in_value - 0.2 * np.abs( max_in_value - min_in_value ), max_in_value + 0.2 * np.abs( max_in_value - min_in_value ) ] )
  * 		plt.show()             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_show); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_show); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -4316,12 +4438,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_9);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 220, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":221
+  /* "VocalTractLab/target_estimation.pyx":223
  * 		plt.ylim( [ min_in_value - 0.2 * np.abs( max_in_value - min_in_value ), max_in_value + 0.2 * np.abs( max_in_value - min_in_value ) ] )
  * 		plt.show()
  * 		return             # <<<<<<<<<<<<<<
@@ -4332,7 +4454,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":211
+  /* "VocalTractLab/target_estimation.pyx":213
  * 		pass
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
@@ -4361,7 +4483,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_2plot
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":223
+/* "VocalTractLab/target_estimation.pyx":225
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_csv( self, csv_file_path ):             # <<<<<<<<<<<<<<
@@ -4404,11 +4526,11 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_5to_c
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_csv_file_path)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("to_csv", 1, 2, 2, 1); __PYX_ERR(0, 223, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("to_csv", 1, 2, 2, 1); __PYX_ERR(0, 225, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_csv") < 0)) __PYX_ERR(0, 223, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_csv") < 0)) __PYX_ERR(0, 225, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -4421,7 +4543,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_5to_c
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("to_csv", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 223, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("to_csv", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 225, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Result.to_csv", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4439,7 +4561,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_4to_c
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("to_csv", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":224
+  /* "VocalTractLab/target_estimation.pyx":226
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_csv( self, csv_file_path ):
  * 		return             # <<<<<<<<<<<<<<
@@ -4450,7 +4572,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_4to_c
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":223
+  /* "VocalTractLab/target_estimation.pyx":225
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_csv( self, csv_file_path ):             # <<<<<<<<<<<<<<
@@ -4465,7 +4587,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_4to_c
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":226
+/* "VocalTractLab/target_estimation.pyx":228
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0             # <<<<<<<<<<<<<<
@@ -4516,7 +4638,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_7to_g
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_ges_file_path)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("to_gestural_score", 0, 2, 4, 1); __PYX_ERR(0, 226, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("to_gestural_score", 0, 2, 4, 1); __PYX_ERR(0, 228, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -4532,7 +4654,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_7to_g
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_gestural_score") < 0)) __PYX_ERR(0, 226, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_gestural_score") < 0)) __PYX_ERR(0, 228, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -4553,7 +4675,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_7to_g
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("to_gestural_score", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 226, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("to_gestural_score", 0, 2, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 228, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Result.to_gestural_score", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -4590,26 +4712,26 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("to_gestural_score", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":227
+  /* "VocalTractLab/target_estimation.pyx":229
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0
  * 		ges_file = open( 'ges_file_path', 'w' )             # <<<<<<<<<<<<<<
  * 		ges_file.write( '<gestural_score>\n' )
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 229, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_ges_file = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":228
+  /* "VocalTractLab/target_estimation.pyx":230
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0
  * 		ges_file = open( 'ges_file_path', 'w' )
  * 		ges_file.write( '<gestural_score>\n' )             # <<<<<<<<<<<<<<
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  * 		for target in self.out_targets:
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 230, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -4623,21 +4745,21 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_kp_s_gestural_score) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_kp_s_gestural_score);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":229
+  /* "VocalTractLab/target_estimation.pyx":231
  * 		ges_file = open( 'ges_file_path', 'w' )
  * 		ges_file.write( '<gestural_score>\n' )
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )             # <<<<<<<<<<<<<<
  * 		for target in self.out_targets:
  * 			ges_file.write( '\t\t<gesture value="{}" slope="{}" duration_s="{}" time_constant_s="{}" neutral="0" />\n'.format(
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 229, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 231, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gesture_sequence_type_unit, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 229, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gesture_sequence_type_unit, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_5 = NULL;
   __pyx_t_6 = 0;
@@ -4654,7 +4776,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_v_ges_type, __pyx_v_unit};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 229, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 231, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else
@@ -4662,13 +4784,13 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_v_ges_type, __pyx_v_unit};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 229, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_6, 2+__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 231, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_GOTREF(__pyx_t_3);
   } else
   #endif
   {
-    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 229, __pyx_L1_error)
+    __pyx_t_7 = PyTuple_New(2+__pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 231, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     if (__pyx_t_5) {
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -4679,7 +4801,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     __Pyx_INCREF(__pyx_v_unit);
     __Pyx_GIVEREF(__pyx_v_unit);
     PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_6, __pyx_v_unit);
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 229, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 231, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
@@ -4697,27 +4819,27 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 229, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 231, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":230
+  /* "VocalTractLab/target_estimation.pyx":232
  * 		ges_file.write( '<gestural_score>\n' )
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  * 		for target in self.out_targets:             # <<<<<<<<<<<<<<
  * 			ges_file.write( '\t\t<gesture value="{}" slope="{}" duration_s="{}" time_constant_s="{}" neutral="0" />\n'.format(
  * 				target.offset, target.slope, target.duration, target.tau ) )
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 230, __pyx_L1_error)
+    __pyx_t_8 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 232, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_9 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 230, __pyx_L1_error)
+    __pyx_t_9 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 232, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -4725,17 +4847,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 230, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 232, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 232, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 230, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_8); __Pyx_INCREF(__pyx_t_1); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 232, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 232, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -4745,7 +4867,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 230, __pyx_L1_error)
+          else __PYX_ERR(0, 232, __pyx_L1_error)
         }
         break;
       }
@@ -4754,32 +4876,32 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     __Pyx_XDECREF_SET(__pyx_v_target, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":231
+    /* "VocalTractLab/target_estimation.pyx":233
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  * 		for target in self.out_targets:
  * 			ges_file.write( '\t\t<gesture value="{}" slope="{}" duration_s="{}" time_constant_s="{}" neutral="0" />\n'.format(             # <<<<<<<<<<<<<<
  * 				target.offset, target.slope, target.duration, target.tau ) )
  * 		ges_file.write( '\t</gesture_sequence>\n' )
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 231, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 233, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gesture_value_slope_duration_s, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 231, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_gesture_value_slope_duration_s, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 233, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
 
-    /* "VocalTractLab/target_estimation.pyx":232
+    /* "VocalTractLab/target_estimation.pyx":234
  * 		for target in self.out_targets:
  * 			ges_file.write( '\t\t<gesture value="{}" slope="{}" duration_s="{}" time_constant_s="{}" neutral="0" />\n'.format(
  * 				target.offset, target.slope, target.duration, target.tau ) )             # <<<<<<<<<<<<<<
  * 		ges_file.write( '\t</gesture_sequence>\n' )
  * 		ges_file.write( '</gestural_score>\n' )
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_offset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 232, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_offset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 234, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_slope); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 232, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_slope); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 234, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_duration); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 232, __pyx_L1_error)
+    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_duration); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 234, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_11);
-    __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_tau); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 232, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyObject_GetAttrStr(__pyx_v_target, __pyx_n_s_tau); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 234, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_12);
     __pyx_t_13 = NULL;
     __pyx_t_6 = 0;
@@ -4796,7 +4918,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_7)) {
       PyObject *__pyx_temp[5] = {__pyx_t_13, __pyx_t_5, __pyx_t_10, __pyx_t_11, __pyx_t_12};
-      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_6, 4+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_6, 4+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 233, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -4808,7 +4930,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
       PyObject *__pyx_temp[5] = {__pyx_t_13, __pyx_t_5, __pyx_t_10, __pyx_t_11, __pyx_t_12};
-      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_6, 4+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_6, 4+__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 233, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -4818,7 +4940,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     } else
     #endif
     {
-      __pyx_t_14 = PyTuple_New(4+__pyx_t_6); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 231, __pyx_L1_error)
+      __pyx_t_14 = PyTuple_New(4+__pyx_t_6); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 233, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_14);
       if (__pyx_t_13) {
         __Pyx_GIVEREF(__pyx_t_13); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_13); __pyx_t_13 = NULL;
@@ -4835,7 +4957,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
       __pyx_t_10 = 0;
       __pyx_t_11 = 0;
       __pyx_t_12 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_14, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_14, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 233, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
     }
@@ -4853,12 +4975,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
     __pyx_t_1 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_7, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
     __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 231, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":230
+    /* "VocalTractLab/target_estimation.pyx":232
  * 		ges_file.write( '<gestural_score>\n' )
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  * 		for target in self.out_targets:             # <<<<<<<<<<<<<<
@@ -4868,14 +4990,14 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":233
+  /* "VocalTractLab/target_estimation.pyx":235
  * 			ges_file.write( '\t\t<gesture value="{}" slope="{}" duration_s="{}" time_constant_s="{}" neutral="0" />\n'.format(
  * 				target.offset, target.slope, target.duration, target.tau ) )
  * 		ges_file.write( '\t</gesture_sequence>\n' )             # <<<<<<<<<<<<<<
  * 		ges_file.write( '</gestural_score>\n' )
  * 		return
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -4889,19 +5011,19 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   }
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_kp_s_gesture_sequence) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_kp_s_gesture_sequence);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 233, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 235, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":234
+  /* "VocalTractLab/target_estimation.pyx":236
  * 				target.offset, target.slope, target.duration, target.tau ) )
  * 		ges_file.write( '\t</gesture_sequence>\n' )
  * 		ges_file.write( '</gestural_score>\n' )             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 234, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_ges_file, __pyx_n_s_write); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
@@ -4915,12 +5037,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   }
   __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_kp_s_gestural_score_2) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_kp_s_gestural_score_2);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 234, __pyx_L1_error)
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":235
+  /* "VocalTractLab/target_estimation.pyx":237
  * 		ges_file.write( '\t</gesture_sequence>\n' )
  * 		ges_file.write( '</gestural_score>\n' )
  * 		return             # <<<<<<<<<<<<<<
@@ -4931,7 +5053,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":226
+  /* "VocalTractLab/target_estimation.pyx":228
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0             # <<<<<<<<<<<<<<
@@ -4962,7 +5084,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_6to_g
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":237
+/* "VocalTractLab/target_estimation.pyx":239
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
@@ -5005,11 +5127,11 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_9to_p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_pitch_tier_file_path)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("to_pitch_tier", 1, 2, 2, 1); __PYX_ERR(0, 237, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("to_pitch_tier", 1, 2, 2, 1); __PYX_ERR(0, 239, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_pitch_tier") < 0)) __PYX_ERR(0, 237, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "to_pitch_tier") < 0)) __PYX_ERR(0, 239, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -5022,7 +5144,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Result_9to_p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("to_pitch_tier", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 237, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("to_pitch_tier", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 239, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Result.to_pitch_tier", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -5057,26 +5179,26 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("to_pitch_tier", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":238
+  /* "VocalTractLab/target_estimation.pyx":240
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )             # <<<<<<<<<<<<<<
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  * 		pitch_tier_file.write( 'PitchTier\n' )
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_open, __pyx_tuple__7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_pitch_tier_file = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":239
+  /* "VocalTractLab/target_estimation.pyx":241
  * 	def to_pitch_tier( self, pitch_tier_file_path ):
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )
  * 		pitch_tier_file.write( 'ooTextFile\n' )             # <<<<<<<<<<<<<<
  * 		pitch_tier_file.write( 'PitchTier\n' )
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -5090,19 +5212,19 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_n_s_ooTextFile) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_n_s_ooTextFile);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 239, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":240
+  /* "VocalTractLab/target_estimation.pyx":242
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  * 		pitch_tier_file.write( 'PitchTier\n' )             # <<<<<<<<<<<<<<
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )
  * 		for sample in self.out_trajectory:
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 240, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
@@ -5116,32 +5238,32 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   }
   __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_n_s_PitchTier) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_n_s_PitchTier);
   __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":241
+  /* "VocalTractLab/target_estimation.pyx":243
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  * 		pitch_tier_file.write( 'PitchTier\n' )
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )             # <<<<<<<<<<<<<<
  * 		for sample in self.out_trajectory:
  * 			pitch_tier_file.write( '{}\t{}\n'.format( sample[0], sample[1] ) )
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__8, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__8, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_onset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_onset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_offset); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_file_offset); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_shape); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_shape); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_8, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_t_8, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_8 = NULL;
@@ -5159,7 +5281,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   #if CYTHON_FAST_PYCALL
   if (PyFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[4] = {__pyx_t_8, __pyx_t_5, __pyx_t_6, __pyx_t_7};
-    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 3+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 3+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -5170,7 +5292,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   #if CYTHON_FAST_PYCCALL
   if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
     PyObject *__pyx_temp[4] = {__pyx_t_8, __pyx_t_5, __pyx_t_6, __pyx_t_7};
-    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 3+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_9, 3+__pyx_t_9); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
     __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
@@ -5179,7 +5301,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   } else
   #endif
   {
-    __pyx_t_10 = PyTuple_New(3+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 241, __pyx_L1_error)
+    __pyx_t_10 = PyTuple_New(3+__pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 243, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
     if (__pyx_t_8) {
       __Pyx_GIVEREF(__pyx_t_8); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_8); __pyx_t_8 = NULL;
@@ -5193,7 +5315,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     __pyx_t_5 = 0;
     __pyx_t_6 = 0;
     __pyx_t_7 = 0;
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 241, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
@@ -5211,27 +5333,27 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":242
+  /* "VocalTractLab/target_estimation.pyx":244
  * 		pitch_tier_file.write( 'PitchTier\n' )
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )
  * 		for sample in self.out_trajectory:             # <<<<<<<<<<<<<<
  * 			pitch_tier_file.write( '{}\t{}\n'.format( sample[0], sample[1] ) )
  * 		return
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_out_trajectory); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_11 = 0;
     __pyx_t_12 = NULL;
   } else {
-    __pyx_t_11 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_11 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 244, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_12 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 242, __pyx_L1_error)
+    __pyx_t_12 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 244, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -5239,17 +5361,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_11 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_11); __Pyx_INCREF(__pyx_t_1); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_11); __Pyx_INCREF(__pyx_t_1); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 244, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_11 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_11); __Pyx_INCREF(__pyx_t_1); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 242, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_11); __Pyx_INCREF(__pyx_t_1); __pyx_t_11++; if (unlikely(0 < 0)) __PYX_ERR(0, 244, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_11); __pyx_t_11++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -5259,7 +5381,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 242, __pyx_L1_error)
+          else __PYX_ERR(0, 244, __pyx_L1_error)
         }
         break;
       }
@@ -5268,20 +5390,20 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     __Pyx_XDECREF_SET(__pyx_v_sample, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":243
+    /* "VocalTractLab/target_estimation.pyx":245
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )
  * 		for sample in self.out_trajectory:
  * 			pitch_tier_file.write( '{}\t{}\n'.format( sample[0], sample[1] ) )             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_pitch_tier_file, __pyx_n_s_write); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__9, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 243, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__9, __pyx_n_s_format); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_sample, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 243, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_sample, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_sample, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 243, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_v_sample, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_5 = NULL;
     __pyx_t_9 = 0;
@@ -5298,7 +5420,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     #if CYTHON_FAST_PYCALL
     if (PyFunction_Check(__pyx_t_10)) {
       PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_7, __pyx_t_6};
-      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -5308,7 +5430,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     #if CYTHON_FAST_PYCCALL
     if (__Pyx_PyFastCFunction_Check(__pyx_t_10)) {
       PyObject *__pyx_temp[3] = {__pyx_t_5, __pyx_t_7, __pyx_t_6};
-      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyCFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_9, 2+__pyx_t_9); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
       __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
@@ -5316,7 +5438,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     } else
     #endif
     {
-      __pyx_t_8 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 243, __pyx_L1_error)
+      __pyx_t_8 = PyTuple_New(2+__pyx_t_9); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 245, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_8);
       if (__pyx_t_5) {
         __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_5); __pyx_t_5 = NULL;
@@ -5327,7 +5449,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
       PyTuple_SET_ITEM(__pyx_t_8, 1+__pyx_t_9, __pyx_t_6);
       __pyx_t_7 = 0;
       __pyx_t_6 = 0;
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_8, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_8, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 245, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     }
@@ -5345,12 +5467,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
     __pyx_t_1 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_10, __pyx_t_4) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4);
     __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 243, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":242
+    /* "VocalTractLab/target_estimation.pyx":244
  * 		pitch_tier_file.write( 'PitchTier\n' )
  * 		pitch_tier_file.write( '{} {} {}\n'.format( self.file_onset, self.file_offset, self.out_trajectory.shape[0] ) )
  * 		for sample in self.out_trajectory:             # <<<<<<<<<<<<<<
@@ -5360,7 +5482,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":244
+  /* "VocalTractLab/target_estimation.pyx":246
  * 		for sample in self.out_trajectory:
  * 			pitch_tier_file.write( '{}\t{}\n'.format( sample[0], sample[1] ) )
  * 		return             # <<<<<<<<<<<<<<
@@ -5371,7 +5493,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":237
+  /* "VocalTractLab/target_estimation.pyx":239
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
@@ -5400,10 +5522,10 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Result_8to_p
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":251
+/* "VocalTractLab/target_estimation.pyx":253
  * class Fit_Window():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
  * 		self.times = []
  * 		self.values = []
  */
@@ -5416,6 +5538,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_1__in
   PyObject *__pyx_v_times = 0;
   PyObject *__pyx_v_values = 0;
   PyObject *__pyx_v_boundaries = 0;
+  PyObject *__pyx_v_delta_boundary = 0;
   PyObject *__pyx_v_queue_position = 0;
   PyObject *__pyx_v_window_length = 0;
   PyObject *__pyx_v_hop_length = 0;
@@ -5429,14 +5552,16 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_1__in
   __pyx_v_kwargs = PyDict_New(); if (unlikely(!__pyx_v_kwargs)) return NULL;
   __Pyx_GOTREF(__pyx_v_kwargs);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_boundaries,&__pyx_n_s_queue_position,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,0};
-    PyObject* values[7] = {0,0,0,0,0,0,0};
-    values[5] = ((PyObject *)((PyObject *)__pyx_int_3));
-    values[6] = ((PyObject *)((PyObject *)__pyx_int_1));
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_boundaries,&__pyx_n_s_delta_boundary,&__pyx_n_s_queue_position,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,0};
+    PyObject* values[8] = {0,0,0,0,0,0,0,0};
+    values[6] = ((PyObject *)((PyObject *)__pyx_int_3));
+    values[7] = ((PyObject *)((PyObject *)__pyx_int_1));
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
@@ -5463,49 +5588,56 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_1__in
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_times)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 7, 1); __PYX_ERR(0, 251, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, 1); __PYX_ERR(0, 253, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 7, 2); __PYX_ERR(0, 251, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, 2); __PYX_ERR(0, 253, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_boundaries)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 7, 3); __PYX_ERR(0, 251, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, 3); __PYX_ERR(0, 253, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
-        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_queue_position)) != 0)) kw_args--;
+        if (likely((values[4] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_delta_boundary)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 7, 4); __PYX_ERR(0, 251, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, 4); __PYX_ERR(0, 253, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
-        if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_window_length);
-          if (value) { values[5] = value; kw_args--; }
+        if (likely((values[5] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_queue_position)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, 5); __PYX_ERR(0, 253, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_window_length);
           if (value) { values[6] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  7:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length);
+          if (value) { values[7] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 251, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 253, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
-        CYTHON_FALLTHROUGH;
-        case  5: values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
+        values[4] = PyTuple_GET_ITEM(__pyx_args, 4);
         values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
         values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
         values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
@@ -5518,20 +5650,21 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_1__in
     __pyx_v_times = values[1];
     __pyx_v_values = values[2];
     __pyx_v_boundaries = values[3];
-    __pyx_v_queue_position = values[4];
-    __pyx_v_window_length = values[5];
-    __pyx_v_hop_length = values[6];
+    __pyx_v_delta_boundary = values[4];
+    __pyx_v_queue_position = values[5];
+    __pyx_v_window_length = values[6];
+    __pyx_v_hop_length = values[7];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 0, 5, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 251, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 0, 6, 8, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 253, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Window.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(__pyx_self, __pyx_v_self, __pyx_v_times, __pyx_v_values, __pyx_v_boundaries, __pyx_v_queue_position, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_kwargs);
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(__pyx_self, __pyx_v_self, __pyx_v_times, __pyx_v_values, __pyx_v_boundaries, __pyx_v_delta_boundary, __pyx_v_queue_position, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_kwargs);
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_kwargs);
@@ -5539,7 +5672,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_1__in
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_queue_position, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_kwargs) {
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_delta_boundary, PyObject *__pyx_v_queue_position, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_kwargs) {
   PyObject *__pyx_v_time = NULL;
   PyObject *__pyx_v_value = NULL;
   PyObject *__pyx_r = NULL;
@@ -5560,56 +5693,56 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":252
+  /* "VocalTractLab/target_estimation.pyx":254
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):
  * 		self.times = []             # <<<<<<<<<<<<<<
  * 		self.values = []
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_times, __pyx_t_1) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_times, __pyx_t_1) < 0) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":253
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):
+  /* "VocalTractLab/target_estimation.pyx":255
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):
  * 		self.times = []
  * 		self.values = []             # <<<<<<<<<<<<<<
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  * 		for time, value in zip( times, values ):
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 255, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_values, __pyx_t_1) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_values, __pyx_t_1) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":254
+  /* "VocalTractLab/target_estimation.pyx":256
  * 		self.times = []
  * 		self.values = []
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....             # <<<<<<<<<<<<<<
  * 		for time, value in zip( times, values ):
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_window_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 254, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_window_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 254, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_boundaries, 0, 0, &__pyx_v_queue_position, &__pyx_t_2, NULL, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 254, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_boundaries, 0, 0, &__pyx_v_queue_position, &__pyx_t_2, NULL, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_boundaries, __pyx_t_1) < 0) __PYX_ERR(0, 254, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_boundaries, __pyx_t_1) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":255
+  /* "VocalTractLab/target_estimation.pyx":257
  * 		self.values = []
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  * 		for time, value in zip( times, values ):             # <<<<<<<<<<<<<<
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:
  * 				self.times.append( time )
  */
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_times);
   __Pyx_GIVEREF(__pyx_v_times);
@@ -5617,16 +5750,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   __Pyx_INCREF(__pyx_v_values);
   __Pyx_GIVEREF(__pyx_v_values);
   PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_v_values);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_zip, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 255, __pyx_L1_error)
+    __pyx_t_3 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 255, __pyx_L1_error)
+    __pyx_t_4 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -5634,17 +5767,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
       if (likely(PyList_CheckExact(__pyx_t_1))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_2); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 255, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_2); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 257, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_2); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 255, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_2); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 257, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 255, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -5654,7 +5787,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 255, __pyx_L1_error)
+          else __PYX_ERR(0, 257, __pyx_L1_error)
         }
         break;
       }
@@ -5666,7 +5799,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
       if (unlikely(size != 2)) {
         if (size > 2) __Pyx_RaiseTooManyValuesError(2);
         else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-        __PYX_ERR(0, 255, __pyx_L1_error)
+        __PYX_ERR(0, 257, __pyx_L1_error)
       }
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
       if (likely(PyTuple_CheckExact(sequence))) {
@@ -5679,15 +5812,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
       __Pyx_INCREF(__pyx_t_5);
       __Pyx_INCREF(__pyx_t_6);
       #else
-      __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 255, __pyx_L1_error)
+      __pyx_t_5 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 257, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 255, __pyx_L1_error)
+      __pyx_t_6 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 257, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       #endif
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     } else {
       Py_ssize_t index = -1;
-      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 255, __pyx_L1_error)
+      __pyx_t_7 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 257, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_8 = Py_TYPE(__pyx_t_7)->tp_iternext;
@@ -5695,7 +5828,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
       __Pyx_GOTREF(__pyx_t_5);
       index = 1; __pyx_t_6 = __pyx_t_8(__pyx_t_7); if (unlikely(!__pyx_t_6)) goto __pyx_L5_unpacking_failed;
       __Pyx_GOTREF(__pyx_t_6);
-      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
+      if (__Pyx_IternextUnpackEndCheck(__pyx_t_8(__pyx_t_7), 2) < 0) __PYX_ERR(0, 257, __pyx_L1_error)
       __pyx_t_8 = NULL;
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       goto __pyx_L6_unpacking_done;
@@ -5703,7 +5836,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __pyx_t_8 = NULL;
       if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-      __PYX_ERR(0, 255, __pyx_L1_error)
+      __PYX_ERR(0, 257, __pyx_L1_error)
       __pyx_L6_unpacking_done:;
     }
     __Pyx_XDECREF_SET(__pyx_v_time, __pyx_t_5);
@@ -5711,65 +5844,65 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
     __Pyx_XDECREF_SET(__pyx_v_value, __pyx_t_6);
     __pyx_t_6 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":256
+    /* "VocalTractLab/target_estimation.pyx":258
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  * 		for time, value in zip( times, values ):
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:             # <<<<<<<<<<<<<<
  * 				self.times.append( time )
  * 				self.values.append( value )
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyObject_RichCompare(__pyx_v_time, __pyx_t_6, Py_GE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_2 = PyObject_RichCompare(__pyx_v_time, __pyx_t_6, Py_GE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     if (__pyx_t_10) {
     } else {
       __pyx_t_9 = __pyx_t_10;
       goto __pyx_L8_bool_binop_done;
     }
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyObject_RichCompare(__pyx_v_time, __pyx_t_6, Py_LE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_2 = PyObject_RichCompare(__pyx_v_time, __pyx_t_6, Py_LE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_9 = __pyx_t_10;
     __pyx_L8_bool_binop_done:;
     if (__pyx_t_9) {
 
-      /* "VocalTractLab/target_estimation.pyx":257
+      /* "VocalTractLab/target_estimation.pyx":259
  * 		for time, value in zip( times, values ):
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:
  * 				self.times.append( time )             # <<<<<<<<<<<<<<
  * 				self.values.append( value )
- * 		self.queue_position = queue_position
+ * 		self.delta_boundary = delta_boundary
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 259, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = __Pyx_PyObject_Append(__pyx_t_2, __pyx_v_time); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 257, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyObject_Append(__pyx_t_2, __pyx_v_time); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 259, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":258
+      /* "VocalTractLab/target_estimation.pyx":260
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:
  * 				self.times.append( time )
  * 				self.values.append( value )             # <<<<<<<<<<<<<<
+ * 		self.delta_boundary = delta_boundary
  * 		self.queue_position = queue_position
- * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 260, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = __Pyx_PyObject_Append(__pyx_t_2, __pyx_v_value); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 258, __pyx_L1_error)
+      __pyx_t_11 = __Pyx_PyObject_Append(__pyx_t_2, __pyx_v_value); if (unlikely(__pyx_t_11 == ((int)-1))) __PYX_ERR(0, 260, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":256
+      /* "VocalTractLab/target_estimation.pyx":258
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  * 		for time, value in zip( times, values ):
  * 			if time >= self.boundaries[ 0 ] and time <= self.boundaries[ -1 ]:             # <<<<<<<<<<<<<<
@@ -5778,7 +5911,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
  */
     }
 
-    /* "VocalTractLab/target_estimation.pyx":255
+    /* "VocalTractLab/target_estimation.pyx":257
  * 		self.values = []
  * 		self.boundaries = boundaries[ queue_position : queue_position + window_length + 1 ] # Todo Update: hop_length * queue_pos....
  * 		for time, value in zip( times, values ):             # <<<<<<<<<<<<<<
@@ -5788,30 +5921,39 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":259
+  /* "VocalTractLab/target_estimation.pyx":261
  * 				self.times.append( time )
  * 				self.values.append( value )
+ * 		self.delta_boundary = delta_boundary             # <<<<<<<<<<<<<<
+ * 		self.queue_position = queue_position
+ * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_delta_boundary, __pyx_v_delta_boundary) < 0) __PYX_ERR(0, 261, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":262
+ * 				self.values.append( value )
+ * 		self.delta_boundary = delta_boundary
  * 		self.queue_position = queue_position             # <<<<<<<<<<<<<<
  * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
  * 		self.window_length = window_length
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_queue_position, __pyx_v_queue_position) < 0) __PYX_ERR(0, 259, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_queue_position, __pyx_v_queue_position) < 0) __PYX_ERR(0, 262, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":260
- * 				self.values.append( value )
+  /* "VocalTractLab/target_estimation.pyx":263
+ * 		self.delta_boundary = delta_boundary
  * 		self.queue_position = queue_position
  * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )             # <<<<<<<<<<<<<<
  * 		self.window_length = window_length
  * 		self.hop_lenth = hop_length
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_hop_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_hop_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_hop_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_v_queue_position, __pyx_v_hop_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = PyNumber_Add(__pyx_t_2, __pyx_v_window_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Add(__pyx_t_2, __pyx_v_window_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
@@ -5819,49 +5961,49 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_6);
   __pyx_t_1 = 0;
   __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_target_positions, __pyx_t_6) < 0) __PYX_ERR(0, 260, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_target_positions, __pyx_t_6) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":261
+  /* "VocalTractLab/target_estimation.pyx":264
  * 		self.queue_position = queue_position
  * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
  * 		self.window_length = window_length             # <<<<<<<<<<<<<<
  * 		self.hop_lenth = hop_length
  * 		self.fit_result = None
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_window_length, __pyx_v_window_length) < 0) __PYX_ERR(0, 261, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_window_length, __pyx_v_window_length) < 0) __PYX_ERR(0, 264, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":262
+  /* "VocalTractLab/target_estimation.pyx":265
  * 		self.target_positions = range( queue_position + hop_length, queue_position + hop_length + window_length )
  * 		self.window_length = window_length
  * 		self.hop_lenth = hop_length             # <<<<<<<<<<<<<<
  * 		self.fit_result = None
  * 		self.kwargs = kwargs
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_hop_lenth, __pyx_v_hop_length) < 0) __PYX_ERR(0, 262, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_hop_lenth, __pyx_v_hop_length) < 0) __PYX_ERR(0, 265, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":263
+  /* "VocalTractLab/target_estimation.pyx":266
  * 		self.window_length = window_length
  * 		self.hop_lenth = hop_length
  * 		self.fit_result = None             # <<<<<<<<<<<<<<
  * 		self.kwargs = kwargs
  * 		return
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fit_result, Py_None) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fit_result, Py_None) < 0) __PYX_ERR(0, 266, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":264
+  /* "VocalTractLab/target_estimation.pyx":267
  * 		self.hop_lenth = hop_length
  * 		self.fit_result = None
  * 		self.kwargs = kwargs             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_kwargs, __pyx_v_kwargs) < 0) __PYX_ERR(0, 264, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_kwargs, __pyx_v_kwargs) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":265
+  /* "VocalTractLab/target_estimation.pyx":268
  * 		self.fit_result = None
  * 		self.kwargs = kwargs
  * 		return             # <<<<<<<<<<<<<<
@@ -5872,10 +6014,10 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":251
+  /* "VocalTractLab/target_estimation.pyx":253
  * class Fit_Window():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
  * 		self.times = []
  * 		self.values = []
  */
@@ -5897,12 +6039,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window___ini
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":267
+/* "VocalTractLab/target_estimation.pyx":270
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):             # <<<<<<<<<<<<<<
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
- * 		return
+ * 		self.fit_result = fit(
+ * 			times = self.times,
  */
 
 /* Python wrapper */
@@ -5938,7 +6080,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_3fit(
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "fit") < 0)) __PYX_ERR(0, 267, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "fit") < 0)) __PYX_ERR(0, 270, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 1) {
       goto __pyx_L5_argtuple_error;
@@ -5949,7 +6091,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_10Fit_Window_3fit(
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fit", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 267, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fit", 1, 1, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 270, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Window.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
@@ -5971,64 +6113,106 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_2fit(
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("fit", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":268
+  /* "VocalTractLab/target_estimation.pyx":271
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )             # <<<<<<<<<<<<<<
- * 		return
- * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * 		self.fit_result = fit(             # <<<<<<<<<<<<<<
+ * 			times = self.times,
+ * 			values = self.values,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_fit); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_fit); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 271, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 268, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 268, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":272
+ * 	def fit( self, **kwargs ):
+ * 		self.fit_result = fit(
+ * 			times = self.times,             # <<<<<<<<<<<<<<
+ * 			values = self.values,
+ * 			boundaries = self.boundaries,
+ */
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 268, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_4);
-  __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_times, __pyx_t_4) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":273
+ * 		self.fit_result = fit(
+ * 			times = self.times,
+ * 			values = self.values,             # <<<<<<<<<<<<<<
+ * 			boundaries = self.boundaries,
+ * 			delta_boundary = self.delta_boundary,
+ */
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_values, __pyx_t_4) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":274
+ * 			times = self.times,
+ * 			values = self.values,
+ * 			boundaries = self.boundaries,             # <<<<<<<<<<<<<<
+ * 			delta_boundary = self.delta_boundary,
+ * 			**self.kwargs
+ */
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_boundaries, __pyx_t_4) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":275
+ * 			values = self.values,
+ * 			boundaries = self.boundaries,
+ * 			delta_boundary = self.delta_boundary,             # <<<<<<<<<<<<<<
+ * 			**self.kwargs
+ * 			)
+ */
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_delta_boundary); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_delta_boundary, __pyx_t_4) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_2 = __pyx_t_3;
   __pyx_t_3 = 0;
-  __pyx_t_4 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 268, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":276
+ * 			boundaries = self.boundaries,
+ * 			delta_boundary = self.delta_boundary,
+ * 			**self.kwargs             # <<<<<<<<<<<<<<
+ * 			)
+ * 		return
+ */
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (unlikely(__pyx_t_3 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "argument after ** must be a mapping, not NoneType");
-    __PYX_ERR(0, 268, __pyx_L1_error)
+    __PYX_ERR(0, 276, __pyx_L1_error)
   }
-  if (likely(PyDict_CheckExact(__pyx_t_3))) {
-    __pyx_t_4 = PyDict_Copy(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  } else {
-    __pyx_t_4 = PyObject_CallFunctionObjArgs((PyObject*)&PyDict_Type, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  }
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 268, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fit_result, __pyx_t_3) < 0) __PYX_ERR(0, 268, __pyx_L1_error)
+  if (__Pyx_MergeKeywords(__pyx_t_2, __pyx_t_3) < 0) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":269
+  /* "VocalTractLab/target_estimation.pyx":271
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
+ * 		self.fit_result = fit(             # <<<<<<<<<<<<<<
+ * 			times = self.times,
+ * 			values = self.values,
+ */
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_fit_result, __pyx_t_3) < 0) __PYX_ERR(0, 271, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":278
+ * 			**self.kwargs
+ * 			)
  * 		return             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():
@@ -6037,12 +6221,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_2fit(
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":267
+  /* "VocalTractLab/target_estimation.pyx":270
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):             # <<<<<<<<<<<<<<
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
- * 		return
+ * 		self.fit_result = fit(
+ * 			times = self.times,
  */
 
   /* function exit code */
@@ -6051,7 +6235,6 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_2fit(
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Fit_Window.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -6060,7 +6243,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_2fit(
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":271
+/* "VocalTractLab/target_estimation.pyx":280
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():             # <<<<<<<<<<<<<<
@@ -6087,7 +6270,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_4plot
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("plot", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":272
+  /* "VocalTractLab/target_estimation.pyx":281
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():
  * 		return             # <<<<<<<<<<<<<<
@@ -6098,7 +6281,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_4plot
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":271
+  /* "VocalTractLab/target_estimation.pyx":280
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():             # <<<<<<<<<<<<<<
@@ -6113,12 +6296,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10Fit_Window_4plot
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":281
+/* "VocalTractLab/target_estimation.pyx":290
  * class Sequential_Fit():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, windows, times, values ):             # <<<<<<<<<<<<<<
  * 		self.windows = windows
- * 		for window in self.windows:
+ * 		self.times = times
  */
 
 /* Python wrapper */
@@ -6127,6 +6310,8 @@ static PyMethodDef __pyx_mdef_13VocalTractLab_17target_estimation_14Sequential_F
 static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_14Sequential_Fit_1__init__(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
   PyObject *__pyx_v_self = 0;
   PyObject *__pyx_v_windows = 0;
+  PyObject *__pyx_v_times = 0;
+  PyObject *__pyx_v_values = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -6134,12 +6319,16 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_14Sequential_Fit_1
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__init__ (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_windows,0};
-    PyObject* values[2] = {0,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_self,&__pyx_n_s_windows,&__pyx_n_s_times,&__pyx_n_s_values,0};
+    PyObject* values[4] = {0,0,0,0};
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
         case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
         CYTHON_FALLTHROUGH;
         case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
@@ -6156,37 +6345,53 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_14Sequential_Fit_1
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_windows)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, 1); __PYX_ERR(0, 281, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 4, 4, 1); __PYX_ERR(0, 290, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_times)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 4, 4, 2); __PYX_ERR(0, 290, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  3:
+        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("__init__", 1, 4, 4, 3); __PYX_ERR(0, 290, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 281, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "__init__") < 0)) __PYX_ERR(0, 290, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
       goto __pyx_L5_argtuple_error;
     } else {
       values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
       values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
     }
     __pyx_v_self = values[0];
     __pyx_v_windows = values[1];
+    __pyx_v_times = values[2];
+    __pyx_v_values = values[3];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__init__", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 281, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__init__", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 290, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Sequential_Fit.__init__", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(__pyx_self, __pyx_v_self, __pyx_v_windows);
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(__pyx_self, __pyx_v_self, __pyx_v_windows, __pyx_v_times, __pyx_v_values);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_windows) {
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_times, PyObject *__pyx_v_values) {
   PyObject *__pyx_v_window = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -6201,31 +6406,49 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__init__", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":282
+  /* "VocalTractLab/target_estimation.pyx":291
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):
+ * 	def __init__( self, windows, times, values ):
  * 		self.windows = windows             # <<<<<<<<<<<<<<
+ * 		self.times = times
+ * 		self.values = values
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_windows, __pyx_v_windows) < 0) __PYX_ERR(0, 291, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":292
+ * 	def __init__( self, windows, times, values ):
+ * 		self.windows = windows
+ * 		self.times = times             # <<<<<<<<<<<<<<
+ * 		self.values = values
+ * 		for window in self.windows:
+ */
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_times, __pyx_v_times) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":293
+ * 		self.windows = windows
+ * 		self.times = times
+ * 		self.values = values             # <<<<<<<<<<<<<<
  * 		for window in self.windows:
  * 			window.fit()
  */
-  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_windows, __pyx_v_windows) < 0) __PYX_ERR(0, 282, __pyx_L1_error)
+  if (__Pyx_PyObject_SetAttrStr(__pyx_v_self, __pyx_n_s_values, __pyx_v_values) < 0) __PYX_ERR(0, 293, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":283
- * 	def __init__( self, windows ):
- * 		self.windows = windows
+  /* "VocalTractLab/target_estimation.pyx":294
+ * 		self.times = times
+ * 		self.values = values
  * 		for window in self.windows:             # <<<<<<<<<<<<<<
  * 			window.fit()
  * 		return
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
     __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_3 = 0;
     __pyx_t_4 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L1_error)
+    __pyx_t_3 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L1_error)
+    __pyx_t_4 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 294, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   for (;;) {
@@ -6233,17 +6456,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 283, __pyx_L1_error)
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 294, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 283, __pyx_L1_error)
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_3); __Pyx_INCREF(__pyx_t_1); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 294, __pyx_L1_error)
         #else
-        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L1_error)
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
         #endif
       }
@@ -6253,7 +6476,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 283, __pyx_L1_error)
+          else __PYX_ERR(0, 294, __pyx_L1_error)
         }
         break;
       }
@@ -6262,14 +6485,14 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
     __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_1);
     __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":284
- * 		self.windows = windows
+    /* "VocalTractLab/target_estimation.pyx":295
+ * 		self.values = values
  * 		for window in self.windows:
  * 			window.fit()             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 284, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __pyx_t_6 = NULL;
     if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
@@ -6283,14 +6506,14 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
     }
     __pyx_t_1 = (__pyx_t_6) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":283
- * 	def __init__( self, windows ):
- * 		self.windows = windows
+    /* "VocalTractLab/target_estimation.pyx":294
+ * 		self.times = times
+ * 		self.values = values
  * 		for window in self.windows:             # <<<<<<<<<<<<<<
  * 			window.fit()
  * 		return
@@ -6298,23 +6521,23 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":285
+  /* "VocalTractLab/target_estimation.pyx":296
  * 		for window in self.windows:
  * 			window.fit()
  * 		return             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def plot( self, ):
+ * 	#def get_optimized_boundaries( windows, window_length, hop_length ):
  */
   __Pyx_XDECREF(__pyx_r);
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":281
+  /* "VocalTractLab/target_estimation.pyx":290
  * class Sequential_Fit():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, windows, times, values ):             # <<<<<<<<<<<<<<
  * 		self.windows = windows
- * 		for window in self.windows:
+ * 		self.times = times
  */
 
   /* function exit code */
@@ -6332,12 +6555,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit__
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":287
- * 		return
+/* "VocalTractLab/target_estimation.pyx":329
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
  */
 
 /* Python wrapper */
@@ -6357,6 +6580,9 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_14Sequential_Fit_3
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2plot(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self) {
   PyObject *__pyx_v_figure = NULL;
   PyObject *__pyx_v_axs = NULL;
+  PyObject *__pyx_v_low = NULL;
+  PyObject *__pyx_v_high = NULL;
+  PyObject *__pyx_v_index = NULL;
   PyObject *__pyx_v_window = NULL;
   PyObject *__pyx_v_boundary = NULL;
   PyObject *__pyx_v_ax = NULL;
@@ -6369,64 +6595,69 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *(*__pyx_t_7)(PyObject *);
-  PyObject *(*__pyx_t_8)(PyObject *);
-  Py_ssize_t __pyx_t_9;
-  PyObject *(*__pyx_t_10)(PyObject *);
-  PyObject *__pyx_t_11 = NULL;
-  int __pyx_t_12;
+  int __pyx_t_8;
+  PyObject *(*__pyx_t_9)(PyObject *);
+  Py_ssize_t __pyx_t_10;
+  PyObject *(*__pyx_t_11)(PyObject *);
+  Py_ssize_t __pyx_t_12;
+  PyObject *(*__pyx_t_13)(PyObject *);
+  PyObject *__pyx_t_14 = NULL;
+  PyObject *__pyx_t_15 = NULL;
+  PyObject *__pyx_t_16 = NULL;
+  int __pyx_t_17;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("plot", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":288
+  /* "VocalTractLab/target_estimation.pyx":330
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )             # <<<<<<<<<<<<<<
- * 		for window in self.windows:
- * 			for boundary in window.boundaries:
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )             # <<<<<<<<<<<<<<
+ * 		low, high = get_plot_limits( self.values, 0.2 )
+ * 		for index, window in enumerate( self.windows ):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_subplots); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_subplots); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_3 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
   PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
   __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = PyObject_Length(__pyx_t_5); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_3 = PyObject_Length(__pyx_t_5); if (unlikely(__pyx_t_3 == ((Py_ssize_t)-1))) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyInt_FromSsize_t((1 * __pyx_t_3)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_5 = PyInt_FromSsize_t((1 * __pyx_t_3)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_INCREF(__pyx_int_8);
-  __Pyx_GIVEREF(__pyx_int_8);
-  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_int_8);
+  __Pyx_INCREF(__pyx_int_12);
+  __Pyx_GIVEREF(__pyx_int_12);
+  PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_int_12);
   __Pyx_GIVEREF(__pyx_t_5);
   PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_t_5);
   __pyx_t_5 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_figsize, __pyx_t_6) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_figsize, __pyx_t_6) < 0) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_sharex, Py_True) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_sharex, Py_True) < 0) __PYX_ERR(0, 330, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_hspace, __pyx_int_0) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_gridspec_kw, __pyx_t_6) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_hspace, __pyx_int_0) < 0) __PYX_ERR(0, 330, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_gridspec_kw, __pyx_t_6) < 0) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 330, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -6437,7 +6668,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 288, __pyx_L1_error)
+      __PYX_ERR(0, 330, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     if (likely(PyTuple_CheckExact(sequence))) {
@@ -6450,15 +6681,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
     __Pyx_INCREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_t_4);
     #else
-    __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L1_error)
+    __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 330, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
+    __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 330, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     #endif
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   } else {
     Py_ssize_t index = -1;
-    __pyx_t_2 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 288, __pyx_L1_error)
+    __pyx_t_2 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 330, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_t_7 = Py_TYPE(__pyx_t_2)->tp_iternext;
@@ -6466,7 +6697,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
     __Pyx_GOTREF(__pyx_t_1);
     index = 1; __pyx_t_4 = __pyx_t_7(__pyx_t_2); if (unlikely(!__pyx_t_4)) goto __pyx_L3_unpacking_failed;
     __Pyx_GOTREF(__pyx_t_4);
-    if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_2), 2) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_2), 2) < 0) __PYX_ERR(0, 330, __pyx_L1_error)
     __pyx_t_7 = NULL;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     goto __pyx_L4_unpacking_done;
@@ -6474,7 +6705,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_t_7 = NULL;
     if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-    __PYX_ERR(0, 288, __pyx_L1_error)
+    __PYX_ERR(0, 330, __pyx_L1_error)
     __pyx_L4_unpacking_done:;
   }
   __pyx_v_figure = __pyx_t_1;
@@ -6482,531 +6713,1117 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   __pyx_v_axs = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":289
+  /* "VocalTractLab/target_estimation.pyx":331
  * 	def plot( self, ):
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:             # <<<<<<<<<<<<<<
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )             # <<<<<<<<<<<<<<
+ * 		for index, window in enumerate( self.windows ):
  * 			for boundary in window.boundaries:
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  if (likely(PyList_CheckExact(__pyx_t_6)) || PyTuple_CheckExact(__pyx_t_6)) {
-    __pyx_t_4 = __pyx_t_6; __Pyx_INCREF(__pyx_t_4); __pyx_t_3 = 0;
-    __pyx_t_8 = NULL;
-  } else {
-    __pyx_t_3 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 289, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_8 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 289, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_get_plot_limits); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 331, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 331, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = NULL;
+  __pyx_t_8 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
+      __pyx_t_8 = 1;
+    }
   }
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_4)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_t_1, __pyx_float_0_2};
+    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_4)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_2, __pyx_t_1, __pyx_float_0_2};
+    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_4, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  } else
+  #endif
+  {
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_2) {
+      __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2); __pyx_t_2 = NULL;
+    }
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_8, __pyx_t_1);
+    __Pyx_INCREF(__pyx_float_0_2);
+    __Pyx_GIVEREF(__pyx_float_0_2);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_8, __pyx_float_0_2);
+    __pyx_t_1 = 0;
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if ((likely(PyTuple_CheckExact(__pyx_t_6))) || (PyList_CheckExact(__pyx_t_6))) {
+    PyObject* sequence = __pyx_t_6;
+    Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
+    if (unlikely(size != 2)) {
+      if (size > 2) __Pyx_RaiseTooManyValuesError(2);
+      else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
+      __PYX_ERR(0, 331, __pyx_L1_error)
+    }
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    if (likely(PyTuple_CheckExact(sequence))) {
+      __pyx_t_4 = PyTuple_GET_ITEM(sequence, 0); 
+      __pyx_t_5 = PyTuple_GET_ITEM(sequence, 1); 
+    } else {
+      __pyx_t_4 = PyList_GET_ITEM(sequence, 0); 
+      __pyx_t_5 = PyList_GET_ITEM(sequence, 1); 
+    }
+    __Pyx_INCREF(__pyx_t_4);
+    __Pyx_INCREF(__pyx_t_5);
+    #else
+    __pyx_t_4 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_5 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    #endif
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  } else {
+    Py_ssize_t index = -1;
+    __pyx_t_1 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 331, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_7 = Py_TYPE(__pyx_t_1)->tp_iternext;
+    index = 0; __pyx_t_4 = __pyx_t_7(__pyx_t_1); if (unlikely(!__pyx_t_4)) goto __pyx_L5_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_4);
+    index = 1; __pyx_t_5 = __pyx_t_7(__pyx_t_1); if (unlikely(!__pyx_t_5)) goto __pyx_L5_unpacking_failed;
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__Pyx_IternextUnpackEndCheck(__pyx_t_7(__pyx_t_1), 2) < 0) __PYX_ERR(0, 331, __pyx_L1_error)
+    __pyx_t_7 = NULL;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    goto __pyx_L6_unpacking_done;
+    __pyx_L5_unpacking_failed:;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_7 = NULL;
+    if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
+    __PYX_ERR(0, 331, __pyx_L1_error)
+    __pyx_L6_unpacking_done:;
+  }
+  __pyx_v_low = __pyx_t_4;
+  __pyx_t_4 = 0;
+  __pyx_v_high = __pyx_t_5;
+  __pyx_t_5 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":332
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
+ * 		for index, window in enumerate( self.windows ):             # <<<<<<<<<<<<<<
+ * 			for boundary in window.boundaries:
+ * 				for ax in axs:
+ */
+  __Pyx_INCREF(__pyx_int_0);
+  __pyx_t_6 = __pyx_int_0;
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 332, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (likely(PyList_CheckExact(__pyx_t_5)) || PyTuple_CheckExact(__pyx_t_5)) {
+    __pyx_t_4 = __pyx_t_5; __Pyx_INCREF(__pyx_t_4); __pyx_t_3 = 0;
+    __pyx_t_9 = NULL;
+  } else {
+    __pyx_t_3 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 332, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 332, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   for (;;) {
-    if (likely(!__pyx_t_8)) {
+    if (likely(!__pyx_t_9)) {
       if (likely(PyList_CheckExact(__pyx_t_4))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_6); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 289, __pyx_L1_error)
+        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 332, __pyx_L1_error)
         #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 332, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_6); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 289, __pyx_L1_error)
+        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_5); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 332, __pyx_L1_error)
         #else
-        __pyx_t_6 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 289, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
+        __pyx_t_5 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 332, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
         #endif
       }
     } else {
-      __pyx_t_6 = __pyx_t_8(__pyx_t_4);
-      if (unlikely(!__pyx_t_6)) {
+      __pyx_t_5 = __pyx_t_9(__pyx_t_4);
+      if (unlikely(!__pyx_t_5)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 289, __pyx_L1_error)
+          else __PYX_ERR(0, 332, __pyx_L1_error)
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_6);
+      __Pyx_GOTREF(__pyx_t_5);
     }
-    __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_6);
-    __pyx_t_6 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_5);
+    __pyx_t_5 = 0;
+    __Pyx_INCREF(__pyx_t_6);
+    __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_6);
+    __pyx_t_5 = __Pyx_PyInt_AddObjC(__pyx_t_6, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 332, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_6);
+    __pyx_t_6 = __pyx_t_5;
+    __pyx_t_5 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":290
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+    /* "VocalTractLab/target_estimation.pyx":333
+ * 		low, high = get_plot_limits( self.values, 0.2 )
+ * 		for index, window in enumerate( self.windows ):
  * 			for boundary in window.boundaries:             # <<<<<<<<<<<<<<
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
- * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
+ * 				for ax in axs:
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
  */
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    if (likely(PyList_CheckExact(__pyx_t_6)) || PyTuple_CheckExact(__pyx_t_6)) {
-      __pyx_t_1 = __pyx_t_6; __Pyx_INCREF(__pyx_t_1); __pyx_t_9 = 0;
-      __pyx_t_10 = NULL;
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 333, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (likely(PyList_CheckExact(__pyx_t_5)) || PyTuple_CheckExact(__pyx_t_5)) {
+      __pyx_t_1 = __pyx_t_5; __Pyx_INCREF(__pyx_t_1); __pyx_t_10 = 0;
+      __pyx_t_11 = NULL;
     } else {
-      __pyx_t_9 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
+      __pyx_t_10 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 333, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_10 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 290, __pyx_L1_error)
+      __pyx_t_11 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 333, __pyx_L1_error)
     }
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     for (;;) {
-      if (likely(!__pyx_t_10)) {
+      if (likely(!__pyx_t_11)) {
         if (likely(PyList_CheckExact(__pyx_t_1))) {
-          if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_1)) break;
+          if (__pyx_t_10 >= PyList_GET_SIZE(__pyx_t_1)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_6 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_9); __Pyx_INCREF(__pyx_t_6); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 290, __pyx_L1_error)
+          __pyx_t_5 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_10); __Pyx_INCREF(__pyx_t_5); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 333, __pyx_L1_error)
           #else
-          __pyx_t_6 = PySequence_ITEM(__pyx_t_1, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_6);
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 333, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
           #endif
         } else {
-          if (__pyx_t_9 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
+          if (__pyx_t_10 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_9); __Pyx_INCREF(__pyx_t_6); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 290, __pyx_L1_error)
+          __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_10); __Pyx_INCREF(__pyx_t_5); __pyx_t_10++; if (unlikely(0 < 0)) __PYX_ERR(0, 333, __pyx_L1_error)
           #else
-          __pyx_t_6 = PySequence_ITEM(__pyx_t_1, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 290, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_6);
+          __pyx_t_5 = PySequence_ITEM(__pyx_t_1, __pyx_t_10); __pyx_t_10++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 333, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_5);
           #endif
         }
       } else {
-        __pyx_t_6 = __pyx_t_10(__pyx_t_1);
-        if (unlikely(!__pyx_t_6)) {
+        __pyx_t_5 = __pyx_t_11(__pyx_t_1);
+        if (unlikely(!__pyx_t_5)) {
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 290, __pyx_L1_error)
+            else __PYX_ERR(0, 333, __pyx_L1_error)
           }
           break;
         }
-        __Pyx_GOTREF(__pyx_t_6);
+        __Pyx_GOTREF(__pyx_t_5);
       }
-      __Pyx_XDECREF_SET(__pyx_v_boundary, __pyx_t_6);
-      __pyx_t_6 = 0;
+      __Pyx_XDECREF_SET(__pyx_v_boundary, __pyx_t_5);
+      __pyx_t_5 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":291
- * 		for window in self.windows:
+      /* "VocalTractLab/target_estimation.pyx":334
+ * 		for index, window in enumerate( self.windows ):
  * 			for boundary in window.boundaries:
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )             # <<<<<<<<<<<<<<
+ * 				for ax in axs:             # <<<<<<<<<<<<<<
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
+ */
+      if (likely(PyList_CheckExact(__pyx_v_axs)) || PyTuple_CheckExact(__pyx_v_axs)) {
+        __pyx_t_5 = __pyx_v_axs; __Pyx_INCREF(__pyx_t_5); __pyx_t_12 = 0;
+        __pyx_t_13 = NULL;
+      } else {
+        __pyx_t_12 = -1; __pyx_t_5 = PyObject_GetIter(__pyx_v_axs); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 334, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_13 = Py_TYPE(__pyx_t_5)->tp_iternext; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 334, __pyx_L1_error)
+      }
+      for (;;) {
+        if (likely(!__pyx_t_13)) {
+          if (likely(PyList_CheckExact(__pyx_t_5))) {
+            if (__pyx_t_12 >= PyList_GET_SIZE(__pyx_t_5)) break;
+            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+            __pyx_t_2 = PyList_GET_ITEM(__pyx_t_5, __pyx_t_12); __Pyx_INCREF(__pyx_t_2); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 334, __pyx_L1_error)
+            #else
+            __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_2);
+            #endif
+          } else {
+            if (__pyx_t_12 >= PyTuple_GET_SIZE(__pyx_t_5)) break;
+            #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+            __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_5, __pyx_t_12); __Pyx_INCREF(__pyx_t_2); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 334, __pyx_L1_error)
+            #else
+            __pyx_t_2 = PySequence_ITEM(__pyx_t_5, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L1_error)
+            __Pyx_GOTREF(__pyx_t_2);
+            #endif
+          }
+        } else {
+          __pyx_t_2 = __pyx_t_13(__pyx_t_5);
+          if (unlikely(!__pyx_t_2)) {
+            PyObject* exc_type = PyErr_Occurred();
+            if (exc_type) {
+              if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+              else __PYX_ERR(0, 334, __pyx_L1_error)
+            }
+            break;
+          }
+          __Pyx_GOTREF(__pyx_t_2);
+        }
+        __Pyx_XDECREF_SET(__pyx_v_ax, __pyx_t_2);
+        __pyx_t_2 = 0;
+
+        /* "VocalTractLab/target_estimation.pyx":335
+ * 			for boundary in window.boundaries:
+ * 				for ax in axs:
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )             # <<<<<<<<<<<<<<
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
+ * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
+ */
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_ax, __pyx_n_s_axvline); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_14 = PyTuple_New(1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 335, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_14);
+        __Pyx_INCREF(__pyx_v_boundary);
+        __Pyx_GIVEREF(__pyx_v_boundary);
+        PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_v_boundary);
+        __pyx_t_15 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 335, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_color, __pyx_n_s_gray) < 0) __PYX_ERR(0, 335, __pyx_L1_error)
+        if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_ls, __pyx_kp_s__5) < 0) __PYX_ERR(0, 335, __pyx_L1_error)
+        if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_zorder, __pyx_int_2) < 0) __PYX_ERR(0, 335, __pyx_L1_error)
+        __pyx_t_16 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_14, __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 335, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_16);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+
+        /* "VocalTractLab/target_estimation.pyx":334
+ * 		for index, window in enumerate( self.windows ):
+ * 			for boundary in window.boundaries:
+ * 				for ax in axs:             # <<<<<<<<<<<<<<
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
+ */
+      }
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":336
+ * 				for ax in axs:
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )             # <<<<<<<<<<<<<<
  * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
  * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
  */
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axvline); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_16 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_5); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_axvline); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __pyx_t_16 = PyTuple_New(1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
       __Pyx_INCREF(__pyx_v_boundary);
       __Pyx_GIVEREF(__pyx_v_boundary);
-      PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_boundary);
-      __pyx_t_5 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_color, __pyx_n_s_navy) < 0) __PYX_ERR(0, 291, __pyx_L1_error)
-      __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_2, __pyx_t_5); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 291, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_v_boundary);
+      __pyx_t_15 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_color, __pyx_n_s_black) < 0) __PYX_ERR(0, 336, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_zorder, __pyx_int_3) < 0) __PYX_ERR(0, 336, __pyx_L1_error)
+      __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_16, __pyx_t_15); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 336, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":290
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+      /* "VocalTractLab/target_estimation.pyx":333
+ * 		low, high = get_plot_limits( self.values, 0.2 )
+ * 		for index, window in enumerate( self.windows ):
  * 			for boundary in window.boundaries:             # <<<<<<<<<<<<<<
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
- * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
+ * 				for ax in axs:
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
  */
     }
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":292
- * 			for boundary in window.boundaries:
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
+    /* "VocalTractLab/target_estimation.pyx":337
+ * 					ax.axvline( boundary, color = 'gray', ls = '--', zorder = 2 )
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
  * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )             # <<<<<<<<<<<<<<
  * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
+ * 			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 292, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 337, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_11 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
+    __pyx_t_14 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 292, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 337, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_15 = __Pyx_GetItemInt(__pyx_t_14, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = PyTuple_New(2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
-    PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_int_0);
-    __Pyx_GIVEREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_t_5);
-    __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
-    __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_11, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+    PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_int_0);
+    __Pyx_GIVEREF(__pyx_t_15);
+    PyTuple_SET_ITEM(__pyx_t_14, 1, __pyx_t_15);
+    __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 337, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 337, __pyx_L1_error)
+    __pyx_t_16 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_14, __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 337, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":293
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
+    /* "VocalTractLab/target_estimation.pyx":338
+ * 				axs[ window.queue_position ].axvline( boundary, color = 'black', zorder = 3 )
  * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
  * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )             # <<<<<<<<<<<<<<
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
- * 			if window.queue_position == 0:
+ * 			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_11 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __pyx_t_15 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_16); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_14 = __Pyx_GetItemInt(__pyx_t_15, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_windows); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_15, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_15, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_GIVEREF(__pyx_t_11);
-    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_11);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = PyTuple_New(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_GIVEREF(__pyx_t_14);
+    PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_14);
     __Pyx_GIVEREF(__pyx_t_1);
-    PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1);
-    __pyx_t_11 = 0;
+    PyTuple_SET_ITEM(__pyx_t_15, 1, __pyx_t_1);
+    __pyx_t_14 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 338, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 293, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 293, __pyx_L1_error)
-    __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 293, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 338, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_color, __pyx_n_s_lightgray) < 0) __PYX_ERR(0, 338, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_16, __pyx_t_15, __pyx_t_1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 338, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":294
+    /* "VocalTractLab/target_estimation.pyx":339
  * 			axs[ window.queue_position ].axvspan( 0, window.boundaries[0], alpha = 0.5, color = 'lightgray' )
  * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )             # <<<<<<<<<<<<<<
- * 			if window.queue_position == 0:
- * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
+ * 			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
+ * 			axs[ window.queue_position ].set_ylim( low, high )
  */
-    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_scatter); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_scatter); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_times); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_in_times); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_values); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_GIVEREF(__pyx_t_1);
+    PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_15);
+    PyTuple_SET_ITEM(__pyx_t_16, 1, __pyx_t_15);
+    __pyx_t_1 = 0;
+    __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 339, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_color, __pyx_n_s_gray) < 0) __PYX_ERR(0, 339, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_s, __pyx_int_10) < 0) __PYX_ERR(0, 339, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_zorder, __pyx_int_2) < 0) __PYX_ERR(0, 339, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_14, __pyx_t_16, __pyx_t_15); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_in_values); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_GIVEREF(__pyx_t_5);
-    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_5);
-    __Pyx_GIVEREF(__pyx_t_2);
-    PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
-    __pyx_t_5 = 0;
-    __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_black) < 0) __PYX_ERR(0, 294, __pyx_L1_error)
-    __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 294, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":295
+    /* "VocalTractLab/target_estimation.pyx":340
  * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
+ * 			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].set_ylim( low, high )
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )
+ */
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_15 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_scatter); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_in_times); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_in_values); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = PyTuple_New(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_GIVEREF(__pyx_t_16);
+    PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_16);
+    __Pyx_GIVEREF(__pyx_t_14);
+    PyTuple_SET_ITEM(__pyx_t_15, 1, __pyx_t_14);
+    __pyx_t_16 = 0;
+    __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_color, __pyx_n_s_black) < 0) __PYX_ERR(0, 340, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_s, __pyx_int_20) < 0) __PYX_ERR(0, 340, __pyx_L1_error)
+    if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_zorder, __pyx_int_3) < 0) __PYX_ERR(0, 340, __pyx_L1_error)
+    __pyx_t_16 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_15, __pyx_t_14); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 340, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":341
+ * 			axs[ window.queue_position ].scatter( self.times, self.values, color = 'gray', s=10, zorder = 2 )
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
+ * 			axs[ window.queue_position ].set_ylim( low, high )             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )
+ * 			axs[ window.queue_position ].set_yticks([])
+ */
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 341, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_15 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 341, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_set_ylim); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 341, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_15 = NULL;
+    __pyx_t_8 = 0;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_14))) {
+      __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_14);
+      if (likely(__pyx_t_15)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
+        __Pyx_INCREF(__pyx_t_15);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_14, function);
+        __pyx_t_8 = 1;
+      }
+    }
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_14)) {
+      PyObject *__pyx_temp[3] = {__pyx_t_15, __pyx_v_low, __pyx_v_high};
+      __pyx_t_16 = __Pyx_PyFunction_FastCall(__pyx_t_14, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_GOTREF(__pyx_t_16);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_14)) {
+      PyObject *__pyx_temp[3] = {__pyx_t_15, __pyx_v_low, __pyx_v_high};
+      __pyx_t_16 = __Pyx_PyCFunction_FastCall(__pyx_t_14, __pyx_temp+1-__pyx_t_8, 2+__pyx_t_8); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_GOTREF(__pyx_t_16);
+    } else
+    #endif
+    {
+      __pyx_t_1 = PyTuple_New(2+__pyx_t_8); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      if (__pyx_t_15) {
+        __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_15); __pyx_t_15 = NULL;
+      }
+      __Pyx_INCREF(__pyx_v_low);
+      __Pyx_GIVEREF(__pyx_v_low);
+      PyTuple_SET_ITEM(__pyx_t_1, 0+__pyx_t_8, __pyx_v_low);
+      __Pyx_INCREF(__pyx_v_high);
+      __Pyx_GIVEREF(__pyx_v_high);
+      PyTuple_SET_ITEM(__pyx_t_1, 1+__pyx_t_8, __pyx_v_high);
+      __pyx_t_16 = __Pyx_PyObject_Call(__pyx_t_14, __pyx_t_1, NULL); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":342
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
+ * 			axs[ window.queue_position ].set_ylim( low, high )
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].set_yticks([])
+ * 			axs[ window.queue_position ].set_yticklabels([])
+ */
+    __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __pyx_t_14 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_16); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_set_ylabel); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__10, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_15 = __Pyx_PyInt_AddObjC(__pyx_v_index, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_5 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_1, function);
+      }
+    }
+    __pyx_t_14 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_5, __pyx_t_15) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_15);
+    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_GIVEREF(__pyx_t_14);
+    PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_14);
+    __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_color, __pyx_tuple__11) < 0) __PYX_ERR(0, 342, __pyx_L1_error)
+    __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_16, __pyx_t_1, __pyx_t_14); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 342, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":343
+ * 			axs[ window.queue_position ].set_ylim( low, high )
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )
+ * 			axs[ window.queue_position ].set_yticks([])             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].set_yticklabels([])
+ * 			if window.queue_position == 0:
+ */
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_set_yticks); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_16 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_14))) {
+      __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_14);
+      if (likely(__pyx_t_16)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
+        __Pyx_INCREF(__pyx_t_16);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_14, function);
+      }
+    }
+    __pyx_t_15 = (__pyx_t_16) ? __Pyx_PyObject_Call2Args(__pyx_t_14, __pyx_t_16, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_1);
+    __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 343, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":344
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )
+ * 			axs[ window.queue_position ].set_yticks([])
+ * 			axs[ window.queue_position ].set_yticklabels([])             # <<<<<<<<<<<<<<
+ * 			if window.queue_position == 0:
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
+ */
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 344, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 344, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_set_yticklabels); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 344, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 344, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_16 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_14))) {
+      __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_14);
+      if (likely(__pyx_t_16)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
+        __Pyx_INCREF(__pyx_t_16);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_14, function);
+      }
+    }
+    __pyx_t_15 = (__pyx_t_16) ? __Pyx_PyObject_Call2Args(__pyx_t_14, __pyx_t_16, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_1);
+    __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 344, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":345
+ * 			axs[ window.queue_position ].set_yticks([])
+ * 			axs[ window.queue_position ].set_yticklabels([])
  * 			if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
  * 			else:
  */
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 295, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_t_5, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 295, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 295, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (__pyx_t_12) {
+    __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 345, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_15);
+    __pyx_t_14 = __Pyx_PyInt_EqObjC(__pyx_t_15, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 345, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+    __pyx_t_17 = __Pyx_PyObject_IsTrue(__pyx_t_14); if (unlikely(__pyx_t_17 < 0)) __PYX_ERR(0, 345, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    if (__pyx_t_17) {
 
-      /* "VocalTractLab/target_estimation.pyx":296
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
+      /* "VocalTractLab/target_estimation.pyx":346
+ * 			axs[ window.queue_position ].set_yticklabels([])
  * 			if window.queue_position == 0:
- * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )             # <<<<<<<<<<<<<<
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )             # <<<<<<<<<<<<<<
  * 			else:
  * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
  */
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_5, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_15 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_15, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_15, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 346, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_11 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __pyx_t_16 = __Pyx_GetItemInt(__pyx_t_15, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __pyx_t_15 = PyTuple_New(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
       __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1);
-      __Pyx_GIVEREF(__pyx_t_11);
-      PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_11);
+      PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_1);
+      __Pyx_GIVEREF(__pyx_t_16);
+      PyTuple_SET_ITEM(__pyx_t_15, 1, __pyx_t_16);
       __pyx_t_1 = 0;
-      __pyx_t_11 = 0;
-      __pyx_t_11 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 296, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 296, __pyx_L1_error)
-      if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_color, __pyx_n_s_green) < 0) __PYX_ERR(0, 296, __pyx_L1_error)
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __pyx_t_16 = 0;
+      __pyx_t_16 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 346, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      if (PyDict_SetItem(__pyx_t_16, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 346, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_16, __pyx_n_s_color, __pyx_n_s_lightgreen) < 0) __PYX_ERR(0, 346, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_14, __pyx_t_15, __pyx_t_16); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 346, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":295
- * 			axs[ window.queue_position ].axvspan( window.boundaries[ -1 ], self.windows[ -1 ].boundaries[ -1 ], alpha = 0.5, color = 'lightgray' )
- * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black' )
+      /* "VocalTractLab/target_estimation.pyx":345
+ * 			axs[ window.queue_position ].set_yticks([])
+ * 			axs[ window.queue_position ].set_yticklabels([])
  * 			if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
  * 			else:
  */
-      goto __pyx_L9;
+      goto __pyx_L13;
     }
 
-    /* "VocalTractLab/target_estimation.pyx":298
- * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'green' )
+    /* "VocalTractLab/target_estimation.pyx":348
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
  * 			else:
  * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )             # <<<<<<<<<<<<<<
- * 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'green' )
- * 
+ * 				axs[ window.queue_position ].scatter(
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
  */
     /*else*/ {
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 298, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 348, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
+      __pyx_t_16 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 298, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 348, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_11, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_t_11 = PyTuple_New(2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_GIVEREF(__pyx_t_5);
-      PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_5);
-      __Pyx_GIVEREF(__pyx_t_2);
-      PyTuple_SET_ITEM(__pyx_t_11, 1, __pyx_t_2);
-      __pyx_t_5 = 0;
-      __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 298, __pyx_L1_error)
-      if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_color, __pyx_n_s_red) < 0) __PYX_ERR(0, 298, __pyx_L1_error)
-      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_11, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 298, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_15 = __Pyx_GetItemInt(__pyx_t_16, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __pyx_t_14 = __Pyx_GetItemInt(__pyx_t_16, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_GIVEREF(__pyx_t_15);
+      PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_15);
+      __Pyx_GIVEREF(__pyx_t_14);
+      PyTuple_SET_ITEM(__pyx_t_16, 1, __pyx_t_14);
+      __pyx_t_15 = 0;
+      __pyx_t_14 = 0;
+      __pyx_t_14 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 348, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_14, __pyx_n_s_color, __pyx_n_s_red) < 0) __PYX_ERR(0, 348, __pyx_L1_error)
+      __pyx_t_15 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_16, __pyx_t_14); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 348, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":299
+      /* "VocalTractLab/target_estimation.pyx":349
  * 			else:
  * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
- * 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'green' )             # <<<<<<<<<<<<<<
+ * 				axs[ window.queue_position ].scatter(             # <<<<<<<<<<<<<<
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+ * 					low + 0.5 * (high-low),
+ */
+      __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 349, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __pyx_t_14 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_15); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 349, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_scatter); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 349, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":350
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
+ * 				axs[ window.queue_position ].scatter(
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),             # <<<<<<<<<<<<<<
+ * 					low + 0.5 * (high-low),
+ * 					s=600, c='red', marker='x', zorder= 10 )
+ */
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_16 = __Pyx_GetItemInt(__pyx_t_14, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_14, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_14, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = PyNumber_Subtract(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_5 = PyNumber_Multiply(__pyx_float_0_5, __pyx_t_14); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = PyNumber_Add(__pyx_t_16, __pyx_t_5); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 350, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":351
+ * 				axs[ window.queue_position ].scatter(
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+ * 					low + 0.5 * (high-low),             # <<<<<<<<<<<<<<
+ * 					s=600, c='red', marker='x', zorder= 10 )
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
+ */
+      __pyx_t_5 = PyNumber_Subtract(__pyx_v_high, __pyx_v_low); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 351, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_16 = PyNumber_Multiply(__pyx_float_0_5, __pyx_t_5); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 351, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_5 = PyNumber_Add(__pyx_v_low, __pyx_t_16); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 351, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":349
+ * 			else:
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
+ * 				axs[ window.queue_position ].scatter(             # <<<<<<<<<<<<<<
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+ * 					low + 0.5 * (high-low),
+ */
+      __pyx_t_16 = PyTuple_New(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 349, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_GIVEREF(__pyx_t_14);
+      PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_14);
+      __Pyx_GIVEREF(__pyx_t_5);
+      PyTuple_SET_ITEM(__pyx_t_16, 1, __pyx_t_5);
+      __pyx_t_14 = 0;
+      __pyx_t_5 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":352
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+ * 					low + 0.5 * (high-low),
+ * 					s=600, c='red', marker='x', zorder= 10 )             # <<<<<<<<<<<<<<
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )
+ * 
+ */
+      __pyx_t_5 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 352, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_s, __pyx_int_600) < 0) __PYX_ERR(0, 352, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_c, __pyx_n_s_red) < 0) __PYX_ERR(0, 352, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_marker, __pyx_n_s_x) < 0) __PYX_ERR(0, 352, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_zorder, __pyx_int_10) < 0) __PYX_ERR(0, 352, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":349
+ * 			else:
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[0], window.boundaries[1], alpha = 0.5, color = 'red' )
+ * 				axs[ window.queue_position ].scatter(             # <<<<<<<<<<<<<<
+ * 					window.boundaries[0] + 0.5 * (window.boundaries[1] - window.boundaries[0]),
+ * 					low + 0.5 * (high-low),
+ */
+      __pyx_t_14 = __Pyx_PyObject_Call(__pyx_t_15, __pyx_t_16, __pyx_t_5); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 349, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":353
+ * 					low + 0.5 * (high-low),
+ * 					s=600, c='red', marker='x', zorder= 10 )
+ * 				axs[ window.queue_position ].axvspan( window.boundaries[1], window.boundaries[-1], alpha = 0.5, color = 'lightgreen' )             # <<<<<<<<<<<<<<
  * 
  * 
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 299, __pyx_L1_error)
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_14); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 353, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_axs, __pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axvspan); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 299, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 353, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = __Pyx_GetItemInt(__pyx_t_2, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_11);
-      PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_11);
-      __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
-      __pyx_t_11 = 0;
-      __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 299, __pyx_L1_error)
-      if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_color, __pyx_n_s_green) < 0) __PYX_ERR(0, 299, __pyx_L1_error)
-      __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 299, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
+      __pyx_t_16 = __Pyx_GetItemInt(__pyx_t_5, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_15 = __Pyx_GetItemInt(__pyx_t_5, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_5 = PyTuple_New(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GIVEREF(__pyx_t_16);
+      PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_16);
+      __Pyx_GIVEREF(__pyx_t_15);
+      PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_15);
+      __pyx_t_16 = 0;
+      __pyx_t_15 = 0;
+      __pyx_t_15 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 353, __pyx_L1_error)
+      if (PyDict_SetItem(__pyx_t_15, __pyx_n_s_color, __pyx_n_s_lightgreen) < 0) __PYX_ERR(0, 353, __pyx_L1_error)
+      __pyx_t_16 = __Pyx_PyObject_Call(__pyx_t_14, __pyx_t_5, __pyx_t_15); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 353, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
     }
-    __pyx_L9:;
+    __pyx_L13:;
 
-    /* "VocalTractLab/target_estimation.pyx":289
- * 	def plot( self, ):
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:             # <<<<<<<<<<<<<<
+    /* "VocalTractLab/target_estimation.pyx":332
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
+ * 		for index, window in enumerate( self.windows ):             # <<<<<<<<<<<<<<
  * 			for boundary in window.boundaries:
- * 				axs[ window.queue_position ].axvline( boundary, color = 'navy' )
+ * 				for ax in axs:
  */
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":304
+  /* "VocalTractLab/target_estimation.pyx":357
  * 
- * 		#plt.xlabel( 'Tract state' )
+ * 
+ * 		plt.xlabel( 'Time [s]' )             # <<<<<<<<<<<<<<
+ * 		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )
+ * 		#figure.supylabel('Contour [arb]')
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_plt); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 357, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_xlabel); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 357, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_16))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_16);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_16);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_16, function);
+    }
+  }
+  __pyx_t_6 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_16, __pyx_t_4, __pyx_kp_s_Time_s) : __Pyx_PyObject_CallOneArg(__pyx_t_16, __pyx_kp_s_Time_s);
+  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 357, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":358
+ * 
+ * 		plt.xlabel( 'Time [s]' )
+ * 		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )             # <<<<<<<<<<<<<<
+ * 		#figure.supylabel('Contour [arb]')
+ * 		for ax in axs:
+ */
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_figure, __pyx_n_s_text); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 358, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_16 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 358, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  if (PyDict_SetItem(__pyx_t_16, __pyx_n_s_va, __pyx_n_s_center) < 0) __PYX_ERR(0, 358, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_16, __pyx_n_s_rotation, __pyx_n_s_vertical) < 0) __PYX_ERR(0, 358, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_tuple__12, __pyx_t_16); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 358, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":360
+ * 		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )
+ * 		#figure.supylabel('Contour [arb]')
  * 		for ax in axs:             # <<<<<<<<<<<<<<
  * 			ax.label_outer()
  * 		figure.align_ylabels( axs[:] )
  */
   if (likely(PyList_CheckExact(__pyx_v_axs)) || PyTuple_CheckExact(__pyx_v_axs)) {
     __pyx_t_4 = __pyx_v_axs; __Pyx_INCREF(__pyx_t_4); __pyx_t_3 = 0;
-    __pyx_t_8 = NULL;
+    __pyx_t_9 = NULL;
   } else {
-    __pyx_t_3 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_axs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L1_error)
+    __pyx_t_3 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_v_axs); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 360, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_8 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 304, __pyx_L1_error)
+    __pyx_t_9 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 360, __pyx_L1_error)
   }
   for (;;) {
-    if (likely(!__pyx_t_8)) {
+    if (likely(!__pyx_t_9)) {
       if (likely(PyList_CheckExact(__pyx_t_4))) {
         if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_11 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_11); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 304, __pyx_L1_error)
+        __pyx_t_16 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_16); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 360, __pyx_L1_error)
         #else
-        __pyx_t_11 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 304, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
+        __pyx_t_16 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 360, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_16);
         #endif
       } else {
         if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_11 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_11); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 304, __pyx_L1_error)
+        __pyx_t_16 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_3); __Pyx_INCREF(__pyx_t_16); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 360, __pyx_L1_error)
         #else
-        __pyx_t_11 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 304, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
+        __pyx_t_16 = PySequence_ITEM(__pyx_t_4, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 360, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_16);
         #endif
       }
     } else {
-      __pyx_t_11 = __pyx_t_8(__pyx_t_4);
-      if (unlikely(!__pyx_t_11)) {
+      __pyx_t_16 = __pyx_t_9(__pyx_t_4);
+      if (unlikely(!__pyx_t_16)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 304, __pyx_L1_error)
+          else __PYX_ERR(0, 360, __pyx_L1_error)
         }
         break;
       }
-      __Pyx_GOTREF(__pyx_t_11);
+      __Pyx_GOTREF(__pyx_t_16);
     }
-    __Pyx_XDECREF_SET(__pyx_v_ax, __pyx_t_11);
-    __pyx_t_11 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_ax, __pyx_t_16);
+    __pyx_t_16 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":305
- * 		#plt.xlabel( 'Tract state' )
+    /* "VocalTractLab/target_estimation.pyx":361
+ * 		#figure.supylabel('Contour [arb]')
  * 		for ax in axs:
  * 			ax.label_outer()             # <<<<<<<<<<<<<<
  * 		figure.align_ylabels( axs[:] )
- * 		plt.show()
+ * 		plt.tight_layout()
  */
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_ax, __pyx_n_s_label_outer); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 305, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_2 = NULL;
-    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_1))) {
-      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
-      if (likely(__pyx_t_2)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-        __Pyx_INCREF(__pyx_t_2);
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_ax, __pyx_n_s_label_outer); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 361, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_15 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+      __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_6);
+      if (likely(__pyx_t_15)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+        __Pyx_INCREF(__pyx_t_15);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_1, function);
+        __Pyx_DECREF_SET(__pyx_t_6, function);
       }
     }
-    __pyx_t_11 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
-    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 305, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __pyx_t_16 = (__pyx_t_15) ? __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_15) : __Pyx_PyObject_CallNoArg(__pyx_t_6);
+    __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+    if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 361, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_16);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":304
- * 
- * 		#plt.xlabel( 'Tract state' )
+    /* "VocalTractLab/target_estimation.pyx":360
+ * 		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )
+ * 		#figure.supylabel('Contour [arb]')
  * 		for ax in axs:             # <<<<<<<<<<<<<<
  * 			ax.label_outer()
  * 		figure.align_ylabels( axs[:] )
@@ -7014,66 +7831,124 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":306
+  /* "VocalTractLab/target_estimation.pyx":362
  * 		for ax in axs:
  * 			ax.label_outer()
  * 		figure.align_ylabels( axs[:] )             # <<<<<<<<<<<<<<
+ * 		plt.tight_layout()
+ * 		plt.savefig( 'sequential_fit_principle.pdf' )
+ */
+  __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_v_figure, __pyx_n_s_align_ylabels); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_6 = __Pyx_PyObject_GetSlice(__pyx_v_axs, 0, 0, NULL, NULL, &__pyx_slice__2, 0, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_15 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_16))) {
+    __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_16);
+    if (likely(__pyx_t_15)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_16);
+      __Pyx_INCREF(__pyx_t_15);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_16, function);
+    }
+  }
+  __pyx_t_4 = (__pyx_t_15) ? __Pyx_PyObject_Call2Args(__pyx_t_16, __pyx_t_15, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_16, __pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_15); __pyx_t_15 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":363
+ * 			ax.label_outer()
+ * 		figure.align_ylabels( axs[:] )
+ * 		plt.tight_layout()             # <<<<<<<<<<<<<<
+ * 		plt.savefig( 'sequential_fit_principle.pdf' )
+ * 		plt.show()
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_n_s_plt); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_tight_layout); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  __pyx_t_16 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
+    __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_6);
+    if (likely(__pyx_t_16)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+      __Pyx_INCREF(__pyx_t_16);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_6, function);
+    }
+  }
+  __pyx_t_4 = (__pyx_t_16) ? __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_16) : __Pyx_PyObject_CallNoArg(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":364
+ * 		figure.align_ylabels( axs[:] )
+ * 		plt.tight_layout()
+ * 		plt.savefig( 'sequential_fit_principle.pdf' )             # <<<<<<<<<<<<<<
  * 		plt.show()
  * 		return
  */
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_figure, __pyx_n_s_align_ylabels); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 306, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_1 = __Pyx_PyObject_GetSlice(__pyx_v_axs, 0, 0, NULL, NULL, &__pyx_slice__2, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_11))) {
-    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_11);
-    if (likely(__pyx_t_2)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-      __Pyx_INCREF(__pyx_t_2);
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_plt); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 364, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_savefig); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 364, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_16))) {
+    __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_16);
+    if (likely(__pyx_t_6)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_16);
+      __Pyx_INCREF(__pyx_t_6);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_11, function);
+      __Pyx_DECREF_SET(__pyx_t_16, function);
     }
   }
-  __pyx_t_4 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_11, __pyx_t_2, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L1_error)
+  __pyx_t_4 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_16, __pyx_t_6, __pyx_kp_s_sequential_fit_principle_pdf) : __Pyx_PyObject_CallOneArg(__pyx_t_16, __pyx_kp_s_sequential_fit_principle_pdf);
+  __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 364, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":307
- * 			ax.label_outer()
- * 		figure.align_ylabels( axs[:] )
+  /* "VocalTractLab/target_estimation.pyx":365
+ * 		plt.tight_layout()
+ * 		plt.savefig( 'sequential_fit_principle.pdf' )
  * 		plt.show()             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_plt); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 307, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_show); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 307, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_11)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_11);
+  __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_n_s_plt); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 365, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_16);
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_show); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 365, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+  __pyx_t_16 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
+    __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_6);
+    if (likely(__pyx_t_16)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+      __Pyx_INCREF(__pyx_t_16);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __Pyx_DECREF_SET(__pyx_t_6, function);
     }
   }
-  __pyx_t_4 = (__pyx_t_11) ? __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_11) : __Pyx_PyObject_CallNoArg(__pyx_t_1);
-  __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L1_error)
+  __pyx_t_4 = (__pyx_t_16) ? __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_16) : __Pyx_PyObject_CallNoArg(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+  if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 365, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":308
- * 		figure.align_ylabels( axs[:] )
+  /* "VocalTractLab/target_estimation.pyx":366
+ * 		plt.savefig( 'sequential_fit_principle.pdf' )
  * 		plt.show()
  * 		return             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
@@ -7083,12 +7958,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   __pyx_r = Py_None; __Pyx_INCREF(Py_None);
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":287
- * 		return
+  /* "VocalTractLab/target_estimation.pyx":329
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
  */
 
   /* function exit code */
@@ -7098,12 +7973,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_14);
+  __Pyx_XDECREF(__pyx_t_15);
+  __Pyx_XDECREF(__pyx_t_16);
   __Pyx_AddTraceback("VocalTractLab.target_estimation.Sequential_Fit.plot", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_figure);
   __Pyx_XDECREF(__pyx_v_axs);
+  __Pyx_XDECREF(__pyx_v_low);
+  __Pyx_XDECREF(__pyx_v_high);
+  __Pyx_XDECREF(__pyx_v_index);
   __Pyx_XDECREF(__pyx_v_window);
   __Pyx_XDECREF(__pyx_v_boundary);
   __Pyx_XDECREF(__pyx_v_ax);
@@ -7112,7 +7992,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_14Sequential_Fit_2
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":324
+/* "VocalTractLab/target_estimation.pyx":382
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 
  * def convert_hz_to_st( values ):             # <<<<<<<<<<<<<<
@@ -7146,7 +8026,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(C
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("convert_hz_to_st", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":325
+  /* "VocalTractLab/target_estimation.pyx":383
  * 
  * def convert_hz_to_st( values ):
  * 	return 12 * ( np.log( values ) / np.log( 2 ) )             # <<<<<<<<<<<<<<
@@ -7154,9 +8034,9 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(C
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_log); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_log); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -7171,12 +8051,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(C
   }
   __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_values) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_values);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 325, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_log); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_log); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -7191,21 +8071,21 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(C
   }
   __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_4, __pyx_t_2, __pyx_int_2) : __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_int_2);
   __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 325, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyNumber_Divide(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Multiply(__pyx_int_12, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 325, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_int_12, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 383, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":324
+  /* "VocalTractLab/target_estimation.pyx":382
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 
  * def convert_hz_to_st( values ):             # <<<<<<<<<<<<<<
@@ -7227,7 +8107,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_convert_hz_to_st(C
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":331
+/* "VocalTractLab/target_estimation.pyx":389
  * # 		Single core functions
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit(             # <<<<<<<<<<<<<<
@@ -7268,7 +8148,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
   {
     static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_boundaries,&__pyx_n_s_init_bounds,&__pyx_n_s_weight_slope,&__pyx_n_s_weight_offset,&__pyx_n_s_weight_tau,&__pyx_n_s_weight_lambda,&__pyx_n_s_delta_slope,&__pyx_n_s_delta_offset,&__pyx_n_s_delta_tau,&__pyx_n_s_delta_boundary,&__pyx_n_s_mean_slope,&__pyx_n_s_mean_tau,&__pyx_n_s_max_iterations,&__pyx_n_s_max_cost_evaluations,&__pyx_n_s_rho_end,&__pyx_n_s_use_early_stopping,&__pyx_n_s_epsilon,&__pyx_n_s_patience,0};
     PyObject* values[20] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-    values[2] = __pyx_k__10;
+    values[2] = __pyx_k__13;
     values[3] = ((PyObject *)__pyx_int_4);
     values[4] = ((PyObject *)__pyx_float_1_0);
     values[5] = ((PyObject *)__pyx_float_0_5);
@@ -7284,7 +8164,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
     values[15] = ((PyObject *)__pyx_float_1e6);
     values[16] = ((PyObject *)__pyx_float_1eneg_6);
 
-    /* "VocalTractLab/target_estimation.pyx":350
+    /* "VocalTractLab/target_estimation.pyx":408
  * 			max_cost_evaluations = 1e6,
  * 			rho_end = 1e-6,
  * 			use_early_stopping = False,             # <<<<<<<<<<<<<<
@@ -7294,7 +8174,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
     values[17] = ((PyObject *)Py_False);
     values[18] = ((PyObject *)__pyx_float_0_01);
 
-    /* "VocalTractLab/target_estimation.pyx":352
+    /* "VocalTractLab/target_estimation.pyx":410
  * 			use_early_stopping = False,
  * 			epsilon = 0.01,
  * 			patience = None,             # <<<<<<<<<<<<<<
@@ -7358,7 +8238,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fit", 0, 2, 20, 1); __PYX_ERR(0, 331, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fit", 0, 2, 20, 1); __PYX_ERR(0, 389, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -7470,7 +8350,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit") < 0)) __PYX_ERR(0, 331, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "fit") < 0)) __PYX_ERR(0, 389, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -7539,7 +8419,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fit", 0, 2, 20, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 331, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fit", 0, 2, 20, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 389, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -7547,7 +8427,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_3fit(PyObject *__p
   __pyx_L4_argument_unpacking_done:;
   __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_2fit(__pyx_self, __pyx_v_times, __pyx_v_values, __pyx_v_boundaries, __pyx_v_init_bounds, __pyx_v_weight_slope, __pyx_v_weight_offset, __pyx_v_weight_tau, __pyx_v_weight_lambda, __pyx_v_delta_slope, __pyx_v_delta_offset, __pyx_v_delta_tau, __pyx_v_delta_boundary, __pyx_v_mean_slope, __pyx_v_mean_tau, __pyx_v_max_iterations, __pyx_v_max_cost_evaluations, __pyx_v_rho_end, __pyx_v_use_early_stopping, __pyx_v_epsilon, __pyx_v_patience);
 
-  /* "VocalTractLab/target_estimation.pyx":331
+  /* "VocalTractLab/target_estimation.pyx":389
  * # 		Single core functions
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit(             # <<<<<<<<<<<<<<
@@ -7564,6 +8444,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   PyObject *__pyx_v_step = NULL;
   PyObject *__pyx_v_norm_factor_a = NULL;
   PyObject *__pyx_v_norm_factor_b = NULL;
+  PyObject *__pyx_v_normalized_values = NULL;
   std::vector<double>  __pyx_v_c_input_times;
   std::vector<double>  __pyx_v_c_input_values;
   std::vector<double>  __pyx_v_c_boundaries;
@@ -7585,11 +8466,13 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   double __pyx_v_c_epsilon;
   int __pyx_v_c_patience;
   struct FitData __pyx_v_fit_results;
+  PyObject *__pyx_v_out_targets = NULL;
+  PyObject *__pyx_v_tgs = NULL;
+  PyObject *__pyx_v_out_trajectory = NULL;
   PyObject *__pyx_v_fit_info = NULL;
   PyObject *__pyx_v_x = NULL;
   PyObject *__pyx_v_i = NULL;
   PyObject *__pyx_v_target = NULL;
-  struct Sample __pyx_v_sample;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
@@ -7609,36 +8492,26 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   bool __pyx_t_15;
   std::vector<double> ::size_type __pyx_t_16;
   __Pyx_FakeReference<double> __pyx_t_17;
-  PyObject *__pyx_t_18 = NULL;
-  PyObject *__pyx_t_19 = NULL;
-  PyObject *__pyx_t_20 = NULL;
-  PyObject *__pyx_t_21 = NULL;
-  PyObject *__pyx_t_22 = NULL;
-  PyObject *__pyx_t_23 = NULL;
-  std::vector<struct Sample> ::iterator __pyx_t_24;
-  std::vector<struct Sample>  *__pyx_t_25;
-  struct Sample __pyx_t_26;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("fit", 0);
-  __Pyx_INCREF(__pyx_v_values);
   __Pyx_INCREF(__pyx_v_boundaries);
   __Pyx_INCREF(__pyx_v_patience);
 
-  /* "VocalTractLab/target_estimation.pyx":354
+  /* "VocalTractLab/target_estimation.pyx":412
  * 			patience = None,
  * 			):
  * 	if patience == None:             # <<<<<<<<<<<<<<
  * 		patience = -1
  * 	if boundaries == [] and init_bounds != 0:
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_patience, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 354, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 354, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_patience, Py_None, Py_EQ); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 412, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 412, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "VocalTractLab/target_estimation.pyx":355
+    /* "VocalTractLab/target_estimation.pyx":413
  * 			):
  * 	if patience == None:
  * 		patience = -1             # <<<<<<<<<<<<<<
@@ -7648,7 +8521,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
     __Pyx_INCREF(__pyx_int_neg_1);
     __Pyx_DECREF_SET(__pyx_v_patience, __pyx_int_neg_1);
 
-    /* "VocalTractLab/target_estimation.pyx":354
+    /* "VocalTractLab/target_estimation.pyx":412
  * 			patience = None,
  * 			):
  * 	if patience == None:             # <<<<<<<<<<<<<<
@@ -7657,71 +8530,71 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
  */
   }
 
-  /* "VocalTractLab/target_estimation.pyx":356
+  /* "VocalTractLab/target_estimation.pyx":414
  * 	if patience == None:
  * 		patience = -1
  * 	if boundaries == [] and init_bounds != 0:             # <<<<<<<<<<<<<<
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 414, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_boundaries, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_boundaries, __pyx_t_1, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 414, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 414, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
   } else {
     __pyx_t_2 = __pyx_t_4;
     goto __pyx_L5_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyInt_NeObjC(__pyx_v_init_bounds, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_NeObjC(__pyx_v_init_bounds, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 414, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 356, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 414, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_2 = __pyx_t_4;
   __pyx_L5_bool_binop_done:;
   if (__pyx_t_2) {
 
-    /* "VocalTractLab/target_estimation.pyx":357
+    /* "VocalTractLab/target_estimation.pyx":415
  * 		patience = -1
  * 	if boundaries == [] and init_bounds != 0:
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )             # <<<<<<<<<<<<<<
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  * 		#print( boundaries )
  */
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_times, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_times, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 415, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 415, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 415, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_v_init_bounds, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyInt_SubtractObjC(__pyx_v_init_bounds, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 415, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 357, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 415, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __pyx_v_step = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":358
+    /* "VocalTractLab/target_estimation.pyx":416
  * 	if boundaries == [] and init_bounds != 0:
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )             # <<<<<<<<<<<<<<
  * 		#print( boundaries )
  * 		#print( len(boundaries ) )
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
@@ -7729,16 +8602,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
     __Pyx_INCREF(__pyx_v_init_bounds);
     __Pyx_GIVEREF(__pyx_v_init_bounds);
     PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_v_init_bounds);
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_6, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 358, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_6, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (likely(PyList_CheckExact(__pyx_t_7)) || PyTuple_CheckExact(__pyx_t_7)) {
       __pyx_t_6 = __pyx_t_7; __Pyx_INCREF(__pyx_t_6); __pyx_t_8 = 0;
       __pyx_t_9 = NULL;
     } else {
-      __pyx_t_8 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 358, __pyx_L1_error)
+      __pyx_t_8 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 416, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_9 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 358, __pyx_L1_error)
+      __pyx_t_9 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 416, __pyx_L1_error)
     }
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     for (;;) {
@@ -7746,17 +8619,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
         if (likely(PyList_CheckExact(__pyx_t_6))) {
           if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_6)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 358, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 416, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 358, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 416, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_6)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 358, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 416, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 358, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 416, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -7766,7 +8639,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 358, __pyx_L1_error)
+            else __PYX_ERR(0, 416, __pyx_L1_error)
           }
           break;
         }
@@ -7774,15 +8647,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
       }
       __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 358, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 416, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_10 = PyNumber_Multiply(__pyx_v_x, __pyx_v_step); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 358, __pyx_L1_error)
+      __pyx_t_10 = PyNumber_Multiply(__pyx_v_x, __pyx_v_step); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 416, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = PyNumber_Add(__pyx_t_7, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 358, __pyx_L1_error)
+      __pyx_t_11 = PyNumber_Add(__pyx_t_7, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 416, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_11))) __PYX_ERR(0, 358, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_11))) __PYX_ERR(0, 416, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     }
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -7799,13 +8672,13 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
     __pyx_t_3 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_6, __pyx_t_1) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_1);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 358, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 416, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF_SET(__pyx_v_boundaries, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":356
+    /* "VocalTractLab/target_estimation.pyx":414
  * 	if patience == None:
  * 		patience = -1
  * 	if boundaries == [] and init_bounds != 0:             # <<<<<<<<<<<<<<
@@ -7814,16 +8687,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
  */
   }
 
-  /* "VocalTractLab/target_estimation.pyx":361
- * 		#print( boundaries )
- * 		#print( len(boundaries ) )
+  /* "VocalTractLab/target_estimation.pyx":425
+ * 
+ * 
  * 	norm_factor_a = np.min( values )             # <<<<<<<<<<<<<<
  * 	norm_factor_b = np.max( values ) - np.min( values )
- * 	values = ( values - norm_factor_a ) / norm_factor_b
+ * 	normalized_values = ( values - norm_factor_a ) / norm_factor_b
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 425, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_min); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 361, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_min); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 425, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -7838,22 +8711,22 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   }
   __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_5, __pyx_v_values) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_values);
   __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 361, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 425, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_norm_factor_a = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":362
- * 		#print( len(boundaries ) )
+  /* "VocalTractLab/target_estimation.pyx":426
+ * 
  * 	norm_factor_a = np.min( values )
  * 	norm_factor_b = np.max( values ) - np.min( values )             # <<<<<<<<<<<<<<
- * 	values = ( values - norm_factor_a ) / norm_factor_b
+ * 	normalized_values = ( values - norm_factor_a ) / norm_factor_b
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_max); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_max); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -7868,12 +8741,12 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   }
   __pyx_t_3 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_1, __pyx_v_values) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_values);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 362, __pyx_L1_error)
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_min); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_min); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -7888,232 +8761,232 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   }
   __pyx_t_5 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_1, __pyx_v_values) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_values);
   __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 362, __pyx_L1_error)
+  if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyNumber_Subtract(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 362, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Subtract(__pyx_t_3, __pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 426, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_norm_factor_b = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":363
+  /* "VocalTractLab/target_estimation.pyx":427
  * 	norm_factor_a = np.min( values )
  * 	norm_factor_b = np.max( values ) - np.min( values )
- * 	values = ( values - norm_factor_a ) / norm_factor_b             # <<<<<<<<<<<<<<
+ * 	normalized_values = ( values - norm_factor_a ) / norm_factor_b             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_6 = PyNumber_Subtract(__pyx_v_values, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Subtract(__pyx_v_values, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 427, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_6, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 363, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_6, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 427, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __Pyx_DECREF_SET(__pyx_v_values, __pyx_t_5);
+  __pyx_v_normalized_values = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":369
+  /* "VocalTractLab/target_estimation.pyx":433
  * 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_input_values = values
  * 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_boundaries = boundaries
  * 	cdef vector[double] c_input_times = times             # <<<<<<<<<<<<<<
- * 	cdef vector[double] c_input_values = values
+ * 	cdef vector[double] c_input_values = normalized_values
  * 	cdef vector[double] c_boundaries = boundaries
  */
-  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_times); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 369, __pyx_L1_error)
+  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_times); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 433, __pyx_L1_error)
   __pyx_v_c_input_times = __pyx_t_12;
 
-  /* "VocalTractLab/target_estimation.pyx":370
+  /* "VocalTractLab/target_estimation.pyx":434
  * 	#cdef np.ndarray[ np.float64_t, ndim=1 ] c_boundaries = boundaries
  * 	cdef vector[double] c_input_times = times
- * 	cdef vector[double] c_input_values = values             # <<<<<<<<<<<<<<
+ * 	cdef vector[double] c_input_values = normalized_values             # <<<<<<<<<<<<<<
  * 	cdef vector[double] c_boundaries = boundaries
  * 	#c_boundaries.push_back( 5 )
  */
-  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_values); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 370, __pyx_L1_error)
+  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_normalized_values); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 434, __pyx_L1_error)
   __pyx_v_c_input_values = __pyx_t_12;
 
-  /* "VocalTractLab/target_estimation.pyx":371
+  /* "VocalTractLab/target_estimation.pyx":435
  * 	cdef vector[double] c_input_times = times
- * 	cdef vector[double] c_input_values = values
+ * 	cdef vector[double] c_input_values = normalized_values
  * 	cdef vector[double] c_boundaries = boundaries             # <<<<<<<<<<<<<<
  * 	#c_boundaries.push_back( 5 )
  * 	#print( c_boundaries )
  */
-  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_boundaries); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 371, __pyx_L1_error)
+  __pyx_t_12 = __pyx_convert_vector_from_py_double(__pyx_v_boundaries); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 435, __pyx_L1_error)
   __pyx_v_c_boundaries = __pyx_t_12;
 
-  /* "VocalTractLab/target_estimation.pyx":375
+  /* "VocalTractLab/target_estimation.pyx":439
  * 	#print( c_boundaries )
  * 	#print( c_boundaries.size() )
  * 	cdef int c_init_bounds = init_bounds             # <<<<<<<<<<<<<<
  * 	cdef double c_weight_slope = weight_slope
  * 	cdef double c_weight_offset = weight_offset
  */
-  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_init_bounds); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 375, __pyx_L1_error)
+  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_init_bounds); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 439, __pyx_L1_error)
   __pyx_v_c_init_bounds = __pyx_t_13;
 
-  /* "VocalTractLab/target_estimation.pyx":376
+  /* "VocalTractLab/target_estimation.pyx":440
  * 	#print( c_boundaries.size() )
  * 	cdef int c_init_bounds = init_bounds
  * 	cdef double c_weight_slope = weight_slope             # <<<<<<<<<<<<<<
  * 	cdef double c_weight_offset = weight_offset
  * 	cdef double c_weight_tau = weight_tau
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 376, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 440, __pyx_L1_error)
   __pyx_v_c_weight_slope = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":377
+  /* "VocalTractLab/target_estimation.pyx":441
  * 	cdef int c_init_bounds = init_bounds
  * 	cdef double c_weight_slope = weight_slope
  * 	cdef double c_weight_offset = weight_offset             # <<<<<<<<<<<<<<
  * 	cdef double c_weight_tau = weight_tau
  * 	cdef double c_weight_lambda = weight_lambda
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_offset); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 377, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_offset); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 441, __pyx_L1_error)
   __pyx_v_c_weight_offset = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":378
+  /* "VocalTractLab/target_estimation.pyx":442
  * 	cdef double c_weight_slope = weight_slope
  * 	cdef double c_weight_offset = weight_offset
  * 	cdef double c_weight_tau = weight_tau             # <<<<<<<<<<<<<<
  * 	cdef double c_weight_lambda = weight_lambda
  * 	cdef double c_delta_slope = delta_slope
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 378, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 442, __pyx_L1_error)
   __pyx_v_c_weight_tau = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":379
+  /* "VocalTractLab/target_estimation.pyx":443
  * 	cdef double c_weight_offset = weight_offset
  * 	cdef double c_weight_tau = weight_tau
  * 	cdef double c_weight_lambda = weight_lambda             # <<<<<<<<<<<<<<
  * 	cdef double c_delta_slope = delta_slope
  * 	cdef double c_delta_offset = delta_offset
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_lambda); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 379, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_weight_lambda); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 443, __pyx_L1_error)
   __pyx_v_c_weight_lambda = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":380
+  /* "VocalTractLab/target_estimation.pyx":444
  * 	cdef double c_weight_tau = weight_tau
  * 	cdef double c_weight_lambda = weight_lambda
  * 	cdef double c_delta_slope = delta_slope             # <<<<<<<<<<<<<<
  * 	cdef double c_delta_offset = delta_offset
  * 	cdef double c_delta_tau = delta_tau
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 380, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 444, __pyx_L1_error)
   __pyx_v_c_delta_slope = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":381
+  /* "VocalTractLab/target_estimation.pyx":445
  * 	cdef double c_weight_lambda = weight_lambda
  * 	cdef double c_delta_slope = delta_slope
  * 	cdef double c_delta_offset = delta_offset             # <<<<<<<<<<<<<<
  * 	cdef double c_delta_tau = delta_tau
  * 	cdef double c_delta_boundary = delta_boundary
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_offset); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 381, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_offset); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 445, __pyx_L1_error)
   __pyx_v_c_delta_offset = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":382
+  /* "VocalTractLab/target_estimation.pyx":446
  * 	cdef double c_delta_slope = delta_slope
  * 	cdef double c_delta_offset = delta_offset
  * 	cdef double c_delta_tau = delta_tau             # <<<<<<<<<<<<<<
  * 	cdef double c_delta_boundary = delta_boundary
  * 	cdef double c_mean_slope = mean_slope
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 382, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 446, __pyx_L1_error)
   __pyx_v_c_delta_tau = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":383
+  /* "VocalTractLab/target_estimation.pyx":447
  * 	cdef double c_delta_offset = delta_offset
  * 	cdef double c_delta_tau = delta_tau
  * 	cdef double c_delta_boundary = delta_boundary             # <<<<<<<<<<<<<<
  * 	cdef double c_mean_slope = mean_slope
  * 	#cdef double c_mean_offset
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_boundary); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 383, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_delta_boundary); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 447, __pyx_L1_error)
   __pyx_v_c_delta_boundary = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":384
+  /* "VocalTractLab/target_estimation.pyx":448
  * 	cdef double c_delta_tau = delta_tau
  * 	cdef double c_delta_boundary = delta_boundary
  * 	cdef double c_mean_slope = mean_slope             # <<<<<<<<<<<<<<
  * 	#cdef double c_mean_offset
  * 	cdef double c_mean_tau = mean_tau
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_mean_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 384, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_mean_slope); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 448, __pyx_L1_error)
   __pyx_v_c_mean_slope = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":386
+  /* "VocalTractLab/target_estimation.pyx":450
  * 	cdef double c_mean_slope = mean_slope
  * 	#cdef double c_mean_offset
  * 	cdef double c_mean_tau = mean_tau             # <<<<<<<<<<<<<<
  * 	cdef int c_max_iterations = max_iterations
  * 	cdef int c_max_cost_evaluations = max_cost_evaluations
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_mean_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 386, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_mean_tau); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 450, __pyx_L1_error)
   __pyx_v_c_mean_tau = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":387
+  /* "VocalTractLab/target_estimation.pyx":451
  * 	#cdef double c_mean_offset
  * 	cdef double c_mean_tau = mean_tau
  * 	cdef int c_max_iterations = max_iterations             # <<<<<<<<<<<<<<
  * 	cdef int c_max_cost_evaluations = max_cost_evaluations
  * 	cdef double c_rho_end = rho_end
  */
-  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_max_iterations); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 387, __pyx_L1_error)
+  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_max_iterations); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 451, __pyx_L1_error)
   __pyx_v_c_max_iterations = __pyx_t_13;
 
-  /* "VocalTractLab/target_estimation.pyx":388
+  /* "VocalTractLab/target_estimation.pyx":452
  * 	cdef double c_mean_tau = mean_tau
  * 	cdef int c_max_iterations = max_iterations
  * 	cdef int c_max_cost_evaluations = max_cost_evaluations             # <<<<<<<<<<<<<<
  * 	cdef double c_rho_end = rho_end
  * 	cdef bool c_use_early_stopping = use_early_stopping
  */
-  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_max_cost_evaluations); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 388, __pyx_L1_error)
+  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_max_cost_evaluations); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 452, __pyx_L1_error)
   __pyx_v_c_max_cost_evaluations = __pyx_t_13;
 
-  /* "VocalTractLab/target_estimation.pyx":389
+  /* "VocalTractLab/target_estimation.pyx":453
  * 	cdef int c_max_iterations = max_iterations
  * 	cdef int c_max_cost_evaluations = max_cost_evaluations
  * 	cdef double c_rho_end = rho_end             # <<<<<<<<<<<<<<
  * 	cdef bool c_use_early_stopping = use_early_stopping
  * 	cdef double c_epsilon = epsilon
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_rho_end); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 389, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_rho_end); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 453, __pyx_L1_error)
   __pyx_v_c_rho_end = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":390
+  /* "VocalTractLab/target_estimation.pyx":454
  * 	cdef int c_max_cost_evaluations = max_cost_evaluations
  * 	cdef double c_rho_end = rho_end
  * 	cdef bool c_use_early_stopping = use_early_stopping             # <<<<<<<<<<<<<<
  * 	cdef double c_epsilon = epsilon
  * 	cdef int c_patience = patience
  */
-  __pyx_t_15 = __Pyx_PyObject_IsTrue(__pyx_v_use_early_stopping); if (unlikely((__pyx_t_15 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 390, __pyx_L1_error)
+  __pyx_t_15 = __Pyx_PyObject_IsTrue(__pyx_v_use_early_stopping); if (unlikely((__pyx_t_15 == ((bool)-1)) && PyErr_Occurred())) __PYX_ERR(0, 454, __pyx_L1_error)
   __pyx_v_c_use_early_stopping = __pyx_t_15;
 
-  /* "VocalTractLab/target_estimation.pyx":391
+  /* "VocalTractLab/target_estimation.pyx":455
  * 	cdef double c_rho_end = rho_end
  * 	cdef bool c_use_early_stopping = use_early_stopping
  * 	cdef double c_epsilon = epsilon             # <<<<<<<<<<<<<<
  * 	cdef int c_patience = patience
  * 	cdef FitData fit_results
  */
-  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_epsilon); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 391, __pyx_L1_error)
+  __pyx_t_14 = __pyx_PyFloat_AsDouble(__pyx_v_epsilon); if (unlikely((__pyx_t_14 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 455, __pyx_L1_error)
   __pyx_v_c_epsilon = __pyx_t_14;
 
-  /* "VocalTractLab/target_estimation.pyx":392
+  /* "VocalTractLab/target_estimation.pyx":456
  * 	cdef bool c_use_early_stopping = use_early_stopping
  * 	cdef double c_epsilon = epsilon
  * 	cdef int c_patience = patience             # <<<<<<<<<<<<<<
  * 	cdef FitData fit_results
  * 	fit_results = estimate_targets(
  */
-  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_patience); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 392, __pyx_L1_error)
+  __pyx_t_13 = __Pyx_PyInt_As_int(__pyx_v_patience); if (unlikely((__pyx_t_13 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 456, __pyx_L1_error)
   __pyx_v_c_patience = __pyx_t_13;
 
-  /* "VocalTractLab/target_estimation.pyx":394
+  /* "VocalTractLab/target_estimation.pyx":458
  * 	cdef int c_patience = patience
  * 	cdef FitData fit_results
  * 	fit_results = estimate_targets(             # <<<<<<<<<<<<<<
@@ -8122,271 +8995,62 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
  */
   __pyx_v_fit_results = estimate_targets(__pyx_v_c_input_times, __pyx_v_c_input_values, __pyx_v_c_boundaries, __pyx_v_c_weight_slope, __pyx_v_c_weight_offset, __pyx_v_c_weight_tau, __pyx_v_c_weight_lambda, __pyx_v_c_delta_slope, __pyx_v_c_delta_offset, __pyx_v_c_delta_tau, __pyx_v_c_delta_boundary, __pyx_v_c_mean_slope, __pyx_v_c_mean_tau, __pyx_v_c_max_iterations, __pyx_v_c_max_cost_evaluations, __pyx_v_c_rho_end, __pyx_v_c_use_early_stopping, __pyx_v_c_epsilon, __pyx_v_c_patience);
 
-  /* "VocalTractLab/target_estimation.pyx":423
+  /* "VocalTractLab/target_estimation.pyx":486
+ * 	#print( 'res targets: ------------------------')
  * 	#print( fit_results.res_targets )
- * 	fit_info = dict(
- * 		in_times = np.array( times ),             # <<<<<<<<<<<<<<
- * 		in_values = values * norm_factor_b + norm_factor_a,
- * 		in_boundaries = boundaries,
+ * 	out_targets = [             # <<<<<<<<<<<<<<
+ * 		tg.Target(
+ * 			onset_time = fit_results.res_boundaries.at( i ),
  */
-  __pyx_t_5 = __Pyx_PyDict_NewPresized(28); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 423, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 486, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  __pyx_t_6 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_v_times) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_times);
-  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_times, __pyx_t_6) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-
-  /* "VocalTractLab/target_estimation.pyx":424
- * 	fit_info = dict(
- * 		in_times = np.array( times ),
- * 		in_values = values * norm_factor_b + norm_factor_a,             # <<<<<<<<<<<<<<
- * 		in_boundaries = boundaries,
- * 		par_init_bounds = init_bounds,
- */
-  __pyx_t_6 = PyNumber_Multiply(__pyx_v_values, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = PyNumber_Add(__pyx_t_6, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 424, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_values, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "VocalTractLab/target_estimation.pyx":425
- * 		in_times = np.array( times ),
- * 		in_values = values * norm_factor_b + norm_factor_a,
- * 		in_boundaries = boundaries,             # <<<<<<<<<<<<<<
- * 		par_init_bounds = init_bounds,
- * 		par_weight_slope = weight_slope,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_boundaries, __pyx_v_boundaries) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":426
- * 		in_values = values * norm_factor_b + norm_factor_a,
- * 		in_boundaries = boundaries,
- * 		par_init_bounds = init_bounds,             # <<<<<<<<<<<<<<
- * 		par_weight_slope = weight_slope,
- * 		par_weight_offset = weight_offset,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_init_bounds, __pyx_v_init_bounds) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":427
- * 		in_boundaries = boundaries,
- * 		par_init_bounds = init_bounds,
- * 		par_weight_slope = weight_slope,             # <<<<<<<<<<<<<<
- * 		par_weight_offset = weight_offset,
- * 		par_weight_tau = weight_tau,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_slope, __pyx_v_weight_slope) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":428
- * 		par_init_bounds = init_bounds,
- * 		par_weight_slope = weight_slope,
- * 		par_weight_offset = weight_offset,             # <<<<<<<<<<<<<<
- * 		par_weight_tau = weight_tau,
- * 		par_weight_lambda = weight_lambda,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_offset, __pyx_v_weight_offset) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":429
- * 		par_weight_slope = weight_slope,
- * 		par_weight_offset = weight_offset,
- * 		par_weight_tau = weight_tau,             # <<<<<<<<<<<<<<
- * 		par_weight_lambda = weight_lambda,
- * 		par_delta_slope = delta_slope,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_tau, __pyx_v_weight_tau) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":430
- * 		par_weight_offset = weight_offset,
- * 		par_weight_tau = weight_tau,
- * 		par_weight_lambda = weight_lambda,             # <<<<<<<<<<<<<<
- * 		par_delta_slope = delta_slope,
- * 		par_delta_offset = delta_offset,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_lambda, __pyx_v_weight_lambda) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":431
- * 		par_weight_tau = weight_tau,
- * 		par_weight_lambda = weight_lambda,
- * 		par_delta_slope = delta_slope,             # <<<<<<<<<<<<<<
- * 		par_delta_offset = delta_offset,
- * 		par_delta_tau = delta_tau,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_slope, __pyx_v_delta_slope) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":432
- * 		par_weight_lambda = weight_lambda,
- * 		par_delta_slope = delta_slope,
- * 		par_delta_offset = delta_offset,             # <<<<<<<<<<<<<<
- * 		par_delta_tau = delta_tau,
- * 		par_delta_boundary = delta_boundary,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_offset, __pyx_v_delta_offset) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":433
- * 		par_delta_slope = delta_slope,
- * 		par_delta_offset = delta_offset,
- * 		par_delta_tau = delta_tau,             # <<<<<<<<<<<<<<
- * 		par_delta_boundary = delta_boundary,
- * 		par_mean_slope = mean_slope,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_tau, __pyx_v_delta_tau) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":434
- * 		par_delta_offset = delta_offset,
- * 		par_delta_tau = delta_tau,
- * 		par_delta_boundary = delta_boundary,             # <<<<<<<<<<<<<<
- * 		par_mean_slope = mean_slope,
- * 		par_mean_tau = mean_tau,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_boundary, __pyx_v_delta_boundary) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":435
- * 		par_delta_tau = delta_tau,
- * 		par_delta_boundary = delta_boundary,
- * 		par_mean_slope = mean_slope,             # <<<<<<<<<<<<<<
- * 		par_mean_tau = mean_tau,
- * 		par_max_iterations = max_iterations,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_mean_slope, __pyx_v_mean_slope) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":436
- * 		par_delta_boundary = delta_boundary,
- * 		par_mean_slope = mean_slope,
- * 		par_mean_tau = mean_tau,             # <<<<<<<<<<<<<<
- * 		par_max_iterations = max_iterations,
- * 		par_max_cost_evaluations = max_cost_evaluations,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_mean_tau, __pyx_v_mean_tau) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":437
- * 		par_mean_slope = mean_slope,
- * 		par_mean_tau = mean_tau,
- * 		par_max_iterations = max_iterations,             # <<<<<<<<<<<<<<
- * 		par_max_cost_evaluations = max_cost_evaluations,
- * 		par_rho_end = rho_end,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_max_iterations, __pyx_v_max_iterations) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":438
- * 		par_mean_tau = mean_tau,
- * 		par_max_iterations = max_iterations,
- * 		par_max_cost_evaluations = max_cost_evaluations,             # <<<<<<<<<<<<<<
- * 		par_rho_end = rho_end,
- * 		par_use_early_stopping = use_early_stopping,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_max_cost_evaluations, __pyx_v_max_cost_evaluations) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":439
- * 		par_max_iterations = max_iterations,
- * 		par_max_cost_evaluations = max_cost_evaluations,
- * 		par_rho_end = rho_end,             # <<<<<<<<<<<<<<
- * 		par_use_early_stopping = use_early_stopping,
- * 		par_epsilon = epsilon,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_rho_end, __pyx_v_rho_end) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":440
- * 		par_max_cost_evaluations = max_cost_evaluations,
- * 		par_rho_end = rho_end,
- * 		par_use_early_stopping = use_early_stopping,             # <<<<<<<<<<<<<<
- * 		par_epsilon = epsilon,
- * 		par_patience = patience,
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_use_early_stopping, __pyx_v_use_early_stopping) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":441
- * 		par_rho_end = rho_end,
- * 		par_use_early_stopping = use_early_stopping,
- * 		par_epsilon = epsilon,             # <<<<<<<<<<<<<<
- * 		par_patience = patience,
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_epsilon, __pyx_v_epsilon) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":442
- * 		par_use_early_stopping = use_early_stopping,
- * 		par_epsilon = epsilon,
- * 		par_patience = patience,             # <<<<<<<<<<<<<<
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
- * 									target['duration'],
- */
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_patience, __pyx_v_patience) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-
-  /* "VocalTractLab/target_estimation.pyx":443
- * 		par_epsilon = epsilon,
- * 		par_patience = patience,
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),             # <<<<<<<<<<<<<<
- * 									target['duration'],
- * 									target['slope'] * norm_factor_b,
- */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 443, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_int_0);
   __pyx_t_6 = __pyx_int_0;
 
-  /* "VocalTractLab/target_estimation.pyx":448
- * 									target['offset'] * norm_factor_b + norm_factor_a,
- * 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
- * 								) for i, target in enumerate( fit_results.res_targets ) ] ,             # <<<<<<<<<<<<<<
- * 		#out_targets = np.array( [ [ target.slope * norm_factor_b + norm_factor_a,
- * 		#							target.offset * norm_factor_b + norm_factor_a,
+  /* "VocalTractLab/target_estimation.pyx":493
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,
+ * 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
+ * 		) for i, target in enumerate( fit_results.res_targets )             # <<<<<<<<<<<<<<
+ * 	]
+ * 	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a
  */
-  __pyx_t_3 = __pyx_convert_vector_to_py_struct__PitchTarget(__pyx_v_fit_results.res_targets); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
+  __pyx_t_3 = __pyx_convert_vector_to_py_struct__PitchTarget(__pyx_v_fit_results.res_targets); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 493, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
-    __pyx_t_11 = __pyx_t_3; __Pyx_INCREF(__pyx_t_11); __pyx_t_8 = 0;
+    __pyx_t_1 = __pyx_t_3; __Pyx_INCREF(__pyx_t_1); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_11 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 448, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_11);
-    __pyx_t_9 = Py_TYPE(__pyx_t_11)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 448, __pyx_L1_error)
+    __pyx_t_8 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 493, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_9 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 493, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   for (;;) {
     if (likely(!__pyx_t_9)) {
-      if (likely(PyList_CheckExact(__pyx_t_11))) {
-        if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_11)) break;
+      if (likely(PyList_CheckExact(__pyx_t_1))) {
+        if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_11, __pyx_t_8); __Pyx_INCREF(__pyx_t_3); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 448, __pyx_L1_error)
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_8); __Pyx_INCREF(__pyx_t_3); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 493, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_11, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 493, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       } else {
-        if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_11)) break;
+        if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_11, __pyx_t_8); __Pyx_INCREF(__pyx_t_3); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 448, __pyx_L1_error)
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_8); __Pyx_INCREF(__pyx_t_3); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 493, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_11, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_1, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 493, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       }
     } else {
-      __pyx_t_3 = __pyx_t_9(__pyx_t_11);
+      __pyx_t_3 = __pyx_t_9(__pyx_t_1);
       if (unlikely(!__pyx_t_3)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 448, __pyx_L1_error)
+          else __PYX_ERR(0, 493, __pyx_L1_error)
         }
         break;
       }
@@ -8396,343 +9060,638 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
     __pyx_t_3 = 0;
     __Pyx_INCREF(__pyx_t_6);
     __Pyx_XDECREF_SET(__pyx_v_i, __pyx_t_6);
-    __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_t_6, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 448, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_t_6, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 493, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_6);
     __pyx_t_6 = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":443
- * 		par_epsilon = epsilon,
- * 		par_patience = patience,
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),             # <<<<<<<<<<<<<<
- * 									target['duration'],
- * 									target['slope'] * norm_factor_b,
+    /* "VocalTractLab/target_estimation.pyx":487
+ * 	#print( fit_results.res_targets )
+ * 	out_targets = [
+ * 		tg.Target(             # <<<<<<<<<<<<<<
+ * 			onset_time = fit_results.res_boundaries.at( i ),
+ * 			duration = target['duration'],
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_tg); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 443, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_Target); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 443, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    __pyx_t_16 = __Pyx_PyInt_As_size_t(__pyx_v_i); if (unlikely((__pyx_t_16 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 443, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_tg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 487, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_Target); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 487, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":488
+ * 	out_targets = [
+ * 		tg.Target(
+ * 			onset_time = fit_results.res_boundaries.at( i ),             # <<<<<<<<<<<<<<
+ * 			duration = target['duration'],
+ * 			slope = target['slope'] * norm_factor_b,
+ */
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 488, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_16 = __Pyx_PyInt_As_size_t(__pyx_v_i); if (unlikely((__pyx_t_16 == (size_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 488, __pyx_L1_error)
     try {
       __pyx_t_17 = __pyx_v_fit_results.res_boundaries.at(__pyx_t_16);
     } catch(...) {
       __Pyx_CppExn2PyErr();
-      __PYX_ERR(0, 443, __pyx_L1_error)
+      __PYX_ERR(0, 488, __pyx_L1_error)
     }
-    __pyx_t_10 = PyFloat_FromDouble(__pyx_t_17); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 443, __pyx_L1_error)
+    __pyx_t_10 = PyFloat_FromDouble(__pyx_t_17); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 488, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_10);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_onset_time, __pyx_t_10) < 0) __PYX_ERR(0, 488, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":444
- * 		par_patience = patience,
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
- * 									target['duration'],             # <<<<<<<<<<<<<<
- * 									target['slope'] * norm_factor_b,
- * 									target['offset'] * norm_factor_b + norm_factor_a,
+    /* "VocalTractLab/target_estimation.pyx":489
+ * 		tg.Target(
+ * 			onset_time = fit_results.res_boundaries.at( i ),
+ * 			duration = target['duration'],             # <<<<<<<<<<<<<<
+ * 			slope = target['slope'] * norm_factor_b,
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,
  */
-    __pyx_t_18 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_duration); if (unlikely(!__pyx_t_18)) __PYX_ERR(0, 444, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_18);
+    __pyx_t_10 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_duration); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 489, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_duration, __pyx_t_10) < 0) __PYX_ERR(0, 488, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":445
- * 		out_targets = [ tg.Target(	fit_results.res_boundaries.at( i ),
- * 									target['duration'],
- * 									target['slope'] * norm_factor_b,             # <<<<<<<<<<<<<<
- * 									target['offset'] * norm_factor_b + norm_factor_a,
- * 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
+    /* "VocalTractLab/target_estimation.pyx":490
+ * 			onset_time = fit_results.res_boundaries.at( i ),
+ * 			duration = target['duration'],
+ * 			slope = target['slope'] * norm_factor_b,             # <<<<<<<<<<<<<<
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,
+ * 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
  */
-    __pyx_t_19 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_slope); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 445, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_19);
-    __pyx_t_20 = PyNumber_Multiply(__pyx_t_19, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_20)) __PYX_ERR(0, 445, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_20);
-    __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-
-    /* "VocalTractLab/target_estimation.pyx":446
- * 									target['duration'],
- * 									target['slope'] * norm_factor_b,
- * 									target['offset'] * norm_factor_b + norm_factor_a,             # <<<<<<<<<<<<<<
- * 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
- * 								) for i, target in enumerate( fit_results.res_targets ) ] ,
- */
-    __pyx_t_19 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_offset); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 446, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_19);
-    __pyx_t_21 = PyNumber_Multiply(__pyx_t_19, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 446, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_21);
-    __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-    __pyx_t_19 = PyNumber_Add(__pyx_t_21, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_19)) __PYX_ERR(0, 446, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_19);
-    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-
-    /* "VocalTractLab/target_estimation.pyx":447
- * 									target['slope'] * norm_factor_b,
- * 									target['offset'] * norm_factor_b + norm_factor_a,
- * 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code             # <<<<<<<<<<<<<<
- * 								) for i, target in enumerate( fit_results.res_targets ) ] ,
- * 		#out_targets = np.array( [ [ target.slope * norm_factor_b + norm_factor_a,
- */
-    __pyx_t_21 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_tau); if (unlikely(!__pyx_t_21)) __PYX_ERR(0, 447, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_21);
-    __pyx_t_22 = __Pyx_PyNumber_Divide(__pyx_t_21, __pyx_int_1000); if (unlikely(!__pyx_t_22)) __PYX_ERR(0, 447, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_22);
-    __Pyx_DECREF(__pyx_t_21); __pyx_t_21 = 0;
-    __pyx_t_21 = NULL;
-    __pyx_t_13 = 0;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
-      __pyx_t_21 = PyMethod_GET_SELF(__pyx_t_7);
-      if (likely(__pyx_t_21)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-        __Pyx_INCREF(__pyx_t_21);
-        __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_7, function);
-        __pyx_t_13 = 1;
-      }
-    }
-    #if CYTHON_FAST_PYCALL
-    if (PyFunction_Check(__pyx_t_7)) {
-      PyObject *__pyx_temp[6] = {__pyx_t_21, __pyx_t_10, __pyx_t_18, __pyx_t_20, __pyx_t_19, __pyx_t_22};
-      __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_13, 5+__pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-      __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-      __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-      __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-    } else
-    #endif
-    #if CYTHON_FAST_PYCCALL
-    if (__Pyx_PyFastCFunction_Check(__pyx_t_7)) {
-      PyObject *__pyx_temp[6] = {__pyx_t_21, __pyx_t_10, __pyx_t_18, __pyx_t_20, __pyx_t_19, __pyx_t_22};
-      __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_7, __pyx_temp+1-__pyx_t_13, 5+__pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
-      __Pyx_XDECREF(__pyx_t_21); __pyx_t_21 = 0;
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_DECREF(__pyx_t_18); __pyx_t_18 = 0;
-      __Pyx_DECREF(__pyx_t_20); __pyx_t_20 = 0;
-      __Pyx_DECREF(__pyx_t_19); __pyx_t_19 = 0;
-      __Pyx_DECREF(__pyx_t_22); __pyx_t_22 = 0;
-    } else
-    #endif
-    {
-      __pyx_t_23 = PyTuple_New(5+__pyx_t_13); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 443, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_23);
-      if (__pyx_t_21) {
-        __Pyx_GIVEREF(__pyx_t_21); PyTuple_SET_ITEM(__pyx_t_23, 0, __pyx_t_21); __pyx_t_21 = NULL;
-      }
-      __Pyx_GIVEREF(__pyx_t_10);
-      PyTuple_SET_ITEM(__pyx_t_23, 0+__pyx_t_13, __pyx_t_10);
-      __Pyx_GIVEREF(__pyx_t_18);
-      PyTuple_SET_ITEM(__pyx_t_23, 1+__pyx_t_13, __pyx_t_18);
-      __Pyx_GIVEREF(__pyx_t_20);
-      PyTuple_SET_ITEM(__pyx_t_23, 2+__pyx_t_13, __pyx_t_20);
-      __Pyx_GIVEREF(__pyx_t_19);
-      PyTuple_SET_ITEM(__pyx_t_23, 3+__pyx_t_13, __pyx_t_19);
-      __Pyx_GIVEREF(__pyx_t_22);
-      PyTuple_SET_ITEM(__pyx_t_23, 4+__pyx_t_13, __pyx_t_22);
-      __pyx_t_10 = 0;
-      __pyx_t_18 = 0;
-      __pyx_t_20 = 0;
-      __pyx_t_19 = 0;
-      __pyx_t_22 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_23, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 443, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
-    }
+    __pyx_t_10 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_slope); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 490, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_7 = PyNumber_Multiply(__pyx_t_10, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 490, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_slope, __pyx_t_7) < 0) __PYX_ERR(0, 488, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_t_3))) __PYX_ERR(0, 443, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":491
+ * 			duration = target['duration'],
+ * 			slope = target['slope'] * norm_factor_b,
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,             # <<<<<<<<<<<<<<
+ * 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
+ * 		) for i, target in enumerate( fit_results.res_targets )
+ */
+    __pyx_t_7 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_offset); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 491, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_10 = PyNumber_Multiply(__pyx_t_7, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 491, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_7 = PyNumber_Add(__pyx_t_10, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 491, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_offset, __pyx_t_7) < 0) __PYX_ERR(0, 488, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":492
+ * 			slope = target['slope'] * norm_factor_b,
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,
+ * 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code             # <<<<<<<<<<<<<<
+ * 		) for i, target in enumerate( fit_results.res_targets )
+ * 	]
+ */
+    __pyx_t_7 = __Pyx_PyObject_Dict_GetItem(__pyx_v_target, __pyx_n_s_tau); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 492, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_10 = __Pyx_PyNumber_Divide(__pyx_t_7, __pyx_int_1000); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 492, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_time_constant, __pyx_t_10) < 0) __PYX_ERR(0, 488, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":487
+ * 	#print( fit_results.res_targets )
+ * 	out_targets = [
+ * 		tg.Target(             # <<<<<<<<<<<<<<
+ * 			onset_time = fit_results.res_boundaries.at( i ),
+ * 			duration = target['duration'],
+ */
+    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 487, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_5, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 486, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":448
- * 									target['offset'] * norm_factor_b + norm_factor_a,
- * 									target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
- * 								) for i, target in enumerate( fit_results.res_targets ) ] ,             # <<<<<<<<<<<<<<
- * 		#out_targets = np.array( [ [ target.slope * norm_factor_b + norm_factor_a,
- * 		#							target.offset * norm_factor_b + norm_factor_a,
+    /* "VocalTractLab/target_estimation.pyx":493
+ * 			offset = target['offset'] * norm_factor_b + norm_factor_a,
+ * 			time_constant = target['tau'] / 1000, # normalization because tau is in [ms] in c++ code
+ * 		) for i, target in enumerate( fit_results.res_targets )             # <<<<<<<<<<<<<<
+ * 	]
+ * 	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a
  */
   }
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_targets, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_out_targets = ((PyObject*)__pyx_t_5);
+  __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":454
- * 		#							target.duration
- * 		#						] for target in fit_results.res_targets ] ),
- * 		out_boundaries = np.array( fit_results.res_boundaries ),             # <<<<<<<<<<<<<<
- * 		out_trajectory = np.array( [ [ sample.time, sample.value * norm_factor_b + norm_factor_a ] for sample in fit_results.res_trajectory ] ),
- * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
+  /* "VocalTractLab/target_estimation.pyx":495
+ * 		) for i, target in enumerate( fit_results.res_targets )
+ * 	]
+ * 	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a             # <<<<<<<<<<<<<<
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Joint Optimization' )
+ * 	out_trajectory = tgs.get_contour()
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 454, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_fit_results.res_onset); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 495, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_6 = PyNumber_Multiply(__pyx_t_5, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 495, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 454, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = PyNumber_Add(__pyx_t_6, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 495, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __pyx_convert_vector_to_py_double(__pyx_v_fit_results.res_boundaries); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 454, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_GetItemInt_List(__pyx_v_out_targets, 0, long, 1, __Pyx_PyInt_From_long, 1, 0, 1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 495, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_3 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_11))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_11);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-      __Pyx_INCREF(__pyx_t_3);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_11, function);
-    }
-  }
-  __pyx_t_1 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_11, __pyx_t_3, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__Pyx_PyObject_SetAttrStr(__pyx_t_6, __pyx_n_s_onset_state, __pyx_t_5) < 0) __PYX_ERR(0, 495, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 454, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":496
+ * 	]
+ * 	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Joint Optimization' )             # <<<<<<<<<<<<<<
+ * 	out_trajectory = tgs.get_contour()
+ * 	fit_info = dict(
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_tg); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 496, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_Target_Sequence); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 496, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 496, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_targets, __pyx_v_out_targets) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_name, __pyx_kp_s_Joint_Optimization) < 0) __PYX_ERR(0, 496, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 496, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_boundaries, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_tgs = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":455
- * 		#						] for target in fit_results.res_targets ] ),
- * 		out_boundaries = np.array( fit_results.res_boundaries ),
- * 		out_trajectory = np.array( [ [ sample.time, sample.value * norm_factor_b + norm_factor_a ] for sample in fit_results.res_trajectory ] ),             # <<<<<<<<<<<<<<
- * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
- * 		out_ftmp = np.array( fit_results.res_ftmp ),
+  /* "VocalTractLab/target_estimation.pyx":497
+ * 	out_targets[ 0 ].onset_state = fit_results.res_onset * norm_factor_b + norm_factor_a
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Joint Optimization' )
+ * 	out_trajectory = tgs.get_contour()             # <<<<<<<<<<<<<<
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_11, __pyx_n_s_np); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 455, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_array); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 455, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_tgs, __pyx_n_s_get_contour); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 497, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  __pyx_t_11 = PyList_New(0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 455, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __pyx_t_25 = &__pyx_v_fit_results.res_trajectory;
-  __pyx_t_24 = __pyx_t_25->begin();
-  for (;;) {
-    if (!(__pyx_t_24 != __pyx_t_25->end())) break;
-    __pyx_t_26 = *__pyx_t_24;
-    ++__pyx_t_24;
-    __pyx_v_sample = __pyx_t_26;
-    __pyx_t_3 = PyFloat_FromDouble(__pyx_v_sample.time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = PyFloat_FromDouble(__pyx_v_sample.value); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_23 = PyNumber_Multiply(__pyx_t_7, __pyx_v_norm_factor_b); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_23);
-    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = PyNumber_Add(__pyx_t_23, __pyx_v_norm_factor_a); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_7);
-    __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
-    __pyx_t_23 = PyList_New(2); if (unlikely(!__pyx_t_23)) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_23);
-    __Pyx_GIVEREF(__pyx_t_3);
-    PyList_SET_ITEM(__pyx_t_23, 0, __pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_7);
-    PyList_SET_ITEM(__pyx_t_23, 1, __pyx_t_7);
-    __pyx_t_3 = 0;
-    __pyx_t_7 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_11, (PyObject*)__pyx_t_23))) __PYX_ERR(0, 455, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_23); __pyx_t_23 = 0;
-  }
-  __pyx_t_23 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
-    __pyx_t_23 = PyMethod_GET_SELF(__pyx_t_6);
-    if (likely(__pyx_t_23)) {
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_6);
+    if (likely(__pyx_t_5)) {
       PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
-      __Pyx_INCREF(__pyx_t_23);
+      __Pyx_INCREF(__pyx_t_5);
       __Pyx_INCREF(function);
       __Pyx_DECREF_SET(__pyx_t_6, function);
     }
   }
-  __pyx_t_1 = (__pyx_t_23) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_23, __pyx_t_11) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_11);
-  __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 455, __pyx_L1_error)
+  __pyx_t_1 = (__pyx_t_5) ? __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_5) : __Pyx_PyObject_CallNoArg(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 497, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_trajectory, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_out_trajectory = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":457
- * 		out_trajectory = np.array( [ [ sample.time, sample.value * norm_factor_b + norm_factor_a ] for sample in fit_results.res_trajectory ] ),
+  /* "VocalTractLab/target_estimation.pyx":499
+ * 	out_trajectory = tgs.get_contour()
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),             # <<<<<<<<<<<<<<
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,
+ */
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(28); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+    }
+  }
+  __pyx_t_6 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_5, __pyx_v_times) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_times);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_in_times, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":500
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),
+ * 		in_values = values,             # <<<<<<<<<<<<<<
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_in_values, __pyx_v_values) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":501
+ * 		in_times = np.array( times ),
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,             # <<<<<<<<<<<<<<
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = weight_slope,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_in_boundaries, __pyx_v_boundaries) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":502
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,             # <<<<<<<<<<<<<<
+ * 		par_weight_slope = weight_slope,
+ * 		par_weight_offset = weight_offset,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_init_bounds, __pyx_v_init_bounds) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":503
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = weight_slope,             # <<<<<<<<<<<<<<
+ * 		par_weight_offset = weight_offset,
+ * 		par_weight_tau = weight_tau,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_weight_slope, __pyx_v_weight_slope) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":504
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = weight_slope,
+ * 		par_weight_offset = weight_offset,             # <<<<<<<<<<<<<<
+ * 		par_weight_tau = weight_tau,
+ * 		par_weight_lambda = weight_lambda,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_weight_offset, __pyx_v_weight_offset) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":505
+ * 		par_weight_slope = weight_slope,
+ * 		par_weight_offset = weight_offset,
+ * 		par_weight_tau = weight_tau,             # <<<<<<<<<<<<<<
+ * 		par_weight_lambda = weight_lambda,
+ * 		par_delta_slope = delta_slope,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_weight_tau, __pyx_v_weight_tau) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":506
+ * 		par_weight_offset = weight_offset,
+ * 		par_weight_tau = weight_tau,
+ * 		par_weight_lambda = weight_lambda,             # <<<<<<<<<<<<<<
+ * 		par_delta_slope = delta_slope,
+ * 		par_delta_offset = delta_offset,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_weight_lambda, __pyx_v_weight_lambda) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":507
+ * 		par_weight_tau = weight_tau,
+ * 		par_weight_lambda = weight_lambda,
+ * 		par_delta_slope = delta_slope,             # <<<<<<<<<<<<<<
+ * 		par_delta_offset = delta_offset,
+ * 		par_delta_tau = delta_tau,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_delta_slope, __pyx_v_delta_slope) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":508
+ * 		par_weight_lambda = weight_lambda,
+ * 		par_delta_slope = delta_slope,
+ * 		par_delta_offset = delta_offset,             # <<<<<<<<<<<<<<
+ * 		par_delta_tau = delta_tau,
+ * 		par_delta_boundary = delta_boundary,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_delta_offset, __pyx_v_delta_offset) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":509
+ * 		par_delta_slope = delta_slope,
+ * 		par_delta_offset = delta_offset,
+ * 		par_delta_tau = delta_tau,             # <<<<<<<<<<<<<<
+ * 		par_delta_boundary = delta_boundary,
+ * 		par_mean_slope = mean_slope,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_delta_tau, __pyx_v_delta_tau) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":510
+ * 		par_delta_offset = delta_offset,
+ * 		par_delta_tau = delta_tau,
+ * 		par_delta_boundary = delta_boundary,             # <<<<<<<<<<<<<<
+ * 		par_mean_slope = mean_slope,
+ * 		par_mean_tau = mean_tau,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_delta_boundary, __pyx_v_delta_boundary) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":511
+ * 		par_delta_tau = delta_tau,
+ * 		par_delta_boundary = delta_boundary,
+ * 		par_mean_slope = mean_slope,             # <<<<<<<<<<<<<<
+ * 		par_mean_tau = mean_tau,
+ * 		par_max_iterations = max_iterations,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_mean_slope, __pyx_v_mean_slope) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":512
+ * 		par_delta_boundary = delta_boundary,
+ * 		par_mean_slope = mean_slope,
+ * 		par_mean_tau = mean_tau,             # <<<<<<<<<<<<<<
+ * 		par_max_iterations = max_iterations,
+ * 		par_max_cost_evaluations = max_cost_evaluations,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_mean_tau, __pyx_v_mean_tau) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":513
+ * 		par_mean_slope = mean_slope,
+ * 		par_mean_tau = mean_tau,
+ * 		par_max_iterations = max_iterations,             # <<<<<<<<<<<<<<
+ * 		par_max_cost_evaluations = max_cost_evaluations,
+ * 		par_rho_end = rho_end,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_max_iterations, __pyx_v_max_iterations) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":514
+ * 		par_mean_tau = mean_tau,
+ * 		par_max_iterations = max_iterations,
+ * 		par_max_cost_evaluations = max_cost_evaluations,             # <<<<<<<<<<<<<<
+ * 		par_rho_end = rho_end,
+ * 		par_use_early_stopping = use_early_stopping,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_max_cost_evaluations, __pyx_v_max_cost_evaluations) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":515
+ * 		par_max_iterations = max_iterations,
+ * 		par_max_cost_evaluations = max_cost_evaluations,
+ * 		par_rho_end = rho_end,             # <<<<<<<<<<<<<<
+ * 		par_use_early_stopping = use_early_stopping,
+ * 		par_epsilon = epsilon,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_rho_end, __pyx_v_rho_end) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":516
+ * 		par_max_cost_evaluations = max_cost_evaluations,
+ * 		par_rho_end = rho_end,
+ * 		par_use_early_stopping = use_early_stopping,             # <<<<<<<<<<<<<<
+ * 		par_epsilon = epsilon,
+ * 		par_patience = patience,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_use_early_stopping, __pyx_v_use_early_stopping) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":517
+ * 		par_rho_end = rho_end,
+ * 		par_use_early_stopping = use_early_stopping,
+ * 		par_epsilon = epsilon,             # <<<<<<<<<<<<<<
+ * 		par_patience = patience,
+ * 		out_targets = out_targets,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_epsilon, __pyx_v_epsilon) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":518
+ * 		par_use_early_stopping = use_early_stopping,
+ * 		par_epsilon = epsilon,
+ * 		par_patience = patience,             # <<<<<<<<<<<<<<
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( fit_results.res_boundaries ),
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_par_patience, __pyx_v_patience) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":519
+ * 		par_epsilon = epsilon,
+ * 		par_patience = patience,
+ * 		out_targets = out_targets,             # <<<<<<<<<<<<<<
+ * 		out_boundaries = np.array( fit_results.res_boundaries ),
+ * 		out_trajectory = out_trajectory,
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_targets, __pyx_v_out_targets) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":520
+ * 		par_patience = patience,
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( fit_results.res_boundaries ),             # <<<<<<<<<<<<<<
+ * 		out_trajectory = out_trajectory,
+ * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_np); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 520, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 520, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  __pyx_t_10 = __pyx_convert_vector_to_py_double(__pyx_v_fit_results.res_boundaries); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 520, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_5);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_5, function);
+    }
+  }
+  __pyx_t_6 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_3, __pyx_t_10) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 520, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_boundaries, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":521
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( fit_results.res_boundaries ),
+ * 		out_trajectory = out_trajectory,             # <<<<<<<<<<<<<<
+ * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
+ * 		out_ftmp = np.array( fit_results.res_ftmp ),
+ */
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_trajectory, __pyx_v_out_trajectory) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":523
+ * 		out_trajectory = out_trajectory,
  * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
  * 		out_ftmp = np.array( fit_results.res_ftmp ),             # <<<<<<<<<<<<<<
  * 		out_fmin = fit_results.res_fmin,
- * 		out_rmse = fit_results.res_rmse,
+ * 		out_rmse = get_rmse( times, values, tgs ),
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 457, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 457, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __pyx_convert_vector_to_py_double(__pyx_v_fit_results.res_ftmp); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 457, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_23 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_11))) {
-    __pyx_t_23 = PyMethod_GET_SELF(__pyx_t_11);
-    if (likely(__pyx_t_23)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-      __Pyx_INCREF(__pyx_t_23);
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __pyx_convert_vector_to_py_double(__pyx_v_fit_results.res_ftmp); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_3);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_11, function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
     }
   }
-  __pyx_t_1 = (__pyx_t_23) ? __Pyx_PyObject_Call2Args(__pyx_t_11, __pyx_t_23, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_6);
-  __Pyx_XDECREF(__pyx_t_23); __pyx_t_23 = 0;
+  __pyx_t_6 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_3, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 523, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_ftmp, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 457, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_ftmp, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":458
+  /* "VocalTractLab/target_estimation.pyx":524
  * 		#out_trajectory = np.array( [ [ sample.time, sample.value ] for sample in fit_results.res_trajectory ] ),
  * 		out_ftmp = np.array( fit_results.res_ftmp ),
  * 		out_fmin = fit_results.res_fmin,             # <<<<<<<<<<<<<<
- * 		out_rmse = fit_results.res_rmse,
- * 		out_corr = fit_results.res_corr,
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fit_results.res_fmin); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 458, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_fmin, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_fit_results.res_fmin); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 524, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_fmin, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":459
+  /* "VocalTractLab/target_estimation.pyx":525
  * 		out_ftmp = np.array( fit_results.res_ftmp ),
  * 		out_fmin = fit_results.res_fmin,
- * 		out_rmse = fit_results.res_rmse,             # <<<<<<<<<<<<<<
- * 		out_corr = fit_results.res_corr,
+ * 		out_rmse = get_rmse( times, values, tgs ),             # <<<<<<<<<<<<<<
+ * 		out_corr = get_correlation( times, values, tgs ),
  * 		out_time = fit_results.res_time,
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fit_results.res_rmse); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 459, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_rmse, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_get_rmse); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 525, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_5 = NULL;
+  __pyx_t_13 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+      __pyx_t_13 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_10)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_5, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_13, 3+__pyx_t_13); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 525, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_10)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_5, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_13, 3+__pyx_t_13); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 525, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+  } else
+  #endif
+  {
+    __pyx_t_3 = PyTuple_New(3+__pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 525, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    if (__pyx_t_5) {
+      __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_5); __pyx_t_5 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_times);
+    __Pyx_GIVEREF(__pyx_v_times);
+    PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_13, __pyx_v_times);
+    __Pyx_INCREF(__pyx_v_values);
+    __Pyx_GIVEREF(__pyx_v_values);
+    PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_13, __pyx_v_values);
+    __Pyx_INCREF(__pyx_v_tgs);
+    __Pyx_GIVEREF(__pyx_v_tgs);
+    PyTuple_SET_ITEM(__pyx_t_3, 2+__pyx_t_13, __pyx_v_tgs);
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_3, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 525, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_rmse, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":460
+  /* "VocalTractLab/target_estimation.pyx":526
  * 		out_fmin = fit_results.res_fmin,
- * 		out_rmse = fit_results.res_rmse,
- * 		out_corr = fit_results.res_corr,             # <<<<<<<<<<<<<<
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),             # <<<<<<<<<<<<<<
  * 		out_time = fit_results.res_time,
  * 	)
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fit_results.res_corr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 460, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_corr, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_get_correlation); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 526, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_3 = NULL;
+  __pyx_t_13 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+      __pyx_t_13 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_10)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_6 = __Pyx_PyFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_13, 3+__pyx_t_13); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 526, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_10)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_3, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_6 = __Pyx_PyCFunction_FastCall(__pyx_t_10, __pyx_temp+1-__pyx_t_13, 3+__pyx_t_13); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 526, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_GOTREF(__pyx_t_6);
+  } else
+  #endif
+  {
+    __pyx_t_5 = PyTuple_New(3+__pyx_t_13); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 526, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_3) {
+      __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_3); __pyx_t_3 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_times);
+    __Pyx_GIVEREF(__pyx_v_times);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_13, __pyx_v_times);
+    __Pyx_INCREF(__pyx_v_values);
+    __Pyx_GIVEREF(__pyx_v_values);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_13, __pyx_v_values);
+    __Pyx_INCREF(__pyx_v_tgs);
+    __Pyx_GIVEREF(__pyx_v_tgs);
+    PyTuple_SET_ITEM(__pyx_t_5, 2+__pyx_t_13, __pyx_v_tgs);
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_5, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 526, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_corr, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":461
- * 		out_rmse = fit_results.res_rmse,
- * 		out_corr = fit_results.res_corr,
+  /* "VocalTractLab/target_estimation.pyx":527
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),
  * 		out_time = fit_results.res_time,             # <<<<<<<<<<<<<<
  * 	)
  * 	return Fit_Result( **fit_info )
  */
-  __pyx_t_1 = PyFloat_FromDouble(__pyx_v_fit_results.res_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 461, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_time, __pyx_t_1) < 0) __PYX_ERR(0, 423, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_fit_info = ((PyObject*)__pyx_t_5);
-  __pyx_t_5 = 0;
+  __pyx_t_6 = PyFloat_FromDouble(__pyx_v_fit_results.res_time); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 527, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_out_time, __pyx_t_6) < 0) __PYX_ERR(0, 499, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_v_fit_info = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":463
+  /* "VocalTractLab/target_estimation.pyx":529
  * 		out_time = fit_results.res_time,
  * 	)
  * 	return Fit_Result( **fit_info )             # <<<<<<<<<<<<<<
@@ -8740,19 +9699,19 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
  * def fit_sequentially( times,
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_Fit_Result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyDict_Copy(__pyx_v_fit_info); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 463, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_Fit_Result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 529, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_11 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 463, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_11);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_6 = PyDict_Copy(__pyx_v_fit_info); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 529, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_6); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 529, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_r = __pyx_t_11;
-  __pyx_t_11 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_r = __pyx_t_10;
+  __pyx_t_10 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":331
+  /* "VocalTractLab/target_estimation.pyx":389
  * # 		Single core functions
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit(             # <<<<<<<<<<<<<<
@@ -8769,23 +9728,20 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
-  __Pyx_XDECREF(__pyx_t_18);
-  __Pyx_XDECREF(__pyx_t_19);
-  __Pyx_XDECREF(__pyx_t_20);
-  __Pyx_XDECREF(__pyx_t_21);
-  __Pyx_XDECREF(__pyx_t_22);
-  __Pyx_XDECREF(__pyx_t_23);
   __Pyx_AddTraceback("VocalTractLab.target_estimation.fit", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_step);
   __Pyx_XDECREF(__pyx_v_norm_factor_a);
   __Pyx_XDECREF(__pyx_v_norm_factor_b);
+  __Pyx_XDECREF(__pyx_v_normalized_values);
+  __Pyx_XDECREF(__pyx_v_out_targets);
+  __Pyx_XDECREF(__pyx_v_tgs);
+  __Pyx_XDECREF(__pyx_v_out_trajectory);
   __Pyx_XDECREF(__pyx_v_fit_info);
   __Pyx_XDECREF(__pyx_v_x);
   __Pyx_XDECREF(__pyx_v_i);
   __Pyx_XDECREF(__pyx_v_target);
-  __Pyx_XDECREF(__pyx_v_values);
   __Pyx_XDECREF(__pyx_v_boundaries);
   __Pyx_XDECREF(__pyx_v_patience);
   __Pyx_XGIVEREF(__pyx_r);
@@ -8793,7 +9749,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_2fit(CYTHON_UNUSED
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":465
+/* "VocalTractLab/target_estimation.pyx":531
  * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit_sequentially( times,             # <<<<<<<<<<<<<<
@@ -8809,9 +9765,12 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
   PyObject *__pyx_v_values = 0;
   PyObject *__pyx_v_boundaries = 0;
   PyObject *__pyx_v_init_bounds = 0;
+  PyObject *__pyx_v_delta_boundary = 0;
   PyObject *__pyx_v_window_length = 0;
   PyObject *__pyx_v_hop_length = 0;
-  CYTHON_UNUSED PyObject *__pyx_v_n_passes = 0;
+  PyObject *__pyx_v_n_passes = 0;
+  PyObject *__pyx_v_underflow_threshold = 0;
+  PyObject *__pyx_v_show_plot = 0;
   PyObject *__pyx_v_kwargs = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
@@ -8822,17 +9781,42 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
   __pyx_v_kwargs = PyDict_New(); if (unlikely(!__pyx_v_kwargs)) return NULL;
   __Pyx_GOTREF(__pyx_v_kwargs);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_boundaries,&__pyx_n_s_init_bounds,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,&__pyx_n_s_n_passes,0};
-    PyObject* values[7] = {0,0,0,0,0,0,0};
-    values[2] = __pyx_k__11;
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_boundaries,&__pyx_n_s_init_bounds,&__pyx_n_s_delta_boundary,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,&__pyx_n_s_n_passes,&__pyx_n_s_underflow_threshold,&__pyx_n_s_show_plot,0};
+    PyObject* values[10] = {0,0,0,0,0,0,0,0,0,0};
+    values[2] = __pyx_k__14;
     values[3] = ((PyObject *)__pyx_int_9);
-    values[4] = ((PyObject *)__pyx_int_3);
-    values[5] = ((PyObject *)__pyx_int_1);
+    values[4] = ((PyObject *)__pyx_int_0);
+    values[5] = ((PyObject *)__pyx_int_3);
     values[6] = ((PyObject *)__pyx_int_1);
+    values[7] = ((PyObject *)__pyx_int_1);
+
+    /* "VocalTractLab/target_estimation.pyx":539
+ * 	                  hop_length: int = 1,
+ * 	                  n_passes: int = 1,
+ * 	                  underflow_threshold: float = None,             # <<<<<<<<<<<<<<
+ * 	                  show_plot = True,
+ * 	                  **kwargs
+ */
+    values[8] = ((PyObject *)Py_None);
+
+    /* "VocalTractLab/target_estimation.pyx":540
+ * 	                  n_passes: int = 1,
+ * 	                  underflow_threshold: float = None,
+ * 	                  show_plot = True,             # <<<<<<<<<<<<<<
+ * 	                  **kwargs
+ * 	                  ):
+ */
+    values[9] = ((PyObject *)Py_True);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
       switch (pos_args) {
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
@@ -8859,7 +9843,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("fit_sequentially", 0, 2, 7, 1); __PYX_ERR(0, 465, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("fit_sequentially", 0, 2, 10, 1); __PYX_ERR(0, 531, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -8876,27 +9860,51 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
         CYTHON_FALLTHROUGH;
         case  4:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_window_length);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_delta_boundary);
           if (value) { values[4] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_window_length);
           if (value) { values[5] = value; kw_args--; }
         }
         CYTHON_FALLTHROUGH;
         case  6:
         if (kw_args > 0) {
-          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_passes);
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length);
           if (value) { values[6] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  7:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_n_passes);
+          if (value) { values[7] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  8:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_underflow_threshold);
+          if (value) { values[8] = value; kw_args--; }
+        }
+        CYTHON_FALLTHROUGH;
+        case  9:
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_show_plot);
+          if (value) { values[9] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "fit_sequentially") < 0)) __PYX_ERR(0, 465, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, __pyx_v_kwargs, values, pos_args, "fit_sequentially") < 0)) __PYX_ERR(0, 531, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case 10: values[9] = PyTuple_GET_ITEM(__pyx_args, 9);
+        CYTHON_FALLTHROUGH;
+        case  9: values[8] = PyTuple_GET_ITEM(__pyx_args, 8);
+        CYTHON_FALLTHROUGH;
+        case  8: values[7] = PyTuple_GET_ITEM(__pyx_args, 7);
+        CYTHON_FALLTHROUGH;
         case  7: values[6] = PyTuple_GET_ITEM(__pyx_args, 6);
         CYTHON_FALLTHROUGH;
         case  6: values[5] = PyTuple_GET_ITEM(__pyx_args, 5);
@@ -8917,20 +9925,31 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
     __pyx_v_values = values[1];
     __pyx_v_boundaries = values[2];
     __pyx_v_init_bounds = values[3];
-    __pyx_v_window_length = values[4];
-    __pyx_v_hop_length = values[5];
-    __pyx_v_n_passes = values[6];
+    __pyx_v_delta_boundary = values[4];
+    __pyx_v_window_length = values[5];
+    __pyx_v_hop_length = values[6];
+    __pyx_v_n_passes = values[7];
+    __pyx_v_underflow_threshold = values[8];
+    __pyx_v_show_plot = values[9];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("fit_sequentially", 0, 2, 7, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 465, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("fit_sequentially", 0, 2, 10, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 531, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_DECREF(__pyx_v_kwargs); __pyx_v_kwargs = 0;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.fit_sequentially", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(__pyx_self, __pyx_v_times, __pyx_v_values, __pyx_v_boundaries, __pyx_v_init_bounds, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_n_passes, __pyx_v_kwargs);
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(__pyx_self, __pyx_v_times, __pyx_v_values, __pyx_v_boundaries, __pyx_v_init_bounds, __pyx_v_delta_boundary, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_n_passes, __pyx_v_underflow_threshold, __pyx_v_show_plot, __pyx_v_kwargs);
+
+  /* "VocalTractLab/target_estimation.pyx":531
+ * 	return Fit_Result( **fit_info )
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def fit_sequentially( times,             # <<<<<<<<<<<<<<
+ * 	                  values,
+ * 	                  boundaries = [],
+ */
 
   /* function exit code */
   __Pyx_XDECREF(__pyx_v_kwargs);
@@ -8938,14 +9957,20 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_5fit_sequentially(
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_init_bounds, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, CYTHON_UNUSED PyObject *__pyx_v_n_passes, PyObject *__pyx_v_kwargs) {
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_boundaries, PyObject *__pyx_v_init_bounds, PyObject *__pyx_v_delta_boundary, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_n_passes, PyObject *__pyx_v_underflow_threshold, PyObject *__pyx_v_show_plot, PyObject *__pyx_v_kwargs) {
   PyObject *__pyx_v_step = NULL;
+  PyObject *__pyx_v_windows_list = NULL;
+  PyObject *__pyx_v_index = NULL;
   PyObject *__pyx_v_n_windows = NULL;
   PyObject *__pyx_v_windows = NULL;
   PyObject *__pyx_v_seq_fit = NULL;
-  PyObject *__pyx_v_target_sequence = NULL;
-  PyObject *__pyx_v_window = NULL;
+  PyObject *__pyx_v_out_boundaries = NULL;
+  PyObject *__pyx_v_out_targets = NULL;
+  PyObject *__pyx_v_tgs = NULL;
+  PyObject *__pyx_v_out_trajectory = NULL;
+  PyObject *__pyx_v_fit_info = NULL;
   PyObject *__pyx_v_x = NULL;
+  PyObject *__pyx_v_window = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   int __pyx_t_1;
@@ -8959,78 +9984,84 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
   PyObject *(*__pyx_t_9)(PyObject *);
   PyObject *__pyx_t_10 = NULL;
   PyObject *__pyx_t_11 = NULL;
-  int __pyx_t_12;
+  Py_ssize_t __pyx_t_12;
+  PyObject *(*__pyx_t_13)(PyObject *);
+  int __pyx_t_14;
+  int __pyx_t_15;
+  PyObject *__pyx_t_16 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("fit_sequentially", 0);
   __Pyx_INCREF(__pyx_v_boundaries);
+  __Pyx_INCREF(__pyx_v_delta_boundary);
+  __Pyx_INCREF(__pyx_v_n_passes);
 
-  /* "VocalTractLab/target_estimation.pyx":474
+  /* "VocalTractLab/target_estimation.pyx":543
  * 	                  **kwargs
  * 	                  ):
  * 	if boundaries == [] and init_bounds != 0:             # <<<<<<<<<<<<<<
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 474, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 543, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyObject_RichCompare(__pyx_v_boundaries, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 474, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_boundaries, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 543, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 474, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 543, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
   } else {
     __pyx_t_1 = __pyx_t_4;
     goto __pyx_L4_bool_binop_done;
   }
-  __pyx_t_3 = __Pyx_PyInt_NeObjC(__pyx_v_init_bounds, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 474, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_NeObjC(__pyx_v_init_bounds, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 543, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 474, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 543, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_1 = __pyx_t_4;
   __pyx_L4_bool_binop_done:;
   if (__pyx_t_1) {
 
-    /* "VocalTractLab/target_estimation.pyx":475
+    /* "VocalTractLab/target_estimation.pyx":544
  * 	                  ):
  * 	if boundaries == [] and init_bounds != 0:
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )             # <<<<<<<<<<<<<<
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  * 	if window_length >= len( boundaries ):
  */
-    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_times, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_times, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 544, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 544, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 544, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_v_init_bounds, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_v_init_bounds, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 544, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 475, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 544, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __pyx_v_step = __pyx_t_3;
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":476
+    /* "VocalTractLab/target_estimation.pyx":545
  * 	if boundaries == [] and init_bounds != 0:
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )             # <<<<<<<<<<<<<<
  * 	if window_length >= len( boundaries ):
  * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_INCREF(__pyx_int_0);
     __Pyx_GIVEREF(__pyx_int_0);
@@ -9038,16 +10069,16 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
     __Pyx_INCREF(__pyx_v_init_bounds);
     __Pyx_GIVEREF(__pyx_v_init_bounds);
     PyTuple_SET_ITEM(__pyx_t_6, 1, __pyx_v_init_bounds);
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_6, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 476, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_6, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     if (likely(PyList_CheckExact(__pyx_t_7)) || PyTuple_CheckExact(__pyx_t_7)) {
       __pyx_t_6 = __pyx_t_7; __Pyx_INCREF(__pyx_t_6); __pyx_t_8 = 0;
       __pyx_t_9 = NULL;
     } else {
-      __pyx_t_8 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_8 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_t_7); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 545, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_9 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_9 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 545, __pyx_L1_error)
     }
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     for (;;) {
@@ -9055,17 +10086,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
         if (likely(PyList_CheckExact(__pyx_t_6))) {
           if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_6)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 476, __pyx_L1_error)
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 545, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 476, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 545, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         } else {
           if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_6)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 476, __pyx_L1_error)
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 545, __pyx_L1_error)
           #else
-          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 476, __pyx_L1_error)
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 545, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_7);
           #endif
         }
@@ -9075,7 +10106,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 476, __pyx_L1_error)
+            else __PYX_ERR(0, 545, __pyx_L1_error)
           }
           break;
         }
@@ -9083,15 +10114,15 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
       }
       __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_7);
       __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_times, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 545, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_10 = PyNumber_Multiply(__pyx_v_x, __pyx_v_step); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_10 = PyNumber_Multiply(__pyx_v_x, __pyx_v_step); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 545, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = PyNumber_Add(__pyx_t_7, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 476, __pyx_L1_error)
+      __pyx_t_11 = PyNumber_Add(__pyx_t_7, __pyx_t_10); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 545, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_11))) __PYX_ERR(0, 476, __pyx_L1_error)
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_11))) __PYX_ERR(0, 545, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
     }
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -9108,13 +10139,13 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
     __pyx_t_3 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_6, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 476, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 545, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF_SET(__pyx_v_boundaries, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":474
+    /* "VocalTractLab/target_estimation.pyx":543
  * 	                  **kwargs
  * 	                  ):
  * 	if boundaries == [] and init_bounds != 0:             # <<<<<<<<<<<<<<
@@ -9123,32 +10154,32 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
  */
   }
 
-  /* "VocalTractLab/target_estimation.pyx":477
+  /* "VocalTractLab/target_estimation.pyx":546
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  * 	if window_length >= len( boundaries ):             # <<<<<<<<<<<<<<
  * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
- * 		return fit( times, values, boundaries, **kwargs )
+ * 		return fit(
  */
-  __pyx_t_8 = PyObject_Length(__pyx_v_boundaries); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 477, __pyx_L1_error)
-  __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 477, __pyx_L1_error)
+  __pyx_t_8 = PyObject_Length(__pyx_v_boundaries); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 546, __pyx_L1_error)
+  __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_8); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 546, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyObject_RichCompare(__pyx_v_window_length, __pyx_t_3, Py_GE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 477, __pyx_L1_error)
+  __pyx_t_5 = PyObject_RichCompare(__pyx_v_window_length, __pyx_t_3, Py_GE); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 546, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 477, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 546, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   if (__pyx_t_1) {
 
-    /* "VocalTractLab/target_estimation.pyx":478
+    /* "VocalTractLab/target_estimation.pyx":547
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  * 	if window_length >= len( boundaries ):
  * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )             # <<<<<<<<<<<<<<
- * 		return fit( times, values, boundaries, **kwargs )
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ * 		return fit(
+ * 			times = times,
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_log); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 478, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_log); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 547, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_warning); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 478, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_warning); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 547, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __pyx_t_3 = NULL;
@@ -9163,112 +10194,293 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
     }
     __pyx_t_5 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_3, __pyx_kp_s_window_length_must_be_smaller_th) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_kp_s_window_length_must_be_smaller_th);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 478, __pyx_L1_error)
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 547, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":479
+    /* "VocalTractLab/target_estimation.pyx":548
  * 	if window_length >= len( boundaries ):
  * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
- * 		return fit( times, values, boundaries, **kwargs )             # <<<<<<<<<<<<<<
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
- * 	#print( 'number of windows: ', n_windows )
+ * 		return fit(             # <<<<<<<<<<<<<<
+ * 			times = times,
+ * 			values = values,
  */
     __Pyx_XDECREF(__pyx_r);
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_fit); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 479, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_fit); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 548, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_2 = PyTuple_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 479, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_INCREF(__pyx_v_times);
-    __Pyx_GIVEREF(__pyx_v_times);
-    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_times);
-    __Pyx_INCREF(__pyx_v_values);
-    __Pyx_GIVEREF(__pyx_v_values);
-    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_values);
-    __Pyx_INCREF(__pyx_v_boundaries);
-    __Pyx_GIVEREF(__pyx_v_boundaries);
-    PyTuple_SET_ITEM(__pyx_t_2, 2, __pyx_v_boundaries);
-    __pyx_t_3 = PyDict_Copy(__pyx_v_kwargs); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 479, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":549
+ * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
+ * 		return fit(
+ * 			times = times,             # <<<<<<<<<<<<<<
+ * 			values = values,
+ * 			boundaries = boundaries,
+ */
+    __pyx_t_3 = __Pyx_PyDict_NewPresized(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 549, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 479, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_times, __pyx_v_times) < 0) __PYX_ERR(0, 549, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":550
+ * 		return fit(
+ * 			times = times,
+ * 			values = values,             # <<<<<<<<<<<<<<
+ * 			boundaries = boundaries,
+ * 			delta_boundary = delta_boundary,
+ */
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_values, __pyx_v_values) < 0) __PYX_ERR(0, 549, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":551
+ * 			times = times,
+ * 			values = values,
+ * 			boundaries = boundaries,             # <<<<<<<<<<<<<<
+ * 			delta_boundary = delta_boundary,
+ * 			**kwargs,
+ */
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_boundaries, __pyx_v_boundaries) < 0) __PYX_ERR(0, 549, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":552
+ * 			values = values,
+ * 			boundaries = boundaries,
+ * 			delta_boundary = delta_boundary,             # <<<<<<<<<<<<<<
+ * 			**kwargs,
+ * 		)
+ */
+    if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_delta_boundary, __pyx_v_delta_boundary) < 0) __PYX_ERR(0, 549, __pyx_L1_error)
+    __pyx_t_2 = __pyx_t_3;
+    __pyx_t_3 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":553
+ * 			boundaries = boundaries,
+ * 			delta_boundary = delta_boundary,
+ * 			**kwargs,             # <<<<<<<<<<<<<<
+ * 		)
+ * 	if delta_boundary == 0 and n_passes != 1:
+ */
+    if (__Pyx_MergeKeywords(__pyx_t_2, __pyx_v_kwargs) < 0) __PYX_ERR(0, 553, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":548
+ * 	if window_length >= len( boundaries ):
+ * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
+ * 		return fit(             # <<<<<<<<<<<<<<
+ * 			times = times,
+ * 			values = values,
+ */
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 548, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_r = __pyx_t_6;
-    __pyx_t_6 = 0;
+    __pyx_r = __pyx_t_3;
+    __pyx_t_3 = 0;
     goto __pyx_L0;
 
-    /* "VocalTractLab/target_estimation.pyx":477
+    /* "VocalTractLab/target_estimation.pyx":546
  * 		step =  ( times[ -1 ] - times[ 0 ] ) / ( init_bounds - 1 )
  * 		boundaries = np.array( [ times[ 0 ] + x * step for x in range( 0 , init_bounds ) ] )
  * 	if window_length >= len( boundaries ):             # <<<<<<<<<<<<<<
  * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
- * 		return fit( times, values, boundaries, **kwargs )
+ * 		return fit(
  */
   }
 
-  /* "VocalTractLab/target_estimation.pyx":480
- * 		log.warning( 'window_length must be smaller than number of boundaries for sequential fit! Proceed with global fit now.' )
- * 		return fit( times, values, boundaries, **kwargs )
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )             # <<<<<<<<<<<<<<
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,
+  /* "VocalTractLab/target_estimation.pyx":555
+ * 			**kwargs,
+ * 		)
+ * 	if delta_boundary == 0 and n_passes != 1:             # <<<<<<<<<<<<<<
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+ * 		n_passes = 1
  */
-  __pyx_t_8 = PyObject_Length(__pyx_v_boundaries); if (unlikely(__pyx_t_8 == ((Py_ssize_t)-1))) __PYX_ERR(0, 480, __pyx_L1_error)
-  __pyx_t_6 = PyInt_FromSsize_t((__pyx_t_8 - 1)); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 480, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_3 = PyNumber_Subtract(__pyx_t_6, __pyx_v_window_length); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 480, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_v_delta_boundary, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 555, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_v_hop_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 480, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 555, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_AddObjC(__pyx_t_6, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 480, __pyx_L1_error)
+  if (__pyx_t_4) {
+  } else {
+    __pyx_t_1 = __pyx_t_4;
+    goto __pyx_L10_bool_binop_done;
+  }
+  __pyx_t_3 = __Pyx_PyInt_NeObjC(__pyx_v_n_passes, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 555, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyNumber_Int(__pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 480, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 555, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_n_windows = __pyx_t_6;
-  __pyx_t_6 = 0;
+  __pyx_t_1 = __pyx_t_4;
+  __pyx_L10_bool_binop_done:;
+  if (__pyx_t_1) {
 
-  /* "VocalTractLab/target_estimation.pyx":482
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,             # <<<<<<<<<<<<<<
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]
- * 	#for window in windows:
+    /* "VocalTractLab/target_estimation.pyx":556
+ * 		)
+ * 	if delta_boundary == 0 and n_passes != 1:
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )             # <<<<<<<<<<<<<<
+ * 		n_passes = 1
+ * 	if delta_boundary > 0 and n_passes == 1:
  */
-  __pyx_t_6 = PyList_New(0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 482, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_log); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 556, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_warning); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 556, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Passed_argument_n_passes_is_deac, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 556, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_11 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_6))) {
+      __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_6);
+      if (likely(__pyx_t_11)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
+        __Pyx_INCREF(__pyx_t_11);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_6, function);
+      }
+    }
+    __pyx_t_2 = (__pyx_t_11) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_11, __pyx_v_n_passes) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_n_passes);
+    __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 556, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_5);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_5, function);
+      }
+    }
+    __pyx_t_3 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_6, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2);
+    __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 556, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":483
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]             # <<<<<<<<<<<<<<
- * 	#for window in windows:
- * 	#	print( 'window queue pos: {}'.format( window.queue_position ) )
+    /* "VocalTractLab/target_estimation.pyx":557
+ * 	if delta_boundary == 0 and n_passes != 1:
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+ * 		n_passes = 1             # <<<<<<<<<<<<<<
+ * 	if delta_boundary > 0 and n_passes == 1:
+ * 		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )
  */
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 483, __pyx_L1_error)
+    __Pyx_INCREF(__pyx_int_1);
+    __Pyx_DECREF_SET(__pyx_v_n_passes, __pyx_int_1);
+
+    /* "VocalTractLab/target_estimation.pyx":555
+ * 			**kwargs,
+ * 		)
+ * 	if delta_boundary == 0 and n_passes != 1:             # <<<<<<<<<<<<<<
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+ * 		n_passes = 1
+ */
+  }
+
+  /* "VocalTractLab/target_estimation.pyx":558
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+ * 		n_passes = 1
+ * 	if delta_boundary > 0 and n_passes == 1:             # <<<<<<<<<<<<<<
+ * 		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )
+ * 		n_passes = 2
+ */
+  __pyx_t_3 = PyObject_RichCompare(__pyx_v_delta_boundary, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 558, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 558, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_4) {
+  } else {
+    __pyx_t_1 = __pyx_t_4;
+    goto __pyx_L13_bool_binop_done;
+  }
+  __pyx_t_3 = __Pyx_PyInt_EqObjC(__pyx_v_n_passes, __pyx_int_1, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 558, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 558, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_1 = __pyx_t_4;
+  __pyx_L13_bool_binop_done:;
+  if (__pyx_t_1) {
+
+    /* "VocalTractLab/target_estimation.pyx":559
+ * 		n_passes = 1
+ * 	if delta_boundary > 0 and n_passes == 1:
+ * 		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )             # <<<<<<<<<<<<<<
+ * 		n_passes = 2
+ * 	#n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_log); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 559, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_warning); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 559, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_5)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    __pyx_t_3 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_5, __pyx_kp_s_Passed_argument_n_passes_1_does) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_kp_s_Passed_argument_n_passes_1_does);
+    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 559, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":560
+ * 	if delta_boundary > 0 and n_passes == 1:
+ * 		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )
+ * 		n_passes = 2             # <<<<<<<<<<<<<<
+ * 	#n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ * 	# windows = [ Fit_Window( times, values, boundaries, queue_position = x,
+ */
+    __Pyx_INCREF(__pyx_int_2);
+    __Pyx_DECREF_SET(__pyx_v_n_passes, __pyx_int_2);
+
+    /* "VocalTractLab/target_estimation.pyx":558
+ * 		log.warning( 'Passed argument n_passes = {} is deactivated because boundaries are not optimized (delta_boundary = 0).'.format( n_passes ) )
+ * 		n_passes = 1
+ * 	if delta_boundary > 0 and n_passes == 1:             # <<<<<<<<<<<<<<
+ * 		log.warning( 'Passed argument n_passes = 1 does not work with argument delta_boundary > 0). Setting n_passes = 2 now.' )
+ * 		n_passes = 2
+ */
+  }
+
+  /* "VocalTractLab/target_estimation.pyx":568
+ * 	# 	seq_fit.plot()
+ * 
+ * 	windows_list = []             # <<<<<<<<<<<<<<
+ * 	for index in range( 0, n_passes ):
+ * 		if index == n_passes - 1:
+ */
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 568, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_v_windows_list = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":569
+ * 
+ * 	windows_list = []
+ * 	for index in range( 0, n_passes ):             # <<<<<<<<<<<<<<
+ * 		if index == n_passes - 1:
+ * 			delta_boundary = 0
+ */
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 569, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
   PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_int_0);
-  __Pyx_INCREF(__pyx_v_n_windows);
-  __Pyx_GIVEREF(__pyx_v_n_windows);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_n_windows);
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 483, __pyx_L1_error)
+  __Pyx_INCREF(__pyx_v_n_passes);
+  __Pyx_GIVEREF(__pyx_v_n_passes);
+  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_n_passes);
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 569, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
     __pyx_t_3 = __pyx_t_2; __Pyx_INCREF(__pyx_t_3); __pyx_t_8 = 0;
     __pyx_t_9 = NULL;
   } else {
-    __pyx_t_8 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 483, __pyx_L1_error)
+    __pyx_t_8 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 569, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_9 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 483, __pyx_L1_error)
+    __pyx_t_9 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 569, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   for (;;) {
@@ -9276,17 +10488,17 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
       if (likely(PyList_CheckExact(__pyx_t_3))) {
         if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_2); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 483, __pyx_L1_error)
+        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_2); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 569, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 483, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 569, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       } else {
         if (__pyx_t_8 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_2); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 483, __pyx_L1_error)
+        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_2); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 569, __pyx_L1_error)
         #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 483, __pyx_L1_error)
+        __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 569, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
         #endif
       }
@@ -9296,399 +10508,1439 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 483, __pyx_L1_error)
+          else __PYX_ERR(0, 569, __pyx_L1_error)
         }
         break;
       }
       __Pyx_GOTREF(__pyx_t_2);
     }
-    __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_2);
+    __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_2);
     __pyx_t_2 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":482
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,             # <<<<<<<<<<<<<<
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]
- * 	#for window in windows:
+    /* "VocalTractLab/target_estimation.pyx":570
+ * 	windows_list = []
+ * 	for index in range( 0, n_passes ):
+ * 		if index == n_passes - 1:             # <<<<<<<<<<<<<<
+ * 			delta_boundary = 0
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_Fit_Window); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 482, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_passes, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 570, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_5 = PyTuple_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 482, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_INCREF(__pyx_v_times);
-    __Pyx_GIVEREF(__pyx_v_times);
-    PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_v_times);
-    __Pyx_INCREF(__pyx_v_values);
-    __Pyx_GIVEREF(__pyx_v_values);
-    PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_v_values);
-    __Pyx_INCREF(__pyx_v_boundaries);
-    __Pyx_GIVEREF(__pyx_v_boundaries);
-    PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_v_boundaries);
-    __pyx_t_10 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 482, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
-    if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_queue_position, __pyx_v_x) < 0) __PYX_ERR(0, 482, __pyx_L1_error)
-
-    /* "VocalTractLab/target_estimation.pyx":483
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]             # <<<<<<<<<<<<<<
- * 	#for window in windows:
- * 	#	print( 'window queue pos: {}'.format( window.queue_position ) )
- */
-    if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_window_length, __pyx_v_window_length) < 0) __PYX_ERR(0, 482, __pyx_L1_error)
-    if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_hop_length, __pyx_v_hop_length) < 0) __PYX_ERR(0, 482, __pyx_L1_error)
-    __pyx_t_11 = __pyx_t_10;
-    __pyx_t_10 = 0;
-    if (__Pyx_MergeKeywords(__pyx_t_11, __pyx_v_kwargs) < 0) __PYX_ERR(0, 483, __pyx_L1_error)
-
-    /* "VocalTractLab/target_estimation.pyx":482
- * 	n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,             # <<<<<<<<<<<<<<
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]
- * 	#for window in windows:
- */
-    __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, __pyx_t_11); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 482, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_10);
+    __pyx_t_5 = PyObject_RichCompare(__pyx_v_index, __pyx_t_2, Py_EQ); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 570, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 570, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_6, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 482, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+    if (__pyx_t_1) {
 
-    /* "VocalTractLab/target_estimation.pyx":483
- * 	#print( 'number of windows: ', n_windows )
- * 	windows = [ Fit_Window( times, values, boundaries, queue_position = x,
- * 		window_length= window_length, hop_length=hop_length, **kwargs ) for x in range( 0, n_windows ) ]             # <<<<<<<<<<<<<<
- * 	#for window in windows:
- * 	#	print( 'window queue pos: {}'.format( window.queue_position ) )
+      /* "VocalTractLab/target_estimation.pyx":571
+ * 	for index in range( 0, n_passes ):
+ * 		if index == n_passes - 1:
+ * 			delta_boundary = 0             # <<<<<<<<<<<<<<
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ * 		print( 'Iteration nr: {}'.format( index ) )
  */
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_windows = ((PyObject*)__pyx_t_6);
-  __pyx_t_6 = 0;
+      __Pyx_INCREF(__pyx_int_0);
+      __Pyx_DECREF_SET(__pyx_v_delta_boundary, __pyx_int_0);
 
-  /* "VocalTractLab/target_estimation.pyx":488
- * 	#	print( 'boundaries: {}'.format( window.boundaries ) )
- * 	#raise ValueError( 'dail ')
- * 	seq_fit = Sequential_Fit( windows )             # <<<<<<<<<<<<<<
- * 	seq_fit.plot()
- * 	#for window in windows:
+      /* "VocalTractLab/target_estimation.pyx":570
+ * 	windows_list = []
+ * 	for index in range( 0, n_passes ):
+ * 		if index == n_passes - 1:             # <<<<<<<<<<<<<<
+ * 			delta_boundary = 0
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_Sequential_Fit); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 488, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_10 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_10)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_10);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
     }
-  }
-  __pyx_t_6 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_10, __pyx_v_windows) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_windows);
-  __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 488, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_v_seq_fit = __pyx_t_6;
-  __pyx_t_6 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":489
- * 	#raise ValueError( 'dail ')
- * 	seq_fit = Sequential_Fit( windows )
- * 	seq_fit.plot()             # <<<<<<<<<<<<<<
- * 	#for window in windows:
- * 	#	window.fit()
+    /* "VocalTractLab/target_estimation.pyx":572
+ * 		if index == n_passes - 1:
+ * 			delta_boundary = 0
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )             # <<<<<<<<<<<<<<
+ * 		print( 'Iteration nr: {}'.format( index ) )
+ * 		print( len(boundaries) )
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_seq_fit, __pyx_n_s_plot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_10 = NULL;
-  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
-    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_3);
-    if (likely(__pyx_t_10)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-      __Pyx_INCREF(__pyx_t_10);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_3, function);
-    }
-  }
-  __pyx_t_6 = (__pyx_t_10) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_10) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-  if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 489, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_12 = PyObject_Length(__pyx_v_boundaries); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 572, __pyx_L1_error)
+    __pyx_t_5 = PyInt_FromSsize_t((__pyx_t_12 - 1)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 572, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_2 = PyNumber_Subtract(__pyx_t_5, __pyx_v_window_length); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 572, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_2, __pyx_v_hop_length); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 572, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_5, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 572, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_5 = __Pyx_PyNumber_Int(__pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 572, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_n_windows, __pyx_t_5);
+    __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":497
- * 		#	print( 'onset: {}, offset: {}, slope: {}, offset: {}, tau: {}'.format( target.onset_time, target.offset_time, target.slope, target.offset, target.tau ) )
- * 		#raise ValueError( 'dail ')
- * 	if 'delta_boundary' in kwargs:             # <<<<<<<<<<<<<<
- * 		if kwargs[ 'delta_boundary' ] > 0:
- * 			boundaries = get_optimized_boundaries( windows )
+    /* "VocalTractLab/target_estimation.pyx":573
+ * 			delta_boundary = 0
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ * 		print( 'Iteration nr: {}'.format( index ) )             # <<<<<<<<<<<<<<
+ * 		print( len(boundaries) )
+ * 		print( 'delta bounds: {}'.format(delta_boundary) )
  */
-  __pyx_t_1 = (__Pyx_PyDict_ContainsTF(__pyx_n_s_delta_boundary, __pyx_v_kwargs, Py_EQ)); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 497, __pyx_L1_error)
-  __pyx_t_4 = (__pyx_t_1 != 0);
-  if (__pyx_t_4) {
-
-    /* "VocalTractLab/target_estimation.pyx":498
- * 		#raise ValueError( 'dail ')
- * 	if 'delta_boundary' in kwargs:
- * 		if kwargs[ 'delta_boundary' ] > 0:             # <<<<<<<<<<<<<<
- * 			boundaries = get_optimized_boundaries( windows )
- * 	else:
- */
-    __pyx_t_6 = __Pyx_PyDict_GetItem(__pyx_v_kwargs, __pyx_n_s_delta_boundary); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_6);
-    __pyx_t_3 = PyObject_RichCompare(__pyx_t_6, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 498, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (__pyx_t_4) {
-
-      /* "VocalTractLab/target_estimation.pyx":499
- * 	if 'delta_boundary' in kwargs:
- * 		if kwargs[ 'delta_boundary' ] > 0:
- * 			boundaries = get_optimized_boundaries( windows )             # <<<<<<<<<<<<<<
- * 	else:
- * 		target_sequence = []
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_get_optimized_boundaries); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 499, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_10 = NULL;
-      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_6))) {
-        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_6);
-        if (likely(__pyx_t_10)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_6);
-          __Pyx_INCREF(__pyx_t_10);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_6, function);
-        }
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Iteration_nr, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
       }
-      __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_6, __pyx_t_10, __pyx_v_windows) : __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_windows);
-      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
-      if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 499, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_DECREF_SET(__pyx_v_boundaries, __pyx_t_3);
-      __pyx_t_3 = 0;
-
-      /* "VocalTractLab/target_estimation.pyx":498
- * 		#raise ValueError( 'dail ')
- * 	if 'delta_boundary' in kwargs:
- * 		if kwargs[ 'delta_boundary' ] > 0:             # <<<<<<<<<<<<<<
- * 			boundaries = get_optimized_boundaries( windows )
- * 	else:
- */
     }
+    __pyx_t_5 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_6, __pyx_v_index) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_index);
+    __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 573, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":497
- * 		#	print( 'onset: {}, offset: {}, slope: {}, offset: {}, tau: {}'.format( target.onset_time, target.offset_time, target.slope, target.offset, target.tau ) )
- * 		#raise ValueError( 'dail ')
- * 	if 'delta_boundary' in kwargs:             # <<<<<<<<<<<<<<
- * 		if kwargs[ 'delta_boundary' ] > 0:
- * 			boundaries = get_optimized_boundaries( windows )
+    /* "VocalTractLab/target_estimation.pyx":574
+ * 		n_windows = int( ( ( len( boundaries ) - 1 - window_length ) / hop_length ) + 1 )
+ * 		print( 'Iteration nr: {}'.format( index ) )
+ * 		print( len(boundaries) )             # <<<<<<<<<<<<<<
+ * 		print( 'delta bounds: {}'.format(delta_boundary) )
+ * 
  */
-    goto __pyx_L11;
-  }
+    __pyx_t_12 = PyObject_Length(__pyx_v_boundaries); if (unlikely(__pyx_t_12 == ((Py_ssize_t)-1))) __PYX_ERR(0, 574, __pyx_L1_error)
+    __pyx_t_5 = PyInt_FromSsize_t(__pyx_t_12); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 574, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 574, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":501
- * 			boundaries = get_optimized_boundaries( windows )
- * 	else:
- * 		target_sequence = []             # <<<<<<<<<<<<<<
- * 		for window in windows:
- * 			if window.queue_position == 0:
+    /* "VocalTractLab/target_estimation.pyx":575
+ * 		print( 'Iteration nr: {}'.format( index ) )
+ * 		print( len(boundaries) )
+ * 		print( 'delta bounds: {}'.format(delta_boundary) )             # <<<<<<<<<<<<<<
+ * 
+ * 		windows = [
  */
-  /*else*/ {
-    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 501, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_v_target_sequence = ((PyObject*)__pyx_t_3);
-    __pyx_t_3 = 0;
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_delta_bounds, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 575, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_6 = NULL;
+    if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_6 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_6)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_6);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+      }
+    }
+    __pyx_t_5 = (__pyx_t_6) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_6, __pyx_v_delta_boundary) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_delta_boundary);
+    __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 575, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (__Pyx_PrintOne(0, __pyx_t_5) < 0) __PYX_ERR(0, 575, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":502
- * 	else:
- * 		target_sequence = []
- * 		for window in windows:             # <<<<<<<<<<<<<<
- * 			if window.queue_position == 0:
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+    /* "VocalTractLab/target_estimation.pyx":577
+ * 		print( 'delta bounds: {}'.format(delta_boundary) )
+ * 
+ * 		windows = [             # <<<<<<<<<<<<<<
+ * 			Fit_Window(
+ * 				times = times,
  */
-    __pyx_t_3 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_3); __pyx_t_8 = 0;
+    __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 577, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+
+    /* "VocalTractLab/target_estimation.pyx":587
+ * 				hop_length=hop_length,
+ * 				**kwargs
+ * 			) for x in range( 0, n_windows )             # <<<<<<<<<<<<<<
+ * 		]
+ * 		seq_fit = Sequential_Fit( windows, times, values )
+ */
+    __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 587, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_INCREF(__pyx_int_0);
+    __Pyx_GIVEREF(__pyx_int_0);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
+    __Pyx_INCREF(__pyx_v_n_windows);
+    __Pyx_GIVEREF(__pyx_v_n_windows);
+    PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_n_windows);
+    __pyx_t_6 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 587, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (likely(PyList_CheckExact(__pyx_t_6)) || PyTuple_CheckExact(__pyx_t_6)) {
+      __pyx_t_2 = __pyx_t_6; __Pyx_INCREF(__pyx_t_2); __pyx_t_12 = 0;
+      __pyx_t_13 = NULL;
+    } else {
+      __pyx_t_12 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_6); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 587, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_13 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 587, __pyx_L1_error)
+    }
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     for (;;) {
-      if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_3)) break;
-      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_6 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_8); __Pyx_INCREF(__pyx_t_6); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 502, __pyx_L1_error)
-      #else
-      __pyx_t_6 = PySequence_ITEM(__pyx_t_3, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 502, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      #endif
-      __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_6);
+      if (likely(!__pyx_t_13)) {
+        if (likely(PyList_CheckExact(__pyx_t_2))) {
+          if (__pyx_t_12 >= PyList_GET_SIZE(__pyx_t_2)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_6 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_12); __Pyx_INCREF(__pyx_t_6); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 587, __pyx_L1_error)
+          #else
+          __pyx_t_6 = PySequence_ITEM(__pyx_t_2, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 587, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_6);
+          #endif
+        } else {
+          if (__pyx_t_12 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_6 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_12); __Pyx_INCREF(__pyx_t_6); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 587, __pyx_L1_error)
+          #else
+          __pyx_t_6 = PySequence_ITEM(__pyx_t_2, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 587, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_6);
+          #endif
+        }
+      } else {
+        __pyx_t_6 = __pyx_t_13(__pyx_t_2);
+        if (unlikely(!__pyx_t_6)) {
+          PyObject* exc_type = PyErr_Occurred();
+          if (exc_type) {
+            if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+            else __PYX_ERR(0, 587, __pyx_L1_error)
+          }
+          break;
+        }
+        __Pyx_GOTREF(__pyx_t_6);
+      }
+      __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_6);
       __pyx_t_6 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":503
- * 		target_sequence = []
- * 		for window in windows:
- * 			if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
- * 			elif window.queue_position < n_windows - 1:
+      /* "VocalTractLab/target_estimation.pyx":578
+ * 
+ * 		windows = [
+ * 			Fit_Window(             # <<<<<<<<<<<<<<
+ * 				times = times,
+ * 				values = values,
  */
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 503, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_Fit_Window); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_10 = __Pyx_PyInt_EqObjC(__pyx_t_6, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 503, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":579
+ * 		windows = [
+ * 			Fit_Window(
+ * 				times = times,             # <<<<<<<<<<<<<<
+ * 				values = values,
+ * 				boundaries = boundaries,
+ */
+      __pyx_t_10 = __Pyx_PyDict_NewPresized(7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 579, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_10);
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_times, __pyx_v_times) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":580
+ * 			Fit_Window(
+ * 				times = times,
+ * 				values = values,             # <<<<<<<<<<<<<<
+ * 				boundaries = boundaries,
+ * 				delta_boundary = delta_boundary,
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_values, __pyx_v_values) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":581
+ * 				times = times,
+ * 				values = values,
+ * 				boundaries = boundaries,             # <<<<<<<<<<<<<<
+ * 				delta_boundary = delta_boundary,
+ * 				queue_position = x,
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_boundaries, __pyx_v_boundaries) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":582
+ * 				values = values,
+ * 				boundaries = boundaries,
+ * 				delta_boundary = delta_boundary,             # <<<<<<<<<<<<<<
+ * 				queue_position = x,
+ * 				window_length= window_length,
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_delta_boundary, __pyx_v_delta_boundary) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":583
+ * 				boundaries = boundaries,
+ * 				delta_boundary = delta_boundary,
+ * 				queue_position = x,             # <<<<<<<<<<<<<<
+ * 				window_length= window_length,
+ * 				hop_length=hop_length,
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_queue_position, __pyx_v_x) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":584
+ * 				delta_boundary = delta_boundary,
+ * 				queue_position = x,
+ * 				window_length= window_length,             # <<<<<<<<<<<<<<
+ * 				hop_length=hop_length,
+ * 				**kwargs
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_window_length, __pyx_v_window_length) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":585
+ * 				queue_position = x,
+ * 				window_length= window_length,
+ * 				hop_length=hop_length,             # <<<<<<<<<<<<<<
+ * 				**kwargs
+ * 			) for x in range( 0, n_windows )
+ */
+      if (PyDict_SetItem(__pyx_t_10, __pyx_n_s_hop_length, __pyx_v_hop_length) < 0) __PYX_ERR(0, 579, __pyx_L1_error)
+      __pyx_t_11 = __pyx_t_10;
+      __pyx_t_10 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":586
+ * 				window_length= window_length,
+ * 				hop_length=hop_length,
+ * 				**kwargs             # <<<<<<<<<<<<<<
+ * 			) for x in range( 0, n_windows )
+ * 		]
+ */
+      if (__Pyx_MergeKeywords(__pyx_t_11, __pyx_v_kwargs) < 0) __PYX_ERR(0, 586, __pyx_L1_error)
+
+      /* "VocalTractLab/target_estimation.pyx":578
+ * 
+ * 		windows = [
+ * 			Fit_Window(             # <<<<<<<<<<<<<<
+ * 				times = times,
+ * 				values = values,
+ */
+      __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_empty_tuple, __pyx_t_11); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 578, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_10); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 503, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      if (__pyx_t_4) {
-
-        /* "VocalTractLab/target_estimation.pyx":504
- * 		for window in windows:
- * 			if window.queue_position == 0:
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )             # <<<<<<<<<<<<<<
- * 			elif window.queue_position < n_windows - 1:
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- */
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 504, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 504, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __pyx_t_10 = __Pyx_PyInt_AddCObj(__pyx_int_1, __pyx_v_hop_length, 1, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 504, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __pyx_t_11 = __Pyx_PyObject_GetSlice(__pyx_t_6, 0, 0, NULL, &__pyx_t_10, NULL, 0, 0, 1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 504, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __pyx_t_12 = __Pyx_PyList_Extend(__pyx_v_target_sequence, __pyx_t_11); if (unlikely(__pyx_t_12 == ((int)-1))) __PYX_ERR(0, 504, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-
-        /* "VocalTractLab/target_estimation.pyx":503
- * 		target_sequence = []
- * 		for window in windows:
- * 			if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
- * 			elif window.queue_position < n_windows - 1:
- */
-        goto __pyx_L15;
-      }
-
-      /* "VocalTractLab/target_estimation.pyx":505
- * 			if window.queue_position == 0:
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
- * 			elif window.queue_position < n_windows - 1:             # <<<<<<<<<<<<<<
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:
- */
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 505, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_10 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 505, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_6 = PyObject_RichCompare(__pyx_t_11, __pyx_t_10, Py_LT); __Pyx_XGOTREF(__pyx_t_6); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 505, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_5, (PyObject*)__pyx_t_10))) __PYX_ERR(0, 577, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_6); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 505, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      if (__pyx_t_4) {
 
-        /* "VocalTractLab/target_estimation.pyx":506
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
- * 			elif window.queue_position < n_windows - 1:
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )             # <<<<<<<<<<<<<<
- * 			elif window.queue_position == n_windows - 1:
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- */
-        __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 506, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 506, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-        __pyx_t_6 = __Pyx_PyObject_GetItem(__pyx_t_10, __pyx_v_hop_length); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 506, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_6);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __pyx_t_12 = __Pyx_PyList_Append(__pyx_v_target_sequence, __pyx_t_6); if (unlikely(__pyx_t_12 == ((int)-1))) __PYX_ERR(0, 506, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-
-        /* "VocalTractLab/target_estimation.pyx":505
- * 			if window.queue_position == 0:
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
- * 			elif window.queue_position < n_windows - 1:             # <<<<<<<<<<<<<<
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:
- */
-        goto __pyx_L15;
-      }
-
-      /* "VocalTractLab/target_estimation.pyx":507
- * 			elif window.queue_position < n_windows - 1:
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:             # <<<<<<<<<<<<<<
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return
- */
-      __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 507, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_6);
-      __pyx_t_10 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 507, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = PyObject_RichCompare(__pyx_t_6, __pyx_t_10, Py_EQ); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 507, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 507, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (__pyx_t_4) {
-
-        /* "VocalTractLab/target_estimation.pyx":508
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )             # <<<<<<<<<<<<<<
- * 	return
- * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- */
-        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 508, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 508, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        __pyx_t_11 = __Pyx_PyObject_GetSlice(__pyx_t_10, 1, 0, NULL, NULL, &__pyx_slice__12, 1, 0, 1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 508, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_11);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        __pyx_t_12 = __Pyx_PyList_Extend(__pyx_v_target_sequence, __pyx_t_11); if (unlikely(__pyx_t_12 == ((int)-1))) __PYX_ERR(0, 508, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-
-        /* "VocalTractLab/target_estimation.pyx":507
- * 			elif window.queue_position < n_windows - 1:
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:             # <<<<<<<<<<<<<<
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return
- */
-      }
-      __pyx_L15:;
-
-      /* "VocalTractLab/target_estimation.pyx":502
- * 	else:
- * 		target_sequence = []
- * 		for window in windows:             # <<<<<<<<<<<<<<
- * 			if window.queue_position == 0:
- * 				target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+      /* "VocalTractLab/target_estimation.pyx":587
+ * 				hop_length=hop_length,
+ * 				**kwargs
+ * 			) for x in range( 0, n_windows )             # <<<<<<<<<<<<<<
+ * 		]
+ * 		seq_fit = Sequential_Fit( windows, times, values )
  */
     }
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  }
-  __pyx_L11:;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_windows, __pyx_t_5);
+    __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":509
- * 			elif window.queue_position == n_windows - 1:
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return             # <<<<<<<<<<<<<<
+    /* "VocalTractLab/target_estimation.pyx":589
+ * 			) for x in range( 0, n_windows )
+ * 		]
+ * 		seq_fit = Sequential_Fit( windows, times, values )             # <<<<<<<<<<<<<<
+ * 		if show_plot:
+ * 			seq_fit.plot()
+ */
+    __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_Sequential_Fit); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 589, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_10 = NULL;
+    __pyx_t_14 = 0;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_10)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_10);
+        __Pyx_INCREF(function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
+        __pyx_t_14 = 1;
+      }
+    }
+    #if CYTHON_FAST_PYCALL
+    if (PyFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[4] = {__pyx_t_10, __pyx_v_windows, __pyx_v_times, __pyx_v_values};
+      __pyx_t_5 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_GOTREF(__pyx_t_5);
+    } else
+    #endif
+    #if CYTHON_FAST_PYCCALL
+    if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+      PyObject *__pyx_temp[4] = {__pyx_t_10, __pyx_v_windows, __pyx_v_times, __pyx_v_values};
+      __pyx_t_5 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_GOTREF(__pyx_t_5);
+    } else
+    #endif
+    {
+      __pyx_t_11 = PyTuple_New(3+__pyx_t_14); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_11);
+      if (__pyx_t_10) {
+        __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
+      }
+      __Pyx_INCREF(__pyx_v_windows);
+      __Pyx_GIVEREF(__pyx_v_windows);
+      PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_14, __pyx_v_windows);
+      __Pyx_INCREF(__pyx_v_times);
+      __Pyx_GIVEREF(__pyx_v_times);
+      PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_14, __pyx_v_times);
+      __Pyx_INCREF(__pyx_v_values);
+      __Pyx_GIVEREF(__pyx_v_values);
+      PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_14, __pyx_v_values);
+      __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_11, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 589, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_XDECREF_SET(__pyx_v_seq_fit, __pyx_t_5);
+    __pyx_t_5 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":590
+ * 		]
+ * 		seq_fit = Sequential_Fit( windows, times, values )
+ * 		if show_plot:             # <<<<<<<<<<<<<<
+ * 			seq_fit.plot()
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ */
+    __pyx_t_1 = __Pyx_PyObject_IsTrue(__pyx_v_show_plot); if (unlikely(__pyx_t_1 < 0)) __PYX_ERR(0, 590, __pyx_L1_error)
+    if (__pyx_t_1) {
+
+      /* "VocalTractLab/target_estimation.pyx":591
+ * 		seq_fit = Sequential_Fit( windows, times, values )
+ * 		if show_plot:
+ * 			seq_fit.plot()             # <<<<<<<<<<<<<<
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ * 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):
+ */
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_seq_fit, __pyx_n_s_plot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 591, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_11 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
+        if (likely(__pyx_t_11)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          __Pyx_INCREF(__pyx_t_11);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
+        }
+      }
+      __pyx_t_5 = (__pyx_t_11) ? __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_11) : __Pyx_PyObject_CallNoArg(__pyx_t_2);
+      __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+      if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 591, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":590
+ * 		]
+ * 		seq_fit = Sequential_Fit( windows, times, values )
+ * 		if show_plot:             # <<<<<<<<<<<<<<
+ * 			seq_fit.plot()
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ */
+    }
+
+    /* "VocalTractLab/target_estimation.pyx":593
+ * 			seq_fit.plot()
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ * 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):             # <<<<<<<<<<<<<<
+ * 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
+ * 			print( 'New boundaries: {}'.format( boundaries ) )
+ */
+    __pyx_t_5 = PyObject_RichCompare(__pyx_v_delta_boundary, __pyx_int_0, Py_GT); __Pyx_XGOTREF(__pyx_t_5); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 593, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 593, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    if (__pyx_t_4) {
+    } else {
+      __pyx_t_1 = __pyx_t_4;
+      goto __pyx_L22_bool_binop_done;
+    }
+    __pyx_t_5 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_passes, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 593, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_2 = PyObject_RichCompare(__pyx_v_index, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 593, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+    __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 593, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_1 = __pyx_t_4;
+    __pyx_L22_bool_binop_done:;
+    if (__pyx_t_1) {
+
+      /* "VocalTractLab/target_estimation.pyx":594
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ * 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):
+ * 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )             # <<<<<<<<<<<<<<
+ * 			print( 'New boundaries: {}'.format( boundaries ) )
+ * 		windows_list.append( windows )
+ */
+      __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_get_optimized_boundaries); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 594, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_11 = NULL;
+      __pyx_t_14 = 0;
+      if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_11)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_11);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
+          __pyx_t_14 = 1;
+        }
+      }
+      #if CYTHON_FAST_PYCALL
+      if (PyFunction_Check(__pyx_t_5)) {
+        PyObject *__pyx_temp[5] = {__pyx_t_11, __pyx_v_windows, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_underflow_threshold};
+        __pyx_t_2 = __Pyx_PyFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_14, 4+__pyx_t_14); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 594, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      #if CYTHON_FAST_PYCCALL
+      if (__Pyx_PyFastCFunction_Check(__pyx_t_5)) {
+        PyObject *__pyx_temp[5] = {__pyx_t_11, __pyx_v_windows, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_underflow_threshold};
+        __pyx_t_2 = __Pyx_PyCFunction_FastCall(__pyx_t_5, __pyx_temp+1-__pyx_t_14, 4+__pyx_t_14); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 594, __pyx_L1_error)
+        __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+      } else
+      #endif
+      {
+        __pyx_t_10 = PyTuple_New(4+__pyx_t_14); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 594, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_10);
+        if (__pyx_t_11) {
+          __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_11); __pyx_t_11 = NULL;
+        }
+        __Pyx_INCREF(__pyx_v_windows);
+        __Pyx_GIVEREF(__pyx_v_windows);
+        PyTuple_SET_ITEM(__pyx_t_10, 0+__pyx_t_14, __pyx_v_windows);
+        __Pyx_INCREF(__pyx_v_window_length);
+        __Pyx_GIVEREF(__pyx_v_window_length);
+        PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_14, __pyx_v_window_length);
+        __Pyx_INCREF(__pyx_v_hop_length);
+        __Pyx_GIVEREF(__pyx_v_hop_length);
+        PyTuple_SET_ITEM(__pyx_t_10, 2+__pyx_t_14, __pyx_v_hop_length);
+        __Pyx_INCREF(__pyx_v_underflow_threshold);
+        __Pyx_GIVEREF(__pyx_v_underflow_threshold);
+        PyTuple_SET_ITEM(__pyx_t_10, 3+__pyx_t_14, __pyx_v_underflow_threshold);
+        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_10, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 594, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      }
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF_SET(__pyx_v_boundaries, __pyx_t_2);
+      __pyx_t_2 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":595
+ * 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):
+ * 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
+ * 			print( 'New boundaries: {}'.format( boundaries ) )             # <<<<<<<<<<<<<<
+ * 		windows_list.append( windows )
+ * 
+ */
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_New_boundaries, __pyx_n_s_format); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 595, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_10 = NULL;
+      if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_5))) {
+        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_5);
+        if (likely(__pyx_t_10)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+          __Pyx_INCREF(__pyx_t_10);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_5, function);
+        }
+      }
+      __pyx_t_2 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_10, __pyx_v_boundaries) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_v_boundaries);
+      __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+      if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 595, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      if (__Pyx_PrintOne(0, __pyx_t_2) < 0) __PYX_ERR(0, 595, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":593
+ * 			seq_fit.plot()
+ * 		#seq_fit = Sequential_Fit( windows, times, values )
+ * 		if ( delta_boundary > 0 ) and ( index < n_passes - 1 ):             # <<<<<<<<<<<<<<
+ * 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
+ * 			print( 'New boundaries: {}'.format( boundaries ) )
+ */
+    }
+
+    /* "VocalTractLab/target_estimation.pyx":596
+ * 			boundaries = get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold )
+ * 			print( 'New boundaries: {}'.format( boundaries ) )
+ * 		windows_list.append( windows )             # <<<<<<<<<<<<<<
+ * 
+ * 	out_boundaries = boundaries
+ */
+    __pyx_t_15 = __Pyx_PyList_Append(__pyx_v_windows_list, __pyx_v_windows); if (unlikely(__pyx_t_15 == ((int)-1))) __PYX_ERR(0, 596, __pyx_L1_error)
+
+    /* "VocalTractLab/target_estimation.pyx":569
+ * 
+ * 	windows_list = []
+ * 	for index in range( 0, n_passes ):             # <<<<<<<<<<<<<<
+ * 		if index == n_passes - 1:
+ * 			delta_boundary = 0
+ */
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":598
+ * 		windows_list.append( windows )
+ * 
+ * 	out_boundaries = boundaries             # <<<<<<<<<<<<<<
+ * 	#target_list = []
+ * 	# for window in windows:
+ */
+  __Pyx_INCREF(__pyx_v_boundaries);
+  __pyx_v_out_boundaries = __pyx_v_boundaries;
+
+  /* "VocalTractLab/target_estimation.pyx":608
+ * 	# 		target_list.extend( window.fit_result.out_targets[ 1 : ] )
+ * 
+ * 	out_targets = get_optimized_targets( windows = windows, hop_length = hop_length )             # <<<<<<<<<<<<<<
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )
+ * 	#tgs.plot()
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_get_optimized_targets); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 608, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 608, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 608, __pyx_L1_error) }
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_windows, __pyx_v_windows) < 0) __PYX_ERR(0, 608, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_hop_length, __pyx_v_hop_length) < 0) __PYX_ERR(0, 608, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 608, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_out_targets = __pyx_t_5;
+  __pyx_t_5 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":609
+ * 
+ * 	out_targets = get_optimized_targets( windows = windows, hop_length = hop_length )
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )             # <<<<<<<<<<<<<<
+ * 	#tgs.plot()
+ * 	out_targets[ 0 ].onset_state = windows[0].fit_result.out_targets[ 0 ].onset_state
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_tg); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_Target_Sequence); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_targets, __pyx_v_out_targets) < 0) __PYX_ERR(0, 609, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_name, __pyx_kp_s_Sequential_fit) < 0) __PYX_ERR(0, 609, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 609, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_v_tgs = __pyx_t_3;
+  __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":611
+ * 	tgs = tg.Target_Sequence( targets = out_targets, name = 'Sequential fit' )
+ * 	#tgs.plot()
+ * 	out_targets[ 0 ].onset_state = windows[0].fit_result.out_targets[ 0 ].onset_state             # <<<<<<<<<<<<<<
+ * 	out_trajectory = tgs.get_contour()
+ * 	fit_info = dict(
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 611, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_GetItemInt(__pyx_t_3, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_onset_state); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = __Pyx_GetItemInt(__pyx_v_out_targets, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (__Pyx_PyObject_SetAttrStr(__pyx_t_5, __pyx_n_s_onset_state, __pyx_t_3) < 0) __PYX_ERR(0, 611, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":612
+ * 	#tgs.plot()
+ * 	out_targets[ 0 ].onset_state = windows[0].fit_result.out_targets[ 0 ].onset_state
+ * 	out_trajectory = tgs.get_contour()             # <<<<<<<<<<<<<<
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),
+ */
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_tgs, __pyx_n_s_get_contour); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 612, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && likely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_5 = (__pyx_t_2) ? __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2) : __Pyx_PyObject_CallNoArg(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 612, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_out_trajectory = __pyx_t_5;
+  __pyx_t_5 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":614
+ * 	out_trajectory = tgs.get_contour()
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),             # <<<<<<<<<<<<<<
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,
+ */
+  __pyx_t_5 = __Pyx_PyDict_NewPresized(28); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_2, __pyx_v_times) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_v_times);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_times, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":615
+ * 	fit_info = dict(
+ * 		in_times = np.array( times ),
+ * 		in_values = values,             # <<<<<<<<<<<<<<
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,
+ */
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_values, __pyx_v_values) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":616
+ * 		in_times = np.array( times ),
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,             # <<<<<<<<<<<<<<
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = windows[0].fit_result.par_weight_slope,
+ */
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_in_boundaries, __pyx_v_boundaries) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":617
+ * 		in_values = values,
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,             # <<<<<<<<<<<<<<
+ * 		par_weight_slope = windows[0].fit_result.par_weight_slope,
+ * 		par_weight_offset = windows[0].fit_result.par_weight_offset,
+ */
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_init_bounds, __pyx_v_init_bounds) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":618
+ * 		in_boundaries = boundaries,
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = windows[0].fit_result.par_weight_slope,             # <<<<<<<<<<<<<<
+ * 		par_weight_offset = windows[0].fit_result.par_weight_offset,
+ * 		par_weight_tau = windows[0].fit_result.par_weight_tau,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 618, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_weight_slope); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 618, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_slope, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":619
+ * 		par_init_bounds = init_bounds,
+ * 		par_weight_slope = windows[0].fit_result.par_weight_slope,
+ * 		par_weight_offset = windows[0].fit_result.par_weight_offset,             # <<<<<<<<<<<<<<
+ * 		par_weight_tau = windows[0].fit_result.par_weight_tau,
+ * 		par_weight_lambda = windows[0].fit_result.par_weight_lambda,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 619, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 619, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 619, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_weight_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 619, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_offset, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":620
+ * 		par_weight_slope = windows[0].fit_result.par_weight_slope,
+ * 		par_weight_offset = windows[0].fit_result.par_weight_offset,
+ * 		par_weight_tau = windows[0].fit_result.par_weight_tau,             # <<<<<<<<<<<<<<
+ * 		par_weight_lambda = windows[0].fit_result.par_weight_lambda,
+ * 		par_delta_slope = windows[0].fit_result.par_delta_slope,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 620, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 620, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 620, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_weight_tau); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 620, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_tau, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":621
+ * 		par_weight_offset = windows[0].fit_result.par_weight_offset,
+ * 		par_weight_tau = windows[0].fit_result.par_weight_tau,
+ * 		par_weight_lambda = windows[0].fit_result.par_weight_lambda,             # <<<<<<<<<<<<<<
+ * 		par_delta_slope = windows[0].fit_result.par_delta_slope,
+ * 		par_delta_offset = windows[0].fit_result.par_delta_offset,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 621, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 621, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 621, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_weight_lambda); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 621, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_weight_lambda, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":622
+ * 		par_weight_tau = windows[0].fit_result.par_weight_tau,
+ * 		par_weight_lambda = windows[0].fit_result.par_weight_lambda,
+ * 		par_delta_slope = windows[0].fit_result.par_delta_slope,             # <<<<<<<<<<<<<<
+ * 		par_delta_offset = windows[0].fit_result.par_delta_offset,
+ * 		par_delta_tau = windows[0].fit_result.par_delta_tau,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 622, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 622, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 622, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_delta_slope); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 622, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_slope, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":623
+ * 		par_weight_lambda = windows[0].fit_result.par_weight_lambda,
+ * 		par_delta_slope = windows[0].fit_result.par_delta_slope,
+ * 		par_delta_offset = windows[0].fit_result.par_delta_offset,             # <<<<<<<<<<<<<<
+ * 		par_delta_tau = windows[0].fit_result.par_delta_tau,
+ * 		par_delta_boundary = windows[0].fit_result.par_delta_boundary,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 623, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 623, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 623, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_delta_offset); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 623, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_offset, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":624
+ * 		par_delta_slope = windows[0].fit_result.par_delta_slope,
+ * 		par_delta_offset = windows[0].fit_result.par_delta_offset,
+ * 		par_delta_tau = windows[0].fit_result.par_delta_tau,             # <<<<<<<<<<<<<<
+ * 		par_delta_boundary = windows[0].fit_result.par_delta_boundary,
+ * 		par_mean_slope = windows[0].fit_result.par_mean_slope,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 624, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 624, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 624, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_delta_tau); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 624, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_tau, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":625
+ * 		par_delta_offset = windows[0].fit_result.par_delta_offset,
+ * 		par_delta_tau = windows[0].fit_result.par_delta_tau,
+ * 		par_delta_boundary = windows[0].fit_result.par_delta_boundary,             # <<<<<<<<<<<<<<
+ * 		par_mean_slope = windows[0].fit_result.par_mean_slope,
+ * 		par_mean_tau = windows[0].fit_result.par_mean_tau,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 625, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 625, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 625, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_delta_boundary); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 625, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_delta_boundary, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":626
+ * 		par_delta_tau = windows[0].fit_result.par_delta_tau,
+ * 		par_delta_boundary = windows[0].fit_result.par_delta_boundary,
+ * 		par_mean_slope = windows[0].fit_result.par_mean_slope,             # <<<<<<<<<<<<<<
+ * 		par_mean_tau = windows[0].fit_result.par_mean_tau,
+ * 		par_max_iterations = windows[0].fit_result.par_max_iterations,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 626, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 626, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 626, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_mean_slope); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 626, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_mean_slope, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":627
+ * 		par_delta_boundary = windows[0].fit_result.par_delta_boundary,
+ * 		par_mean_slope = windows[0].fit_result.par_mean_slope,
+ * 		par_mean_tau = windows[0].fit_result.par_mean_tau,             # <<<<<<<<<<<<<<
+ * 		par_max_iterations = windows[0].fit_result.par_max_iterations,
+ * 		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 627, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 627, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 627, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_mean_tau); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 627, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_mean_tau, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":628
+ * 		par_mean_slope = windows[0].fit_result.par_mean_slope,
+ * 		par_mean_tau = windows[0].fit_result.par_mean_tau,
+ * 		par_max_iterations = windows[0].fit_result.par_max_iterations,             # <<<<<<<<<<<<<<
+ * 		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,
+ * 		par_rho_end = windows[0].fit_result.par_rho_end,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 628, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 628, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 628, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_max_iterations); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 628, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_max_iterations, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":629
+ * 		par_mean_tau = windows[0].fit_result.par_mean_tau,
+ * 		par_max_iterations = windows[0].fit_result.par_max_iterations,
+ * 		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,             # <<<<<<<<<<<<<<
+ * 		par_rho_end = windows[0].fit_result.par_rho_end,
+ * 		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 629, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 629, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 629, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_max_cost_evaluations); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 629, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_max_cost_evaluations, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":630
+ * 		par_max_iterations = windows[0].fit_result.par_max_iterations,
+ * 		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,
+ * 		par_rho_end = windows[0].fit_result.par_rho_end,             # <<<<<<<<<<<<<<
+ * 		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,
+ * 		par_epsilon = windows[0].fit_result.par_epsilon,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 630, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 630, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 630, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_rho_end); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 630, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_rho_end, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":631
+ * 		par_max_cost_evaluations = windows[0].fit_result.par_max_cost_evaluations,
+ * 		par_rho_end = windows[0].fit_result.par_rho_end,
+ * 		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,             # <<<<<<<<<<<<<<
+ * 		par_epsilon = windows[0].fit_result.par_epsilon,
+ * 		par_patience = windows[0].fit_result.par_patience,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 631, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 631, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 631, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_use_early_stopping); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 631, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_use_early_stopping, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":632
+ * 		par_rho_end = windows[0].fit_result.par_rho_end,
+ * 		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,
+ * 		par_epsilon = windows[0].fit_result.par_epsilon,             # <<<<<<<<<<<<<<
+ * 		par_patience = windows[0].fit_result.par_patience,
+ * 		out_targets = out_targets,
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 632, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 632, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 632, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_epsilon); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 632, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_epsilon, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":633
+ * 		par_use_early_stopping = windows[0].fit_result.par_use_early_stopping,
+ * 		par_epsilon = windows[0].fit_result.par_epsilon,
+ * 		par_patience = windows[0].fit_result.par_patience,             # <<<<<<<<<<<<<<
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( out_boundaries ),
+ */
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 633, __pyx_L1_error) }
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 633, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 633, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_par_patience); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 633, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_par_patience, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":634
+ * 		par_epsilon = windows[0].fit_result.par_epsilon,
+ * 		par_patience = windows[0].fit_result.par_patience,
+ * 		out_targets = out_targets,             # <<<<<<<<<<<<<<
+ * 		out_boundaries = np.array( out_boundaries ),
+ * 		out_trajectory = out_trajectory,
+ */
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_targets, __pyx_v_out_targets) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":635
+ * 		par_patience = windows[0].fit_result.par_patience,
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( out_boundaries ),             # <<<<<<<<<<<<<<
+ * 		out_trajectory = out_trajectory,
+ * 		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_np); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 635, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 635, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  __pyx_t_10 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_10)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_10);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_10) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_10, __pyx_v_out_boundaries) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_out_boundaries);
+  __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 635, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_boundaries, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":636
+ * 		out_targets = out_targets,
+ * 		out_boundaries = np.array( out_boundaries ),
+ * 		out_trajectory = out_trajectory,             # <<<<<<<<<<<<<<
+ * 		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),
+ * 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
+ */
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_trajectory, __pyx_v_out_trajectory) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":637
+ * 		out_boundaries = np.array( out_boundaries ),
+ * 		out_trajectory = out_trajectory,
+ * 		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),             # <<<<<<<<<<<<<<
+ * 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 637, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 637, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 637, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 637, __pyx_L1_error) }
+  __pyx_t_11 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_11); __pyx_t_8 = 0;
+  for (;;) {
+    if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_11)) break;
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_6 = PyList_GET_ITEM(__pyx_t_11, __pyx_t_8); __Pyx_INCREF(__pyx_t_6); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 637, __pyx_L1_error)
+    #else
+    __pyx_t_6 = PySequence_ITEM(__pyx_t_11, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_6);
+    __pyx_t_6 = 0;
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_out_ftmp); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 637, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_7))) __PYX_ERR(0, 637, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __pyx_t_11 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_11)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_11);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_11) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_11, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 637, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_ftmp, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":638
+ * 		out_trajectory = out_trajectory,
+ * 		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),
+ * 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),             # <<<<<<<<<<<<<<
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_np); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 638, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_mean); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 638, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  __pyx_t_10 = PyList_New(0); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 638, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  if (unlikely(!__pyx_v_windows)) { __Pyx_RaiseUnboundLocalError("windows"); __PYX_ERR(0, 638, __pyx_L1_error) }
+  __pyx_t_11 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_11); __pyx_t_8 = 0;
+  for (;;) {
+    if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_11)) break;
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_7 = PyList_GET_ITEM(__pyx_t_11, __pyx_t_8); __Pyx_INCREF(__pyx_t_7); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 638, __pyx_L1_error)
+    #else
+    __pyx_t_7 = PySequence_ITEM(__pyx_t_11, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 638, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_7);
+    __pyx_t_7 = 0;
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 638, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_out_fmin); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 638, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_10, (PyObject*)__pyx_t_6))) __PYX_ERR(0, 638, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __pyx_t_11 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_11)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_11);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_11) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_11, __pyx_t_10) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_10);
+  __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 638, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_fmin, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":639
+ * 		out_ftmp = np.array( [ window.fit_result.out_ftmp for window in windows ] ),
+ * 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
+ * 		out_rmse = get_rmse( times, values, tgs ),             # <<<<<<<<<<<<<<
+ * 		out_corr = get_correlation( times, values, tgs ),
+ * 		out_time = np.sum( [ window.fit_result.out_time for windows in windows_list for window in windows ] ),
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_rmse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 639, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_10 = NULL;
+  __pyx_t_14 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_10)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_10);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_14 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_10, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 639, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_10, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 639, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_10); __pyx_t_10 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  {
+    __pyx_t_11 = PyTuple_New(3+__pyx_t_14); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 639, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_11);
+    if (__pyx_t_10) {
+      __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_10); __pyx_t_10 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_times);
+    __Pyx_GIVEREF(__pyx_v_times);
+    PyTuple_SET_ITEM(__pyx_t_11, 0+__pyx_t_14, __pyx_v_times);
+    __Pyx_INCREF(__pyx_v_values);
+    __Pyx_GIVEREF(__pyx_v_values);
+    PyTuple_SET_ITEM(__pyx_t_11, 1+__pyx_t_14, __pyx_v_values);
+    __Pyx_INCREF(__pyx_v_tgs);
+    __Pyx_GIVEREF(__pyx_v_tgs);
+    PyTuple_SET_ITEM(__pyx_t_11, 2+__pyx_t_14, __pyx_v_tgs);
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_11, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 639, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_rmse, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":640
+ * 		out_fmin = np.mean( [ window.fit_result.out_fmin for window in windows ] ),
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),             # <<<<<<<<<<<<<<
+ * 		out_time = np.sum( [ window.fit_result.out_time for windows in windows_list for window in windows ] ),
+ * 	)
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_get_correlation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 640, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_11 = NULL;
+  __pyx_t_14 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_11)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_11);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_14 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_11, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 640, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[4] = {__pyx_t_11, __pyx_v_times, __pyx_v_values, __pyx_v_tgs};
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_14, 3+__pyx_t_14); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 640, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  {
+    __pyx_t_10 = PyTuple_New(3+__pyx_t_14); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 640, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_10);
+    if (__pyx_t_11) {
+      __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_11); __pyx_t_11 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_times);
+    __Pyx_GIVEREF(__pyx_v_times);
+    PyTuple_SET_ITEM(__pyx_t_10, 0+__pyx_t_14, __pyx_v_times);
+    __Pyx_INCREF(__pyx_v_values);
+    __Pyx_GIVEREF(__pyx_v_values);
+    PyTuple_SET_ITEM(__pyx_t_10, 1+__pyx_t_14, __pyx_v_values);
+    __Pyx_INCREF(__pyx_v_tgs);
+    __Pyx_GIVEREF(__pyx_v_tgs);
+    PyTuple_SET_ITEM(__pyx_t_10, 2+__pyx_t_14, __pyx_v_tgs);
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 640, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_corr, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":641
+ * 		out_rmse = get_rmse( times, values, tgs ),
+ * 		out_corr = get_correlation( times, values, tgs ),
+ * 		out_time = np.sum( [ window.fit_result.out_time for windows in windows_list for window in windows ] ),             # <<<<<<<<<<<<<<
+ * 	)
+ * 	return Fit_Result( **fit_info )
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 641, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_sum); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 641, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 641, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_11 = __pyx_v_windows_list; __Pyx_INCREF(__pyx_t_11); __pyx_t_8 = 0;
+  for (;;) {
+    if (__pyx_t_8 >= PyList_GET_SIZE(__pyx_t_11)) break;
+    #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+    __pyx_t_6 = PyList_GET_ITEM(__pyx_t_11, __pyx_t_8); __Pyx_INCREF(__pyx_t_6); __pyx_t_8++; if (unlikely(0 < 0)) __PYX_ERR(0, 641, __pyx_L1_error)
+    #else
+    __pyx_t_6 = PySequence_ITEM(__pyx_t_11, __pyx_t_8); __pyx_t_8++; if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 641, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    #endif
+    __Pyx_XDECREF_SET(__pyx_v_windows, __pyx_t_6);
+    __pyx_t_6 = 0;
+    if (likely(PyList_CheckExact(__pyx_v_windows)) || PyTuple_CheckExact(__pyx_v_windows)) {
+      __pyx_t_6 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_6); __pyx_t_12 = 0;
+      __pyx_t_9 = NULL;
+    } else {
+      __pyx_t_12 = -1; __pyx_t_6 = PyObject_GetIter(__pyx_v_windows); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 641, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_6);
+      __pyx_t_9 = Py_TYPE(__pyx_t_6)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 641, __pyx_L1_error)
+    }
+    for (;;) {
+      if (likely(!__pyx_t_9)) {
+        if (likely(PyList_CheckExact(__pyx_t_6))) {
+          if (__pyx_t_12 >= PyList_GET_SIZE(__pyx_t_6)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_7 = PyList_GET_ITEM(__pyx_t_6, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 641, __pyx_L1_error)
+          #else
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 641, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_7);
+          #endif
+        } else {
+          if (__pyx_t_12 >= PyTuple_GET_SIZE(__pyx_t_6)) break;
+          #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+          __pyx_t_7 = PyTuple_GET_ITEM(__pyx_t_6, __pyx_t_12); __Pyx_INCREF(__pyx_t_7); __pyx_t_12++; if (unlikely(0 < 0)) __PYX_ERR(0, 641, __pyx_L1_error)
+          #else
+          __pyx_t_7 = PySequence_ITEM(__pyx_t_6, __pyx_t_12); __pyx_t_12++; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 641, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_7);
+          #endif
+        }
+      } else {
+        __pyx_t_7 = __pyx_t_9(__pyx_t_6);
+        if (unlikely(!__pyx_t_7)) {
+          PyObject* exc_type = PyErr_Occurred();
+          if (exc_type) {
+            if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+            else __PYX_ERR(0, 641, __pyx_L1_error)
+          }
+          break;
+        }
+        __Pyx_GOTREF(__pyx_t_7);
+      }
+      __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_7);
+      __pyx_t_7 = 0;
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 641, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_out_time); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 641, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_16);
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_2, (PyObject*)__pyx_t_16))) __PYX_ERR(0, 641, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+    }
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __pyx_t_11 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_10))) {
+    __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_10);
+    if (likely(__pyx_t_11)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
+      __Pyx_INCREF(__pyx_t_11);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_10, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_11) ? __Pyx_PyObject_Call2Args(__pyx_t_10, __pyx_t_11, __pyx_t_2) : __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 641, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+  if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_out_time, __pyx_t_3) < 0) __PYX_ERR(0, 614, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_fit_info = ((PyObject*)__pyx_t_5);
+  __pyx_t_5 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":643
+ * 		out_time = np.sum( [ window.fit_result.out_time for windows in windows_list for window in windows ] ),
+ * 	)
+ * 	return Fit_Result( **fit_info )             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_r = Py_None; __Pyx_INCREF(Py_None);
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_Fit_Result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 643, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_3 = PyDict_Copy(__pyx_v_fit_info); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 643, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_10 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 643, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_10);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_r = __pyx_t_10;
+  __pyx_t_10 = 0;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":465
+  /* "VocalTractLab/target_estimation.pyx":531
  * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit_sequentially( times,             # <<<<<<<<<<<<<<
@@ -9705,28 +11957,37 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_4fit_sequentially(
   __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_10);
   __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_16);
   __Pyx_AddTraceback("VocalTractLab.target_estimation.fit_sequentially", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_step);
+  __Pyx_XDECREF(__pyx_v_windows_list);
+  __Pyx_XDECREF(__pyx_v_index);
   __Pyx_XDECREF(__pyx_v_n_windows);
   __Pyx_XDECREF(__pyx_v_windows);
   __Pyx_XDECREF(__pyx_v_seq_fit);
-  __Pyx_XDECREF(__pyx_v_target_sequence);
-  __Pyx_XDECREF(__pyx_v_window);
+  __Pyx_XDECREF(__pyx_v_out_boundaries);
+  __Pyx_XDECREF(__pyx_v_out_targets);
+  __Pyx_XDECREF(__pyx_v_tgs);
+  __Pyx_XDECREF(__pyx_v_out_trajectory);
+  __Pyx_XDECREF(__pyx_v_fit_info);
   __Pyx_XDECREF(__pyx_v_x);
+  __Pyx_XDECREF(__pyx_v_window);
   __Pyx_XDECREF(__pyx_v_boundaries);
+  __Pyx_XDECREF(__pyx_v_delta_boundary);
+  __Pyx_XDECREF(__pyx_v_n_passes);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":511
- * 	return
+/* "VocalTractLab/target_estimation.pyx":645
+ * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):             # <<<<<<<<<<<<<<
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):             # <<<<<<<<<<<<<<
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
  */
 
 /* Python wrapper */
@@ -9736,7 +11997,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_7get_optimized_bou
   PyObject *__pyx_v_windows = 0;
   PyObject *__pyx_v_window_length = 0;
   PyObject *__pyx_v_hop_length = 0;
-  CYTHON_UNUSED PyObject *__pyx_v_o = 0;
+  PyObject *__pyx_v_underflow_threshold = 0;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -9744,8 +12005,9 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_7get_optimized_bou
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("get_optimized_boundaries (wrapper)", 0);
   {
-    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_windows,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,&__pyx_n_s_o,0};
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_windows,&__pyx_n_s_window_length,&__pyx_n_s_hop_length,&__pyx_n_s_underflow_threshold,0};
     PyObject* values[4] = {0,0,0,0};
+    values[3] = ((PyObject *)__pyx_float_0_010);
     if (unlikely(__pyx_kwds)) {
       Py_ssize_t kw_args;
       const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
@@ -9770,358 +12032,358 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_7get_optimized_bou
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_window_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 1, 4, 4, 1); __PYX_ERR(0, 511, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 0, 3, 4, 1); __PYX_ERR(0, 645, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 1, 4, 4, 2); __PYX_ERR(0, 511, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 0, 3, 4, 2); __PYX_ERR(0, 645, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
-        if (likely((values[3] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_o)) != 0)) kw_args--;
-        else {
-          __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 1, 4, 4, 3); __PYX_ERR(0, 511, __pyx_L3_error)
+        if (kw_args > 0) {
+          PyObject* value = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_underflow_threshold);
+          if (value) { values[3] = value; kw_args--; }
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_optimized_boundaries") < 0)) __PYX_ERR(0, 511, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_optimized_boundaries") < 0)) __PYX_ERR(0, 645, __pyx_L3_error)
       }
-    } else if (PyTuple_GET_SIZE(__pyx_args) != 4) {
-      goto __pyx_L5_argtuple_error;
     } else {
-      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
-      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
-      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
-      values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+      switch (PyTuple_GET_SIZE(__pyx_args)) {
+        case  4: values[3] = PyTuple_GET_ITEM(__pyx_args, 3);
+        CYTHON_FALLTHROUGH;
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        break;
+        default: goto __pyx_L5_argtuple_error;
+      }
     }
     __pyx_v_windows = values[0];
     __pyx_v_window_length = values[1];
     __pyx_v_hop_length = values[2];
-    __pyx_v_o = values[3];
+    __pyx_v_underflow_threshold = values[3];
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 1, 4, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 511, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_optimized_boundaries", 0, 3, 4, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 645, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.get_optimized_boundaries", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(__pyx_self, __pyx_v_windows, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_o);
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(__pyx_self, __pyx_v_windows, __pyx_v_window_length, __pyx_v_hop_length, __pyx_v_underflow_threshold);
 
   /* function exit code */
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, CYTHON_UNUSED PyObject *__pyx_v_o) {
-  PyObject *__pyx_v_boundary_sequence = NULL;
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_boundaries(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_window_length, PyObject *__pyx_v_hop_length, PyObject *__pyx_v_underflow_threshold) {
+  PyObject *__pyx_v_boundary_list = NULL;
   PyObject *__pyx_v_n_targets = NULL;
   PyObject *__pyx_v_target_index = NULL;
   PyObject *__pyx_v_index = NULL;
   PyObject *__pyx_v_tmp_targets = NULL;
   PyObject *__pyx_v_window = NULL;
   PyObject *__pyx_v_onset_time_mean = NULL;
+  PyObject *__pyx_v_boundaries = NULL;
   PyObject *__pyx_v_x = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
-  PyObject *__pyx_t_5 = NULL;
+  Py_ssize_t __pyx_t_4;
+  PyObject *(*__pyx_t_5)(PyObject *);
   Py_ssize_t __pyx_t_6;
-  PyObject *(*__pyx_t_7)(PyObject *);
+  PyObject *__pyx_t_7 = NULL;
   int __pyx_t_8;
-  Py_ssize_t __pyx_t_9;
-  PyObject *(*__pyx_t_10)(PyObject *);
+  PyObject *(*__pyx_t_9)(PyObject *);
+  int __pyx_t_10;
   int __pyx_t_11;
   int __pyx_t_12;
-  int __pyx_t_13;
+  Py_ssize_t __pyx_t_13;
   PyObject *__pyx_t_14 = NULL;
+  PyObject *__pyx_t_15 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_optimized_boundaries", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":512
+  /* "VocalTractLab/target_estimation.pyx":646
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):
- * 	boundary_sequence = []             # <<<<<<<<<<<<<<
- * 	n_targets = windows[-1].target_positions[-1] + 1
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):
+ * 	boundary_list = []             # <<<<<<<<<<<<<<
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
+ * 	print( n_targets )
  */
-  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 512, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 646, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_v_boundary_sequence = ((PyObject*)__pyx_t_1);
+  __pyx_v_boundary_list = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":513
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1             # <<<<<<<<<<<<<<
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )
- * 	for index in range( 0, hop_length +1 ):
+  /* "VocalTractLab/target_estimation.pyx":647
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1             # <<<<<<<<<<<<<<
+ * 	print( n_targets )
+ * 	target_index = [ x for x in range(0, window_length) ]
  */
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_windows, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 513, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_windows, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 513, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 513, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_2, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 647, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_1, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 513, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_n_targets = __pyx_t_2;
-  __pyx_t_2 = 0;
+  __pyx_v_n_targets = __pyx_t_1;
+  __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":514
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )             # <<<<<<<<<<<<<<
+  /* "VocalTractLab/target_estimation.pyx":648
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
+ * 	print( n_targets )             # <<<<<<<<<<<<<<
+ * 	target_index = [ x for x in range(0, window_length) ]
  * 	for index in range( 0, hop_length +1 ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_cycle); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 514, __pyx_L1_error)
+  if (__Pyx_PrintOne(0, __pyx_v_n_targets) < 0) __PYX_ERR(0, 648, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":649
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
+ * 	print( n_targets )
+ * 	target_index = [ x for x in range(0, window_length) ]             # <<<<<<<<<<<<<<
+ * 	for index in range( 0, hop_length +1 ):
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
+ */
+  __pyx_t_1 = PyList_New(0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 649, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 514, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 514, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 649, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_int_0);
   __Pyx_GIVEREF(__pyx_int_0);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
   __Pyx_INCREF(__pyx_v_window_length);
   __Pyx_GIVEREF(__pyx_v_window_length);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_v_window_length);
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_4, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 514, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_5)) || PyTuple_CheckExact(__pyx_t_5)) {
-    __pyx_t_4 = __pyx_t_5; __Pyx_INCREF(__pyx_t_4); __pyx_t_6 = 0;
-    __pyx_t_7 = NULL;
-  } else {
-    __pyx_t_6 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 514, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 514, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_7)) {
-      if (likely(PyList_CheckExact(__pyx_t_4))) {
-        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_4)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_5 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_6); __Pyx_INCREF(__pyx_t_5); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 514, __pyx_L1_error)
-        #else
-        __pyx_t_5 = PySequence_ITEM(__pyx_t_4, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 514, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
-        #endif
-      } else {
-        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_5 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_6); __Pyx_INCREF(__pyx_t_5); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 514, __pyx_L1_error)
-        #else
-        __pyx_t_5 = PySequence_ITEM(__pyx_t_4, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 514, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
-        #endif
-      }
-    } else {
-      __pyx_t_5 = __pyx_t_7(__pyx_t_4);
-      if (unlikely(!__pyx_t_5)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 514, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_5);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_5);
-    __pyx_t_5 = 0;
-    if (unlikely(__Pyx_ListComp_Append(__pyx_t_3, (PyObject*)__pyx_v_x))) __PYX_ERR(0, 514, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = NULL;
-  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_4)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_4);
-      __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
-    }
-  }
-  __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_4, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 514, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_target_index = __pyx_t_2;
-  __pyx_t_2 = 0;
-
-  /* "VocalTractLab/target_estimation.pyx":515
- * 	n_targets = windows[-1].target_positions[-1] + 1
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )
- * 	for index in range( 0, hop_length +1 ):             # <<<<<<<<<<<<<<
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	for index in range( hop_length + 1, n_targets - 1 ):
- */
-  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_hop_length, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 515, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 515, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_INCREF(__pyx_int_0);
-  __Pyx_GIVEREF(__pyx_int_0);
-  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_int_0);
-  __Pyx_GIVEREF(__pyx_t_2);
-  PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_t_2);
-  __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_1, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 515, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_2)) || PyTuple_CheckExact(__pyx_t_2)) {
-    __pyx_t_1 = __pyx_t_2; __Pyx_INCREF(__pyx_t_1); __pyx_t_6 = 0;
-    __pyx_t_7 = NULL;
-  } else {
-    __pyx_t_6 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 515, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_7 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 515, __pyx_L1_error)
-  }
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_v_window_length);
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 649, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_7)) {
-      if (likely(PyList_CheckExact(__pyx_t_1))) {
-        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_6); __Pyx_INCREF(__pyx_t_2); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 515, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 515, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      } else {
-        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_6); __Pyx_INCREF(__pyx_t_2); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 515, __pyx_L1_error)
-        #else
-        __pyx_t_2 = PySequence_ITEM(__pyx_t_1, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 515, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-      }
-    } else {
-      __pyx_t_2 = __pyx_t_7(__pyx_t_1);
-      if (unlikely(!__pyx_t_2)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 515, __pyx_L1_error)
-        }
-        break;
-      }
-      __Pyx_GOTREF(__pyx_t_2);
-    }
-    __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_2);
-    __pyx_t_2 = 0;
-
-    /* "VocalTractLab/target_estimation.pyx":516
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )
- * 	for index in range( 0, hop_length +1 ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )             # <<<<<<<<<<<<<<
- * 	for index in range( hop_length + 1, n_targets - 1 ):
- * 		tmp_targets = []
- */
-    __pyx_t_2 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_2);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_v_index); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_sequence, __pyx_t_3); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 516, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-    /* "VocalTractLab/target_estimation.pyx":515
- * 	n_targets = windows[-1].target_positions[-1] + 1
- * 	target_index = cycle( [ x for x in range(0, window_length) ] )
- * 	for index in range( 0, hop_length +1 ):             # <<<<<<<<<<<<<<
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	for index in range( hop_length + 1, n_targets - 1 ):
- */
-  }
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-  /* "VocalTractLab/target_estimation.pyx":517
- * 	for index in range( 0, hop_length +1 ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	for index in range( hop_length + 1, n_targets - 1 ):             # <<<<<<<<<<<<<<
- * 		tmp_targets = []
- * 		for window in windows:
- */
-  __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_v_hop_length, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 517, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_targets, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 517, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 517, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GIVEREF(__pyx_t_1);
-  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
-  __Pyx_GIVEREF(__pyx_t_3);
-  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3);
-  __pyx_t_1 = 0;
-  __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_4, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 517, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
-    __pyx_t_4 = __pyx_t_3; __Pyx_INCREF(__pyx_t_4); __pyx_t_6 = 0;
-    __pyx_t_7 = NULL;
+    __pyx_t_2 = __pyx_t_3; __Pyx_INCREF(__pyx_t_2); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
   } else {
-    __pyx_t_6 = -1; __pyx_t_4 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 517, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_7 = Py_TYPE(__pyx_t_4)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 517, __pyx_L1_error)
+    __pyx_t_4 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 649, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_5 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 649, __pyx_L1_error)
   }
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   for (;;) {
-    if (likely(!__pyx_t_7)) {
-      if (likely(PyList_CheckExact(__pyx_t_4))) {
-        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_4)) break;
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_2))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_4, __pyx_t_6); __Pyx_INCREF(__pyx_t_3); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 517, __pyx_L1_error)
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 649, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 517, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 649, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       } else {
-        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_4)) break;
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_4, __pyx_t_6); __Pyx_INCREF(__pyx_t_3); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 517, __pyx_L1_error)
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 649, __pyx_L1_error)
         #else
-        __pyx_t_3 = PySequence_ITEM(__pyx_t_4, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 517, __pyx_L1_error)
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 649, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_3);
         #endif
       }
     } else {
-      __pyx_t_3 = __pyx_t_7(__pyx_t_4);
+      __pyx_t_3 = __pyx_t_5(__pyx_t_2);
       if (unlikely(!__pyx_t_3)) {
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 517, __pyx_L1_error)
+          else __PYX_ERR(0, 649, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_3);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_3);
+    __pyx_t_3 = 0;
+    if (unlikely(__Pyx_ListComp_Append(__pyx_t_1, (PyObject*)__pyx_v_x))) __PYX_ERR(0, 649, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_target_index = ((PyObject*)__pyx_t_1);
+  __pyx_t_1 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":650
+ * 	print( n_targets )
+ * 	target_index = [ x for x in range(0, window_length) ]
+ * 	for index in range( 0, hop_length +1 ):             # <<<<<<<<<<<<<<
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
+ * 	for index in range( hop_length + 1, n_targets - 1 ):
+ */
+  __pyx_t_1 = __Pyx_PyInt_AddObjC(__pyx_v_hop_length, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 650, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_int_0);
+  __Pyx_GIVEREF(__pyx_int_0);
+  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_int_0);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_t_1);
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
+    __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_4 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 650, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_5 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 650, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_2))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_2)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 650, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      } else {
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_4); __Pyx_INCREF(__pyx_t_1); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 650, __pyx_L1_error)
+        #else
+        __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 650, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        #endif
+      }
+    } else {
+      __pyx_t_1 = __pyx_t_5(__pyx_t_2);
+      if (unlikely(!__pyx_t_1)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 650, __pyx_L1_error)
+        }
+        break;
+      }
+      __Pyx_GOTREF(__pyx_t_1);
+    }
+    __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_1);
+    __pyx_t_1 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":651
+ * 	target_index = [ x for x in range(0, window_length) ]
+ * 	for index in range( 0, hop_length +1 ):
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )             # <<<<<<<<<<<<<<
+ * 	for index in range( hop_length + 1, n_targets - 1 ):
+ * 		tmp_targets = []
+ */
+    __pyx_t_1 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_6 = PyList_GET_SIZE(__pyx_v_target_index); if (unlikely(__pyx_t_6 == ((Py_ssize_t)-1))) __PYX_ERR(0, 651, __pyx_L1_error)
+    __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_7 = PyNumber_Remainder(__pyx_v_index, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_7 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_list, __pyx_t_3); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 651, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":650
+ * 	print( n_targets )
+ * 	target_index = [ x for x in range(0, window_length) ]
+ * 	for index in range( 0, hop_length +1 ):             # <<<<<<<<<<<<<<
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
+ * 	for index in range( hop_length + 1, n_targets - 1 ):
+ */
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":652
+ * 	for index in range( 0, hop_length +1 ):
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
+ * 	for index in range( hop_length + 1, n_targets - 1 ):             # <<<<<<<<<<<<<<
+ * 		tmp_targets = []
+ * 		for window in windows:
+ */
+  __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_v_hop_length, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 652, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_targets, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 652, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_7 = PyTuple_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 652, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_3);
+  PyTuple_SET_ITEM(__pyx_t_7, 1, __pyx_t_3);
+  __pyx_t_2 = 0;
+  __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 652, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  if (likely(PyList_CheckExact(__pyx_t_3)) || PyTuple_CheckExact(__pyx_t_3)) {
+    __pyx_t_7 = __pyx_t_3; __Pyx_INCREF(__pyx_t_7); __pyx_t_4 = 0;
+    __pyx_t_5 = NULL;
+  } else {
+    __pyx_t_4 = -1; __pyx_t_7 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 652, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_t_5 = Py_TYPE(__pyx_t_7)->tp_iternext; if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 652, __pyx_L1_error)
+  }
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  for (;;) {
+    if (likely(!__pyx_t_5)) {
+      if (likely(PyList_CheckExact(__pyx_t_7))) {
+        if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_7)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_3 = PyList_GET_ITEM(__pyx_t_7, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 652, __pyx_L1_error)
+        #else
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_7, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 652, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        #endif
+      } else {
+        if (__pyx_t_4 >= PyTuple_GET_SIZE(__pyx_t_7)) break;
+        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+        __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_7, __pyx_t_4); __Pyx_INCREF(__pyx_t_3); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 652, __pyx_L1_error)
+        #else
+        __pyx_t_3 = PySequence_ITEM(__pyx_t_7, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 652, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        #endif
+      }
+    } else {
+      __pyx_t_3 = __pyx_t_5(__pyx_t_7);
+      if (unlikely(!__pyx_t_3)) {
+        PyObject* exc_type = PyErr_Occurred();
+        if (exc_type) {
+          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
+          else __PYX_ERR(0, 652, __pyx_L1_error)
         }
         break;
       }
@@ -10130,352 +12392,423 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_bou
     __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":518
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+    /* "VocalTractLab/target_estimation.pyx":653
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
  * 	for index in range( hop_length + 1, n_targets - 1 ):
  * 		tmp_targets = []             # <<<<<<<<<<<<<<
  * 		for window in windows:
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
  */
-    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 518, __pyx_L1_error)
+    __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 653, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_XDECREF_SET(__pyx_v_tmp_targets, ((PyObject*)__pyx_t_3));
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":519
+    /* "VocalTractLab/target_estimation.pyx":654
  * 	for index in range( hop_length + 1, n_targets - 1 ):
  * 		tmp_targets = []
  * 		for window in windows:             # <<<<<<<<<<<<<<
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  */
     if (likely(PyList_CheckExact(__pyx_v_windows)) || PyTuple_CheckExact(__pyx_v_windows)) {
-      __pyx_t_3 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_3); __pyx_t_9 = 0;
-      __pyx_t_10 = NULL;
+      __pyx_t_3 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_3); __pyx_t_6 = 0;
+      __pyx_t_9 = NULL;
     } else {
-      __pyx_t_9 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_windows); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 519, __pyx_L1_error)
+      __pyx_t_6 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_v_windows); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 654, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_10 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 519, __pyx_L1_error)
+      __pyx_t_9 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 654, __pyx_L1_error)
     }
     for (;;) {
-      if (likely(!__pyx_t_10)) {
+      if (likely(!__pyx_t_9)) {
         if (likely(PyList_CheckExact(__pyx_t_3))) {
-          if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_3)) break;
+          if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_1 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_9); __Pyx_INCREF(__pyx_t_1); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 519, __pyx_L1_error)
+          __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_6); __Pyx_INCREF(__pyx_t_2); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 654, __pyx_L1_error)
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 519, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 654, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
           #endif
         } else {
-          if (__pyx_t_9 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
+          if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
           #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-          __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_9); __Pyx_INCREF(__pyx_t_1); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 519, __pyx_L1_error)
+          __pyx_t_2 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_6); __Pyx_INCREF(__pyx_t_2); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 654, __pyx_L1_error)
           #else
-          __pyx_t_1 = PySequence_ITEM(__pyx_t_3, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 519, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 654, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_2);
           #endif
         }
       } else {
-        __pyx_t_1 = __pyx_t_10(__pyx_t_3);
-        if (unlikely(!__pyx_t_1)) {
+        __pyx_t_2 = __pyx_t_9(__pyx_t_3);
+        if (unlikely(!__pyx_t_2)) {
           PyObject* exc_type = PyErr_Occurred();
           if (exc_type) {
             if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-            else __PYX_ERR(0, 519, __pyx_L1_error)
+            else __PYX_ERR(0, 654, __pyx_L1_error)
           }
           break;
         }
-        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_GOTREF(__pyx_t_2);
       }
-      __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_1);
-      __pyx_t_1 = 0;
+      __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_2);
+      __pyx_t_2 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":520
+      /* "VocalTractLab/target_estimation.pyx":655
  * 		tmp_targets = []
  * 		for window in windows:
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):             # <<<<<<<<<<<<<<
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 520, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_12 = (__Pyx_PySequence_ContainsTF(__pyx_v_index, __pyx_t_1, Py_EQ)); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 520, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_13 = (__pyx_t_12 != 0);
-      if (__pyx_t_13) {
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 655, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_11 = (__Pyx_PySequence_ContainsTF(__pyx_v_index, __pyx_t_2, Py_EQ)); if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 655, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_12 = (__pyx_t_11 != 0);
+      if (__pyx_t_12) {
       } else {
-        __pyx_t_11 = __pyx_t_13;
+        __pyx_t_10 = __pyx_t_12;
         goto __pyx_L12_bool_binop_done;
       }
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 520, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_1, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 520, __pyx_L1_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_target_positions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 655, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = PyObject_RichCompare(__pyx_v_index, __pyx_t_2, Py_NE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 520, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 655, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 520, __pyx_L1_error)
+      __pyx_t_2 = PyObject_RichCompare(__pyx_v_index, __pyx_t_1, Py_NE); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 655, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_11 = __pyx_t_13;
+      __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 655, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_10 = __pyx_t_12;
       __pyx_L12_bool_binop_done:;
-      if (__pyx_t_11) {
+      if (__pyx_t_10) {
 
-        /* "VocalTractLab/target_estimation.pyx":521
+        /* "VocalTractLab/target_estimation.pyx":656
  * 		for window in windows:
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )             # <<<<<<<<<<<<<<
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )             # <<<<<<<<<<<<<<
  * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
- * 		boundary_sequence.append( onset_time_mean )
+ * 		boundary_list.append( onset_time_mean )
  */
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 521, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 656, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_v_index); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 521, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 656, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 521, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_13 = PyList_GET_SIZE(__pyx_v_target_index); if (unlikely(__pyx_t_13 == ((Py_ssize_t)-1))) __PYX_ERR(0, 656, __pyx_L1_error)
+        __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_13); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 656, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_14 = PyNumber_Remainder(__pyx_v_index, __pyx_t_2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 656, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_14);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_t_14); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 656, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+        __pyx_t_14 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 656, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_14);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_tmp_targets, __pyx_t_5); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 521, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_tmp_targets, __pyx_t_14); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 656, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
 
-        /* "VocalTractLab/target_estimation.pyx":520
+        /* "VocalTractLab/target_estimation.pyx":655
  * 		tmp_targets = []
  * 		for window in windows:
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):             # <<<<<<<<<<<<<<
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
  */
       }
 
-      /* "VocalTractLab/target_estimation.pyx":519
+      /* "VocalTractLab/target_estimation.pyx":654
  * 	for index in range( hop_length + 1, n_targets - 1 ):
  * 		tmp_targets = []
  * 		for window in windows:             # <<<<<<<<<<<<<<
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  */
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":522
+    /* "VocalTractLab/target_estimation.pyx":657
  * 			if ( index in window.target_positions ) and ( index != window.target_positions[0] ):
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )             # <<<<<<<<<<<<<<
- * 		boundary_sequence.append( onset_time_mean )
- * 	for index in range( n_targets - 1, n_targets ):
+ * 		boundary_list.append( onset_time_mean )
+ * 	#for index in range( n_targets - 1, n_targets ):
  */
-    __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 522, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_mean); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 522, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_5 = PyList_New(0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 522, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_2 = __pyx_v_tmp_targets; __Pyx_INCREF(__pyx_t_2); __pyx_t_9 = 0;
+    __Pyx_GetModuleGlobalName(__pyx_t_14, __pyx_n_s_np); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 657, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_14, __pyx_n_s_mean); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 657, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    __pyx_t_14 = PyList_New(0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 657, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_14);
+    __pyx_t_1 = __pyx_v_tmp_targets; __Pyx_INCREF(__pyx_t_1); __pyx_t_6 = 0;
     for (;;) {
-      if (__pyx_t_9 >= PyList_GET_SIZE(__pyx_t_2)) break;
+      if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_1)) break;
       #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_14 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_9); __Pyx_INCREF(__pyx_t_14); __pyx_t_9++; if (unlikely(0 < 0)) __PYX_ERR(0, 522, __pyx_L1_error)
+      __pyx_t_15 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_6); __Pyx_INCREF(__pyx_t_15); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 657, __pyx_L1_error)
       #else
-      __pyx_t_14 = PySequence_ITEM(__pyx_t_2, __pyx_t_9); __pyx_t_9++; if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 522, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_14);
+      __pyx_t_15 = PySequence_ITEM(__pyx_t_1, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 657, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
       #endif
-      __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_14);
-      __pyx_t_14 = 0;
-      __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_v_x, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 522, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_14);
-      if (unlikely(__Pyx_ListComp_Append(__pyx_t_5, (PyObject*)__pyx_t_14))) __PYX_ERR(0, 522, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_15);
+      __pyx_t_15 = 0;
+      __pyx_t_15 = __Pyx_PyObject_GetAttrStr(__pyx_v_x, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 657, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_15);
+      if (unlikely(__Pyx_ListComp_Append(__pyx_t_14, (PyObject*)__pyx_t_15))) __PYX_ERR(0, 657, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
     }
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = NULL;
-    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
-      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
-      if (likely(__pyx_t_2)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-        __Pyx_INCREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = NULL;
+    if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_1);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_1, function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
       }
     }
-    __pyx_t_3 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_2, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
-    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 522, __pyx_L1_error)
+    __pyx_t_3 = (__pyx_t_1) ? __Pyx_PyObject_Call2Args(__pyx_t_2, __pyx_t_1, __pyx_t_14) : __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_14);
+    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 657, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF_SET(__pyx_v_onset_time_mean, __pyx_t_3);
     __pyx_t_3 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":523
- * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index ] ] )
+    /* "VocalTractLab/target_estimation.pyx":658
+ * 				tmp_targets.append( window.fit_result.out_targets[ target_index[ index % len( target_index ) ] ] )
  * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
- * 		boundary_sequence.append( onset_time_mean )             # <<<<<<<<<<<<<<
- * 	for index in range( n_targets - 1, n_targets ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+ * 		boundary_list.append( onset_time_mean )             # <<<<<<<<<<<<<<
+ * 	#for index in range( n_targets - 1, n_targets ):
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].onset_time )
  */
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_sequence, __pyx_v_onset_time_mean); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 523, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_list, __pyx_v_onset_time_mean); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 658, __pyx_L1_error)
 
-    /* "VocalTractLab/target_estimation.pyx":517
+    /* "VocalTractLab/target_estimation.pyx":652
  * 	for index in range( 0, hop_length +1 ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
+ * 		boundary_list.append( windows[0].fit_result.out_targets[ target_index[ index % len( target_index ) ] ].onset_time )
  * 	for index in range( hop_length + 1, n_targets - 1 ):             # <<<<<<<<<<<<<<
  * 		tmp_targets = []
  * 		for window in windows:
  */
   }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":524
- * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
- * 		boundary_sequence.append( onset_time_mean )
- * 	for index in range( n_targets - 1, n_targets ):             # <<<<<<<<<<<<<<
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
+  /* "VocalTractLab/target_estimation.pyx":660
+ * 		boundary_list.append( onset_time_mean )
+ * 	#for index in range( n_targets - 1, n_targets ):
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].onset_time )             # <<<<<<<<<<<<<<
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )
+ * 	boundary_list = sorted( boundary_list )
  */
-  __pyx_t_4 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_targets, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 524, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 524, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_windows, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 660, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GIVEREF(__pyx_t_4);
-  PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4);
-  __Pyx_INCREF(__pyx_v_n_targets);
-  __Pyx_GIVEREF(__pyx_v_n_targets);
-  PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_n_targets);
-  __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_range, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 524, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
-    __pyx_t_3 = __pyx_t_4; __Pyx_INCREF(__pyx_t_3); __pyx_t_6 = 0;
-    __pyx_t_7 = NULL;
-  } else {
-    __pyx_t_6 = -1; __pyx_t_3 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 524, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_7 = Py_TYPE(__pyx_t_3)->tp_iternext; if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 524, __pyx_L1_error)
-  }
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  for (;;) {
-    if (likely(!__pyx_t_7)) {
-      if (likely(PyList_CheckExact(__pyx_t_3))) {
-        if (__pyx_t_6 >= PyList_GET_SIZE(__pyx_t_3)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_6); __Pyx_INCREF(__pyx_t_4); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 524, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 524, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_7, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 660, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_list, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 660, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":661
+ * 	#for index in range( n_targets - 1, n_targets ):
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].onset_time )
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )             # <<<<<<<<<<<<<<
+ * 	boundary_list = sorted( boundary_list )
+ * 	if underflow_threshold != None:
+ */
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_windows, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_7, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_offset_time); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_list, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 661, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":662
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].onset_time )
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )
+ * 	boundary_list = sorted( boundary_list )             # <<<<<<<<<<<<<<
+ * 	if underflow_threshold != None:
+ * 		boundaries = []
+ */
+  __pyx_t_3 = PySequence_List(__pyx_v_boundary_list); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 662, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_7 = ((PyObject*)__pyx_t_3);
+  __pyx_t_3 = 0;
+  __pyx_t_8 = PyList_Sort(__pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 662, __pyx_L1_error)
+  __Pyx_DECREF_SET(__pyx_v_boundary_list, ((PyObject*)__pyx_t_7));
+  __pyx_t_7 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":663
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )
+ * 	boundary_list = sorted( boundary_list )
+ * 	if underflow_threshold != None:             # <<<<<<<<<<<<<<
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):
+ */
+  __pyx_t_7 = PyObject_RichCompare(__pyx_v_underflow_threshold, Py_None, Py_NE); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 663, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 663, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  if (__pyx_t_10) {
+
+    /* "VocalTractLab/target_estimation.pyx":664
+ * 	boundary_list = sorted( boundary_list )
+ * 	if underflow_threshold != None:
+ * 		boundaries = []             # <<<<<<<<<<<<<<
+ * 		for index, x in enumerate( boundary_list ):
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+ */
+    __pyx_t_7 = PyList_New(0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 664, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_7);
+    __pyx_v_boundaries = ((PyObject*)__pyx_t_7);
+    __pyx_t_7 = 0;
+
+    /* "VocalTractLab/target_estimation.pyx":665
+ * 	if underflow_threshold != None:
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):             # <<<<<<<<<<<<<<
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+ * 				boundaries.append(x)
+ */
+    __Pyx_INCREF(__pyx_int_0);
+    __pyx_t_7 = __pyx_int_0;
+    __pyx_t_3 = __pyx_v_boundary_list; __Pyx_INCREF(__pyx_t_3); __pyx_t_4 = 0;
+    for (;;) {
+      if (__pyx_t_4 >= PyList_GET_SIZE(__pyx_t_3)) break;
+      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
+      __pyx_t_2 = PyList_GET_ITEM(__pyx_t_3, __pyx_t_4); __Pyx_INCREF(__pyx_t_2); __pyx_t_4++; if (unlikely(0 < 0)) __PYX_ERR(0, 665, __pyx_L1_error)
+      #else
+      __pyx_t_2 = PySequence_ITEM(__pyx_t_3, __pyx_t_4); __pyx_t_4++; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 665, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      #endif
+      __Pyx_XDECREF_SET(__pyx_v_x, __pyx_t_2);
+      __pyx_t_2 = 0;
+      __Pyx_INCREF(__pyx_t_7);
+      __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_7);
+      __pyx_t_2 = __Pyx_PyInt_AddObjC(__pyx_t_7, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 665, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_7);
+      __pyx_t_7 = __pyx_t_2;
+      __pyx_t_2 = 0;
+
+      /* "VocalTractLab/target_estimation.pyx":666
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:             # <<<<<<<<<<<<<<
+ * 				boundaries.append(x)
+ * 		boundary_list = boundaries
+ */
+      __pyx_t_2 = __Pyx_PyInt_EqObjC(__pyx_v_index, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (!__pyx_t_12) {
       } else {
-        if (__pyx_t_6 >= PyTuple_GET_SIZE(__pyx_t_3)) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_3, __pyx_t_6); __Pyx_INCREF(__pyx_t_4); __pyx_t_6++; if (unlikely(0 < 0)) __PYX_ERR(0, 524, __pyx_L1_error)
-        #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_3, __pyx_t_6); __pyx_t_6++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 524, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
+        __pyx_t_10 = __pyx_t_12;
+        goto __pyx_L20_bool_binop_done;
       }
-    } else {
-      __pyx_t_4 = __pyx_t_7(__pyx_t_3);
-      if (unlikely(!__pyx_t_4)) {
-        PyObject* exc_type = PyErr_Occurred();
-        if (exc_type) {
-          if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 524, __pyx_L1_error)
-        }
-        break;
+      __pyx_t_2 = __Pyx_GetItemInt_List(__pyx_v_boundaries, -1L, long, 1, __Pyx_PyInt_From_long, 1, 1, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_14 = PyNumber_Subtract(__pyx_v_x, __pyx_t_2); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_14);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = PyObject_RichCompare(__pyx_t_14, __pyx_v_underflow_threshold, Py_GT); __Pyx_XGOTREF(__pyx_t_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
+      __pyx_t_12 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_12 < 0)) __PYX_ERR(0, 666, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_10 = __pyx_t_12;
+      __pyx_L20_bool_binop_done:;
+      if (__pyx_t_10) {
+
+        /* "VocalTractLab/target_estimation.pyx":667
+ * 		for index, x in enumerate( boundary_list ):
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+ * 				boundaries.append(x)             # <<<<<<<<<<<<<<
+ * 		boundary_list = boundaries
+ * 	return boundary_list
+ */
+        __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundaries, __pyx_v_x); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 667, __pyx_L1_error)
+
+        /* "VocalTractLab/target_estimation.pyx":666
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:             # <<<<<<<<<<<<<<
+ * 				boundaries.append(x)
+ * 		boundary_list = boundaries
+ */
       }
-      __Pyx_GOTREF(__pyx_t_4);
+
+      /* "VocalTractLab/target_estimation.pyx":665
+ * 	if underflow_threshold != None:
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):             # <<<<<<<<<<<<<<
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+ * 				boundaries.append(x)
+ */
     }
-    __Pyx_XDECREF_SET(__pyx_v_index, __pyx_t_4);
-    __pyx_t_4 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":525
- * 		boundary_sequence.append( onset_time_mean )
- * 	for index in range( n_targets - 1, n_targets ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )             # <<<<<<<<<<<<<<
- * 	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
- * 	return boundary_sequence
- */
-    __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_v_index); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_onset_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_sequence, __pyx_t_1); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 525, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-    /* "VocalTractLab/target_estimation.pyx":524
- * 		onset_time_mean = np.mean( [ x.onset_time for x in tmp_targets ] )
- * 		boundary_sequence.append( onset_time_mean )
- * 	for index in range( n_targets - 1, n_targets ):             # <<<<<<<<<<<<<<
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
- */
-  }
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "VocalTractLab/target_estimation.pyx":526
- * 	for index in range( n_targets - 1, n_targets ):
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )             # <<<<<<<<<<<<<<
- * 	return boundary_sequence
+    /* "VocalTractLab/target_estimation.pyx":668
+ * 			if index == 0 or ( x - boundaries[ -1 ] ) > underflow_threshold:
+ * 				boundaries.append(x)
+ * 		boundary_list = boundaries             # <<<<<<<<<<<<<<
+ * 	return boundary_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_windows, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (unlikely(!__pyx_v_index)) { __Pyx_RaiseUnboundLocalError("index"); __PYX_ERR(0, 526, __pyx_L1_error) }
-  __pyx_t_1 = __Pyx_PyObject_GetItem(__pyx_v_target_index, __pyx_v_index); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_offset_time); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_boundary_sequence, __pyx_t_1); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 526, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_INCREF(__pyx_v_boundaries);
+    __Pyx_DECREF_SET(__pyx_v_boundary_list, __pyx_v_boundaries);
 
-  /* "VocalTractLab/target_estimation.pyx":527
- * 		boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].onset_time )
- * 	boundary_sequence.append( windows[0].fit_result.out_targets[ target_index[ index ] ].offset_time )
- * 	return boundary_sequence             # <<<<<<<<<<<<<<
+    /* "VocalTractLab/target_estimation.pyx":663
+ * 	boundary_list.append( windows[-1].fit_result.out_targets[ -1 ].offset_time )
+ * 	boundary_list = sorted( boundary_list )
+ * 	if underflow_threshold != None:             # <<<<<<<<<<<<<<
+ * 		boundaries = []
+ * 		for index, x in enumerate( boundary_list ):
+ */
+  }
+
+  /* "VocalTractLab/target_estimation.pyx":669
+ * 				boundaries.append(x)
+ * 		boundary_list = boundaries
+ * 	return boundary_list             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_boundary_sequence);
-  __pyx_r = __pyx_v_boundary_sequence;
+  __Pyx_INCREF(__pyx_v_boundary_list);
+  __pyx_r = __pyx_v_boundary_list;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":511
- * 	return
+  /* "VocalTractLab/target_estimation.pyx":645
+ * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):             # <<<<<<<<<<<<<<
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):             # <<<<<<<<<<<<<<
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
  */
 
   /* function exit code */
@@ -10483,31 +12816,32 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_6get_optimized_bou
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
-  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_7);
   __Pyx_XDECREF(__pyx_t_14);
+  __Pyx_XDECREF(__pyx_t_15);
   __Pyx_AddTraceback("VocalTractLab.target_estimation.get_optimized_boundaries", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
-  __Pyx_XDECREF(__pyx_v_boundary_sequence);
+  __Pyx_XDECREF(__pyx_v_boundary_list);
   __Pyx_XDECREF(__pyx_v_n_targets);
   __Pyx_XDECREF(__pyx_v_target_index);
   __Pyx_XDECREF(__pyx_v_index);
   __Pyx_XDECREF(__pyx_v_tmp_targets);
   __Pyx_XDECREF(__pyx_v_window);
   __Pyx_XDECREF(__pyx_v_onset_time_mean);
+  __Pyx_XDECREF(__pyx_v_boundaries);
   __Pyx_XDECREF(__pyx_v_x);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
 }
 
-/* "VocalTractLab/target_estimation.pyx":529
- * 	return boundary_sequence
+/* "VocalTractLab/target_estimation.pyx":671
+ * 	return boundary_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):             # <<<<<<<<<<<<<<
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  */
 
 /* Python wrapper */
@@ -10545,11 +12879,11 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_9get_optimized_tar
         case  1:
         if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_hop_length)) != 0)) kw_args--;
         else {
-          __Pyx_RaiseArgtupleInvalid("get_optimized_targets", 1, 2, 2, 1); __PYX_ERR(0, 529, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_optimized_targets", 1, 2, 2, 1); __PYX_ERR(0, 671, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_optimized_targets") < 0)) __PYX_ERR(0, 529, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_optimized_targets") < 0)) __PYX_ERR(0, 671, __pyx_L3_error)
       }
     } else if (PyTuple_GET_SIZE(__pyx_args) != 2) {
       goto __pyx_L5_argtuple_error;
@@ -10562,7 +12896,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_9get_optimized_tar
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_optimized_targets", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 529, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_optimized_targets", 1, 2, 2, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 671, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("VocalTractLab.target_estimation.get_optimized_targets", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -10577,7 +12911,7 @@ static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_9get_optimized_tar
 
 static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_targets(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_windows, PyObject *__pyx_v_hop_length) {
   PyObject *__pyx_v_n_windows = NULL;
-  PyObject *__pyx_v_target_sequence = NULL;
+  PyObject *__pyx_v_target_list = NULL;
   PyObject *__pyx_v_window = NULL;
   PyObject *__pyx_r = NULL;
   __Pyx_RefNannyDeclarations
@@ -10594,62 +12928,62 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_tar
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_optimized_targets", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":530
+  /* "VocalTractLab/target_estimation.pyx":672
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):
  * 	n_windows = len( windows )             # <<<<<<<<<<<<<<
- * 	target_sequence = []
+ * 	target_list = []
  * 	for window in windows:
  */
-  __pyx_t_1 = PyObject_Length(__pyx_v_windows); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 530, __pyx_L1_error)
-  __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 530, __pyx_L1_error)
+  __pyx_t_1 = PyObject_Length(__pyx_v_windows); if (unlikely(__pyx_t_1 == ((Py_ssize_t)-1))) __PYX_ERR(0, 672, __pyx_L1_error)
+  __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 672, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_n_windows = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":531
+  /* "VocalTractLab/target_estimation.pyx":673
  * def get_optimized_targets( windows, hop_length ):
  * 	n_windows = len( windows )
- * 	target_sequence = []             # <<<<<<<<<<<<<<
+ * 	target_list = []             # <<<<<<<<<<<<<<
  * 	for window in windows:
  * 		if window.queue_position == 0:
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 531, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 673, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_v_target_sequence = ((PyObject*)__pyx_t_2);
+  __pyx_v_target_list = ((PyObject*)__pyx_t_2);
   __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":532
+  /* "VocalTractLab/target_estimation.pyx":674
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  * 	for window in windows:             # <<<<<<<<<<<<<<
  * 		if window.queue_position == 0:
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  */
   if (likely(PyList_CheckExact(__pyx_v_windows)) || PyTuple_CheckExact(__pyx_v_windows)) {
     __pyx_t_2 = __pyx_v_windows; __Pyx_INCREF(__pyx_t_2); __pyx_t_1 = 0;
     __pyx_t_3 = NULL;
   } else {
-    __pyx_t_1 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_windows); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 532, __pyx_L1_error)
+    __pyx_t_1 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_v_windows); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 674, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 532, __pyx_L1_error)
+    __pyx_t_3 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 674, __pyx_L1_error)
   }
   for (;;) {
     if (likely(!__pyx_t_3)) {
       if (likely(PyList_CheckExact(__pyx_t_2))) {
         if (__pyx_t_1 >= PyList_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_1); __Pyx_INCREF(__pyx_t_4); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 532, __pyx_L1_error)
+        __pyx_t_4 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_1); __Pyx_INCREF(__pyx_t_4); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 674, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 532, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 674, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       } else {
         if (__pyx_t_1 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
         #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_1); __Pyx_INCREF(__pyx_t_4); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 532, __pyx_L1_error)
+        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_1); __Pyx_INCREF(__pyx_t_4); __pyx_t_1++; if (unlikely(0 < 0)) __PYX_ERR(0, 674, __pyx_L1_error)
         #else
-        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 532, __pyx_L1_error)
+        __pyx_t_4 = PySequence_ITEM(__pyx_t_2, __pyx_t_1); __pyx_t_1++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 674, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_4);
         #endif
       }
@@ -10659,7 +12993,7 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_tar
         PyObject* exc_type = PyErr_Occurred();
         if (exc_type) {
           if (likely(__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-          else __PYX_ERR(0, 532, __pyx_L1_error)
+          else __PYX_ERR(0, 674, __pyx_L1_error)
         }
         break;
       }
@@ -10668,173 +13002,173 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_tar
     __Pyx_XDECREF_SET(__pyx_v_window, __pyx_t_4);
     __pyx_t_4 = 0;
 
-    /* "VocalTractLab/target_estimation.pyx":533
- * 	target_sequence = []
+    /* "VocalTractLab/target_estimation.pyx":675
+ * 	target_list = []
  * 	for window in windows:
  * 		if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  * 		elif window.queue_position < n_windows - 1:
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 533, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 675, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_EqObjC(__pyx_t_4, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 533, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_EqObjC(__pyx_t_4, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 675, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 533, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 675, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_6) {
 
-      /* "VocalTractLab/target_estimation.pyx":534
+      /* "VocalTractLab/target_estimation.pyx":676
  * 	for window in windows:
  * 		if window.queue_position == 0:
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )             # <<<<<<<<<<<<<<
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )             # <<<<<<<<<<<<<<
  * 		elif window.queue_position < n_windows - 1:
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  */
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 534, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 676, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 534, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 676, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_5 = __Pyx_PyInt_AddCObj(__pyx_int_1, __pyx_v_hop_length, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 534, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyInt_AddCObj(__pyx_int_1, __pyx_v_hop_length, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 676, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __pyx_t_7 = __Pyx_PyObject_GetSlice(__pyx_t_4, 0, 0, NULL, &__pyx_t_5, NULL, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 534, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetSlice(__pyx_t_4, 0, 0, NULL, &__pyx_t_5, NULL, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 676, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_8 = __Pyx_PyList_Extend(__pyx_v_target_sequence, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 534, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyList_Extend(__pyx_v_target_list, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 676, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":533
- * 	target_sequence = []
+      /* "VocalTractLab/target_estimation.pyx":675
+ * 	target_list = []
  * 	for window in windows:
  * 		if window.queue_position == 0:             # <<<<<<<<<<<<<<
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  * 		elif window.queue_position < n_windows - 1:
  */
       goto __pyx_L5;
     }
 
-    /* "VocalTractLab/target_estimation.pyx":535
+    /* "VocalTractLab/target_estimation.pyx":677
  * 		if window.queue_position == 0:
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  * 		elif window.queue_position < n_windows - 1:             # <<<<<<<<<<<<<<
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  * 		elif window.queue_position == n_windows - 1:
  */
-    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 535, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 677, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_5 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 535, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 677, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = PyObject_RichCompare(__pyx_t_7, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 535, __pyx_L1_error)
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_7, __pyx_t_5, Py_LT); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 677, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 535, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 677, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     if (__pyx_t_6) {
 
-      /* "VocalTractLab/target_estimation.pyx":536
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+      /* "VocalTractLab/target_estimation.pyx":678
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  * 		elif window.queue_position < n_windows - 1:
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )             # <<<<<<<<<<<<<<
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )             # <<<<<<<<<<<<<<
  * 		elif window.queue_position == n_windows - 1:
- * 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )
  */
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 536, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 678, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 536, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 678, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_v_hop_length); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 536, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_GetItem(__pyx_t_5, __pyx_v_hop_length); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 678, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_target_sequence, __pyx_t_4); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 536, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyList_Append(__pyx_v_target_list, __pyx_t_4); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 678, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":535
+      /* "VocalTractLab/target_estimation.pyx":677
  * 		if window.queue_position == 0:
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  * 		elif window.queue_position < n_windows - 1:             # <<<<<<<<<<<<<<
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  * 		elif window.queue_position == n_windows - 1:
  */
       goto __pyx_L5;
     }
 
-    /* "VocalTractLab/target_estimation.pyx":537
+    /* "VocalTractLab/target_estimation.pyx":679
  * 		elif window.queue_position < n_windows - 1:
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  * 		elif window.queue_position == n_windows - 1:             # <<<<<<<<<<<<<<
- * 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return target_sequence
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+ * 	return target_list
  */
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 537, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_queue_position); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 679, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_5 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 537, __pyx_L1_error)
+    __pyx_t_5 = __Pyx_PyInt_SubtractObjC(__pyx_v_n_windows, __pyx_int_1, 1, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 679, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 537, __pyx_L1_error)
+    __pyx_t_7 = PyObject_RichCompare(__pyx_t_4, __pyx_t_5, Py_EQ); __Pyx_XGOTREF(__pyx_t_7); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 679, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 537, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 679, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
     if (__pyx_t_6) {
 
-      /* "VocalTractLab/target_estimation.pyx":538
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+      /* "VocalTractLab/target_estimation.pyx":680
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  * 		elif window.queue_position == n_windows - 1:
- * 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )             # <<<<<<<<<<<<<<
- * 	return target_sequence
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )             # <<<<<<<<<<<<<<
+ * 	return target_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 538, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_window, __pyx_n_s_fit_result); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 680, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 538, __pyx_L1_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_out_targets); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 680, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = __Pyx_PyObject_GetSlice(__pyx_t_5, 1, 0, NULL, NULL, &__pyx_slice__12, 1, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 538, __pyx_L1_error)
+      __pyx_t_7 = __Pyx_PyObject_GetSlice(__pyx_t_5, 1, 0, NULL, NULL, &__pyx_slice__15, 1, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 680, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __pyx_t_8 = __Pyx_PyList_Extend(__pyx_v_target_sequence, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 538, __pyx_L1_error)
+      __pyx_t_8 = __Pyx_PyList_Extend(__pyx_v_target_list, __pyx_t_7); if (unlikely(__pyx_t_8 == ((int)-1))) __PYX_ERR(0, 680, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
 
-      /* "VocalTractLab/target_estimation.pyx":537
+      /* "VocalTractLab/target_estimation.pyx":679
  * 		elif window.queue_position < n_windows - 1:
- * 			target_sequence.append( window.fit_result.out_targets[ hop_length ] )
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
  * 		elif window.queue_position == n_windows - 1:             # <<<<<<<<<<<<<<
- * 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return target_sequence
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+ * 	return target_list
  */
     }
     __pyx_L5:;
 
-    /* "VocalTractLab/target_estimation.pyx":532
+    /* "VocalTractLab/target_estimation.pyx":674
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  * 	for window in windows:             # <<<<<<<<<<<<<<
  * 		if window.queue_position == 0:
- * 			target_sequence.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
+ * 			target_list.extend( window.fit_result.out_targets[ : 1 + hop_length ] )
  */
   }
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":539
+  /* "VocalTractLab/target_estimation.pyx":681
  * 		elif window.queue_position == n_windows - 1:
- * 			target_sequence.extend( window.fit_result.out_targets[ 1 : ] )
- * 	return target_sequence             # <<<<<<<<<<<<<<
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )
+ * 	return target_list             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 
+ * def get_correlation( times, values, target_sequence ):
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_INCREF(__pyx_v_target_sequence);
-  __pyx_r = __pyx_v_target_sequence;
+  __Pyx_INCREF(__pyx_v_target_list);
+  __pyx_r = __pyx_v_target_list;
   goto __pyx_L0;
 
-  /* "VocalTractLab/target_estimation.pyx":529
- * 	return boundary_sequence
+  /* "VocalTractLab/target_estimation.pyx":671
+ * 	return boundary_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):             # <<<<<<<<<<<<<<
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  */
 
   /* function exit code */
@@ -10847,8 +13181,592 @@ static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_8get_optimized_tar
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_n_windows);
-  __Pyx_XDECREF(__pyx_v_target_sequence);
+  __Pyx_XDECREF(__pyx_v_target_list);
   __Pyx_XDECREF(__pyx_v_window);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "VocalTractLab/target_estimation.pyx":683
+ * 	return target_list
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_correlation( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11get_correlation(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_13VocalTractLab_17target_estimation_11get_correlation = {"get_correlation", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_13VocalTractLab_17target_estimation_11get_correlation, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_11get_correlation(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_times = 0;
+  PyObject *__pyx_v_values = 0;
+  PyObject *__pyx_v_target_sequence = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_correlation (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_target_sequence,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_times)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("get_correlation", 1, 3, 3, 1); __PYX_ERR(0, 683, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_target_sequence)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("get_correlation", 1, 3, 3, 2); __PYX_ERR(0, 683, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_correlation") < 0)) __PYX_ERR(0, 683, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_times = values[0];
+    __pyx_v_values = values[1];
+    __pyx_v_target_sequence = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_correlation", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 683, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("VocalTractLab.target_estimation.get_correlation", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_10get_correlation(__pyx_self, __pyx_v_times, __pyx_v_values, __pyx_v_target_sequence);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_10get_correlation(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_target_sequence) {
+  PyObject *__pyx_v_fitted_values = NULL;
+  PyObject *__pyx_v_x = NULL;
+  PyObject *__pyx_v_y = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  int __pyx_t_4;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  PyObject *__pyx_t_7 = NULL;
+  PyObject *__pyx_t_8 = NULL;
+  PyObject *__pyx_t_9 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_correlation", 0);
+
+  /* "VocalTractLab/target_estimation.pyx":684
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_correlation( times, values, target_sequence ):
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]             # <<<<<<<<<<<<<<
+ * 	x = values - np.mean( values );
+ * 	y = fitted_values - np.mean( fitted_values );
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_target_sequence, __pyx_n_s_get_contour); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 684, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 684, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_sample_times, __pyx_v_times) < 0) __PYX_ERR(0, 684, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 684, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_tuple__4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 684, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_fitted_values = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":685
+ * def get_correlation( times, values, target_sequence ):
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );             # <<<<<<<<<<<<<<
+ * 	y = fitted_values - np.mean( fitted_values );
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 685, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_mean); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 685, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  __pyx_t_2 = (__pyx_t_3) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_3, __pyx_v_values) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_values);
+  __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 685, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = PyNumber_Subtract(__pyx_v_values, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 685, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_v_x = __pyx_t_1;
+  __pyx_t_1 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":686
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );
+ * 	y = fitted_values - np.mean( fitted_values );             # <<<<<<<<<<<<<<
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ */
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 686, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_mean); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 686, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_3))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_3, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_2) ? __Pyx_PyObject_Call2Args(__pyx_t_3, __pyx_t_2, __pyx_v_fitted_values) : __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_fitted_values);
+  __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 686, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = PyNumber_Subtract(__pyx_v_fitted_values, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 686, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_v_y = __pyx_t_3;
+  __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":687
+ * 	x = values - np.mean( values );
+ * 	y = fitted_values - np.mean( fitted_values );
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );             # <<<<<<<<<<<<<<
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_rmse( times, values, target_sequence ):
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = NULL;
+  __pyx_t_4 = 0;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_1)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_1);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #if CYTHON_FAST_PYCALL
+  if (PyFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_v_x, __pyx_v_y};
+    __pyx_t_3 = __Pyx_PyFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 687, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  #if CYTHON_FAST_PYCCALL
+  if (__Pyx_PyFastCFunction_Check(__pyx_t_2)) {
+    PyObject *__pyx_temp[3] = {__pyx_t_1, __pyx_v_x, __pyx_v_y};
+    __pyx_t_3 = __Pyx_PyCFunction_FastCall(__pyx_t_2, __pyx_temp+1-__pyx_t_4, 2+__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 687, __pyx_L1_error)
+    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_GOTREF(__pyx_t_3);
+  } else
+  #endif
+  {
+    __pyx_t_5 = PyTuple_New(2+__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 687, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    if (__pyx_t_1) {
+      __Pyx_GIVEREF(__pyx_t_1); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_1); __pyx_t_1 = NULL;
+    }
+    __Pyx_INCREF(__pyx_v_x);
+    __Pyx_GIVEREF(__pyx_v_x);
+    PyTuple_SET_ITEM(__pyx_t_5, 0+__pyx_t_4, __pyx_v_x);
+    __Pyx_INCREF(__pyx_v_y);
+    __Pyx_GIVEREF(__pyx_v_y);
+    PyTuple_SET_ITEM(__pyx_t_5, 1+__pyx_t_4, __pyx_v_y);
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_5, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 687, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  }
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sqrt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_sum); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = PyNumber_Power(__pyx_v_x, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_8 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
+    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
+    if (likely(__pyx_t_8)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+      __Pyx_INCREF(__pyx_t_8);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_7, function);
+    }
+  }
+  __pyx_t_5 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_7)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_7);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  __pyx_t_2 = (__pyx_t_7) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_7, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sqrt); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_sum); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_8);
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  __pyx_t_6 = PyNumber_Power(__pyx_v_y, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __pyx_t_9 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_8))) {
+    __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_8);
+    if (likely(__pyx_t_9)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_8);
+      __Pyx_INCREF(__pyx_t_9);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_8, function);
+    }
+  }
+  __pyx_t_5 = (__pyx_t_9) ? __Pyx_PyObject_Call2Args(__pyx_t_8, __pyx_t_9, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_8, __pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __pyx_t_8 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_7))) {
+    __pyx_t_8 = PyMethod_GET_SELF(__pyx_t_7);
+    if (likely(__pyx_t_8)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
+      __Pyx_INCREF(__pyx_t_8);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_7, function);
+    }
+  }
+  __pyx_t_1 = (__pyx_t_8) ? __Pyx_PyObject_Call2Args(__pyx_t_7, __pyx_t_8, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_8); __pyx_t_8 = 0;
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_t_7 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_7);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyNumber_Divide(__pyx_t_3, __pyx_t_7); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 687, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+  __pyx_r = __pyx_t_1;
+  __pyx_t_1 = 0;
+  goto __pyx_L0;
+
+  /* "VocalTractLab/target_estimation.pyx":683
+ * 	return target_list
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_correlation( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_7);
+  __Pyx_XDECREF(__pyx_t_8);
+  __Pyx_XDECREF(__pyx_t_9);
+  __Pyx_AddTraceback("VocalTractLab.target_estimation.get_correlation", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_fitted_values);
+  __Pyx_XDECREF(__pyx_v_x);
+  __Pyx_XDECREF(__pyx_v_y);
+  __Pyx_XGIVEREF(__pyx_r);
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+/* "VocalTractLab/target_estimation.pyx":689
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_rmse( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	#print( 'len times: {}'.format( len( times ) ) )
+ * 	#print( 'len values: {}'.format( len( values ) ) )
+ */
+
+/* Python wrapper */
+static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_13get_rmse(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds); /*proto*/
+static PyMethodDef __pyx_mdef_13VocalTractLab_17target_estimation_13get_rmse = {"get_rmse", (PyCFunction)(void*)(PyCFunctionWithKeywords)__pyx_pw_13VocalTractLab_17target_estimation_13get_rmse, METH_VARARGS|METH_KEYWORDS, 0};
+static PyObject *__pyx_pw_13VocalTractLab_17target_estimation_13get_rmse(PyObject *__pyx_self, PyObject *__pyx_args, PyObject *__pyx_kwds) {
+  PyObject *__pyx_v_times = 0;
+  PyObject *__pyx_v_values = 0;
+  PyObject *__pyx_v_target_sequence = 0;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  PyObject *__pyx_r = 0;
+  __Pyx_RefNannyDeclarations
+  __Pyx_RefNannySetupContext("get_rmse (wrapper)", 0);
+  {
+    static PyObject **__pyx_pyargnames[] = {&__pyx_n_s_times,&__pyx_n_s_values,&__pyx_n_s_target_sequence,0};
+    PyObject* values[3] = {0,0,0};
+    if (unlikely(__pyx_kwds)) {
+      Py_ssize_t kw_args;
+      const Py_ssize_t pos_args = PyTuple_GET_SIZE(__pyx_args);
+      switch (pos_args) {
+        case  3: values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+        CYTHON_FALLTHROUGH;
+        case  2: values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+        CYTHON_FALLTHROUGH;
+        case  1: values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+        CYTHON_FALLTHROUGH;
+        case  0: break;
+        default: goto __pyx_L5_argtuple_error;
+      }
+      kw_args = PyDict_Size(__pyx_kwds);
+      switch (pos_args) {
+        case  0:
+        if (likely((values[0] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_times)) != 0)) kw_args--;
+        else goto __pyx_L5_argtuple_error;
+        CYTHON_FALLTHROUGH;
+        case  1:
+        if (likely((values[1] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_values)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("get_rmse", 1, 3, 3, 1); __PYX_ERR(0, 689, __pyx_L3_error)
+        }
+        CYTHON_FALLTHROUGH;
+        case  2:
+        if (likely((values[2] = __Pyx_PyDict_GetItemStr(__pyx_kwds, __pyx_n_s_target_sequence)) != 0)) kw_args--;
+        else {
+          __Pyx_RaiseArgtupleInvalid("get_rmse", 1, 3, 3, 2); __PYX_ERR(0, 689, __pyx_L3_error)
+        }
+      }
+      if (unlikely(kw_args > 0)) {
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "get_rmse") < 0)) __PYX_ERR(0, 689, __pyx_L3_error)
+      }
+    } else if (PyTuple_GET_SIZE(__pyx_args) != 3) {
+      goto __pyx_L5_argtuple_error;
+    } else {
+      values[0] = PyTuple_GET_ITEM(__pyx_args, 0);
+      values[1] = PyTuple_GET_ITEM(__pyx_args, 1);
+      values[2] = PyTuple_GET_ITEM(__pyx_args, 2);
+    }
+    __pyx_v_times = values[0];
+    __pyx_v_values = values[1];
+    __pyx_v_target_sequence = values[2];
+  }
+  goto __pyx_L4_argument_unpacking_done;
+  __pyx_L5_argtuple_error:;
+  __Pyx_RaiseArgtupleInvalid("get_rmse", 1, 3, 3, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 689, __pyx_L3_error)
+  __pyx_L3_error:;
+  __Pyx_AddTraceback("VocalTractLab.target_estimation.get_rmse", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __Pyx_RefNannyFinishContext();
+  return NULL;
+  __pyx_L4_argument_unpacking_done:;
+  __pyx_r = __pyx_pf_13VocalTractLab_17target_estimation_12get_rmse(__pyx_self, __pyx_v_times, __pyx_v_values, __pyx_v_target_sequence);
+
+  /* function exit code */
+  __Pyx_RefNannyFinishContext();
+  return __pyx_r;
+}
+
+static PyObject *__pyx_pf_13VocalTractLab_17target_estimation_12get_rmse(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_times, PyObject *__pyx_v_values, PyObject *__pyx_v_target_sequence) {
+  PyObject *__pyx_v_fitted_values = NULL;
+  PyObject *__pyx_r = NULL;
+  __Pyx_RefNannyDeclarations
+  PyObject *__pyx_t_1 = NULL;
+  PyObject *__pyx_t_2 = NULL;
+  PyObject *__pyx_t_3 = NULL;
+  PyObject *__pyx_t_4 = NULL;
+  PyObject *__pyx_t_5 = NULL;
+  PyObject *__pyx_t_6 = NULL;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  __Pyx_RefNannySetupContext("get_rmse", 0);
+
+  /* "VocalTractLab/target_estimation.pyx":692
+ * 	#print( 'len times: {}'.format( len( times ) ) )
+ * 	#print( 'len values: {}'.format( len( values ) ) )
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]             # <<<<<<<<<<<<<<
+ * 	#print( 'len fitted values: {}'.format( len( fitted_values ) ) )
+ * 
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_target_sequence, __pyx_n_s_get_contour); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_sample_times, __pyx_v_times) < 0) __PYX_ERR(0, 692, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_3, __pyx_tuple__4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 692, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_v_fitted_values = __pyx_t_2;
+  __pyx_t_2 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":704
+ * 	#plt.scatter( cnt[ :, 0 ], cnt[ :, 1 ] )
+ * 	#plt.show()
+ * 	return np.sqrt( np.mean( ( values - fitted_values )**2 ) )             # <<<<<<<<<<<<<<
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * 	#for window in windows:
+ */
+  __Pyx_XDECREF(__pyx_r);
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sqrt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_mean); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = PyNumber_Subtract(__pyx_v_values, __pyx_v_fitted_values); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_6 = PyNumber_Power(__pyx_t_4, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_6);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_5))) {
+    __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_5);
+    if (likely(__pyx_t_4)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+      __Pyx_INCREF(__pyx_t_4);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_5, function);
+    }
+  }
+  __pyx_t_3 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_5, __pyx_t_4, __pyx_t_6) : __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_6);
+  __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __pyx_t_5 = NULL;
+  if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_5)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_5);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+    }
+  }
+  __pyx_t_2 = (__pyx_t_5) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_5, __pyx_t_3) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 704, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_r = __pyx_t_2;
+  __pyx_t_2 = 0;
+  goto __pyx_L0;
+
+  /* "VocalTractLab/target_estimation.pyx":689
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_rmse( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	#print( 'len times: {}'.format( len( times ) ) )
+ * 	#print( 'len values: {}'.format( len( values ) ) )
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  __Pyx_XDECREF(__pyx_t_1);
+  __Pyx_XDECREF(__pyx_t_2);
+  __Pyx_XDECREF(__pyx_t_3);
+  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
+  __Pyx_XDECREF(__pyx_t_6);
+  __Pyx_AddTraceback("VocalTractLab.target_estimation.get_rmse", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = NULL;
+  __pyx_L0:;
+  __Pyx_XDECREF(__pyx_v_fitted_values);
   __Pyx_XGIVEREF(__pyx_r);
   __Pyx_RefNannyFinishContext();
   return __pyx_r;
@@ -11386,7 +14304,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_array(void) {
  * 
  * cdef inline int import_umath() except -1:
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 945, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 945, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -11518,7 +14436,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_umath(void) {
  * 
  * cdef inline int import_ufunc() except -1:
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 951, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 951, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -11650,7 +14568,7 @@ static CYTHON_INLINE int __pyx_f_5numpy_import_ufunc(void) {
  * 
  * cdef extern from *:
  */
-      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 957, __pyx_L5_except_error)
+      __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ImportError, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(1, 957, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_8);
       __Pyx_Raise(__pyx_t_8, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
@@ -12227,6 +15145,7 @@ static struct PyModuleDef __pyx_moduledef = {
 
 static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_, __pyx_k_, sizeof(__pyx_k_), 0, 0, 1, 0},
+  {&__pyx_kp_s_Contour_arb, __pyx_k_Contour_arb, sizeof(__pyx_k_Contour_arb), 0, 0, 1, 0},
   {&__pyx_n_s_Fit_Result, __pyx_k_Fit_Result, sizeof(__pyx_k_Fit_Result), 0, 0, 1, 1},
   {&__pyx_n_s_Fit_Result___init, __pyx_k_Fit_Result___init, sizeof(__pyx_k_Fit_Result___init), 0, 0, 1, 1},
   {&__pyx_n_s_Fit_Result_plot, __pyx_k_Fit_Result_plot, sizeof(__pyx_k_Fit_Result_plot), 0, 0, 1, 1},
@@ -12238,21 +15157,31 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_Fit_Window_fit, __pyx_k_Fit_Window_fit, sizeof(__pyx_k_Fit_Window_fit), 0, 0, 1, 1},
   {&__pyx_n_s_Fit_Window_plot, __pyx_k_Fit_Window_plot, sizeof(__pyx_k_Fit_Window_plot), 0, 0, 1, 1},
   {&__pyx_n_s_ImportError, __pyx_k_ImportError, sizeof(__pyx_k_ImportError), 0, 0, 1, 1},
+  {&__pyx_kp_s_Iteration_nr, __pyx_k_Iteration_nr, sizeof(__pyx_k_Iteration_nr), 0, 0, 1, 0},
+  {&__pyx_kp_s_Joint_Optimization, __pyx_k_Joint_Optimization, sizeof(__pyx_k_Joint_Optimization), 0, 0, 1, 0},
+  {&__pyx_kp_s_New_boundaries, __pyx_k_New_boundaries, sizeof(__pyx_k_New_boundaries), 0, 0, 1, 0},
+  {&__pyx_kp_s_Passed_argument_n_passes_1_does, __pyx_k_Passed_argument_n_passes_1_does, sizeof(__pyx_k_Passed_argument_n_passes_1_does), 0, 0, 1, 0},
+  {&__pyx_kp_s_Passed_argument_n_passes_is_deac, __pyx_k_Passed_argument_n_passes_is_deac, sizeof(__pyx_k_Passed_argument_n_passes_is_deac), 0, 0, 1, 0},
   {&__pyx_n_s_PitchTier, __pyx_k_PitchTier, sizeof(__pyx_k_PitchTier), 0, 0, 1, 1},
   {&__pyx_n_s_Sequential_Fit, __pyx_k_Sequential_Fit, sizeof(__pyx_k_Sequential_Fit), 0, 0, 1, 1},
   {&__pyx_n_s_Sequential_Fit___init, __pyx_k_Sequential_Fit___init, sizeof(__pyx_k_Sequential_Fit___init), 0, 0, 1, 1},
   {&__pyx_n_s_Sequential_Fit_plot, __pyx_k_Sequential_Fit_plot, sizeof(__pyx_k_Sequential_Fit_plot), 0, 0, 1, 1},
+  {&__pyx_kp_s_Sequential_fit, __pyx_k_Sequential_fit, sizeof(__pyx_k_Sequential_fit), 0, 0, 1, 0},
   {&__pyx_n_s_Target, __pyx_k_Target, sizeof(__pyx_k_Target), 0, 0, 1, 1},
+  {&__pyx_n_s_Target_Sequence, __pyx_k_Target_Sequence, sizeof(__pyx_k_Target_Sequence), 0, 0, 1, 1},
   {&__pyx_n_s_Time_Signal, __pyx_k_Time_Signal, sizeof(__pyx_k_Time_Signal), 0, 0, 1, 1},
   {&__pyx_n_s_Time_Signal___init, __pyx_k_Time_Signal___init, sizeof(__pyx_k_Time_Signal___init), 0, 0, 1, 1},
   {&__pyx_n_s_Time_Signal_from_csv, __pyx_k_Time_Signal_from_csv, sizeof(__pyx_k_Time_Signal_from_csv), 0, 0, 1, 1},
   {&__pyx_n_s_Time_Signal_from_pitch_tier_file, __pyx_k_Time_Signal_from_pitch_tier_file, sizeof(__pyx_k_Time_Signal_from_pitch_tier_file), 0, 0, 1, 1},
   {&__pyx_n_s_Time_Signal_get_samples, __pyx_k_Time_Signal_get_samples, sizeof(__pyx_k_Time_Signal_get_samples), 0, 0, 1, 1},
+  {&__pyx_kp_s_Time_s, __pyx_k_Time_s, sizeof(__pyx_k_Time_s), 0, 0, 1, 0},
+  {&__pyx_n_s_VocalTractLab_plotting_tools, __pyx_k_VocalTractLab_plotting_tools, sizeof(__pyx_k_VocalTractLab_plotting_tools), 0, 0, 1, 1},
   {&__pyx_n_s_VocalTractLab_target_estimation, __pyx_k_VocalTractLab_target_estimation, sizeof(__pyx_k_VocalTractLab_target_estimation), 0, 0, 1, 1},
   {&__pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_k_VocalTractLab_target_estimation_2, sizeof(__pyx_k_VocalTractLab_target_estimation_2), 0, 0, 1, 0},
   {&__pyx_n_s_VocalTractLab_targets, __pyx_k_VocalTractLab_targets, sizeof(__pyx_k_VocalTractLab_targets), 0, 0, 1, 1},
   {&__pyx_n_s_WARNING, __pyx_k_WARNING, sizeof(__pyx_k_WARNING), 0, 0, 1, 1},
-  {&__pyx_n_s__15, __pyx_k__15, sizeof(__pyx_k__15), 0, 0, 1, 1},
+  {&__pyx_kp_s__10, __pyx_k__10, sizeof(__pyx_k__10), 0, 0, 1, 0},
+  {&__pyx_n_s__18, __pyx_k__18, sizeof(__pyx_k__18), 0, 0, 1, 1},
   {&__pyx_kp_s__5, __pyx_k__5, sizeof(__pyx_k__5), 0, 0, 1, 0},
   {&__pyx_kp_s__8, __pyx_k__8, sizeof(__pyx_k__8), 0, 0, 1, 0},
   {&__pyx_kp_s__9, __pyx_k__9, sizeof(__pyx_k__9), 0, 0, 1, 0},
@@ -12270,7 +15199,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_black, __pyx_k_black, sizeof(__pyx_k_black), 0, 0, 1, 1},
   {&__pyx_n_s_boundaries, __pyx_k_boundaries, sizeof(__pyx_k_boundaries), 0, 0, 1, 1},
   {&__pyx_n_s_boundary, __pyx_k_boundary, sizeof(__pyx_k_boundary), 0, 0, 1, 1},
-  {&__pyx_n_s_boundary_sequence, __pyx_k_boundary_sequence, sizeof(__pyx_k_boundary_sequence), 0, 0, 1, 1},
+  {&__pyx_n_s_boundary_list, __pyx_k_boundary_list, sizeof(__pyx_k_boundary_list), 0, 0, 1, 1},
   {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
   {&__pyx_n_s_c_boundaries, __pyx_k_c_boundaries, sizeof(__pyx_k_c_boundaries), 0, 0, 1, 1},
   {&__pyx_n_s_c_delta_boundary, __pyx_k_c_delta_boundary, sizeof(__pyx_k_c_delta_boundary), 0, 0, 1, 1},
@@ -12292,6 +15221,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_c_weight_offset, __pyx_k_c_weight_offset, sizeof(__pyx_k_c_weight_offset), 0, 0, 1, 1},
   {&__pyx_n_s_c_weight_slope, __pyx_k_c_weight_slope, sizeof(__pyx_k_c_weight_slope), 0, 0, 1, 1},
   {&__pyx_n_s_c_weight_tau, __pyx_k_c_weight_tau, sizeof(__pyx_k_c_weight_tau), 0, 0, 1, 1},
+  {&__pyx_n_s_center, __pyx_k_center, sizeof(__pyx_k_center), 0, 0, 1, 1},
   {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
   {&__pyx_n_s_cls, __pyx_k_cls, sizeof(__pyx_k_cls), 0, 0, 1, 1},
   {&__pyx_n_s_color, __pyx_k_color, sizeof(__pyx_k_color), 0, 0, 1, 1},
@@ -12301,18 +15231,22 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_cycle, __pyx_k_cycle, sizeof(__pyx_k_cycle), 0, 0, 1, 1},
   {&__pyx_n_s_darkorange, __pyx_k_darkorange, sizeof(__pyx_k_darkorange), 0, 0, 1, 1},
   {&__pyx_n_s_delta_boundary, __pyx_k_delta_boundary, sizeof(__pyx_k_delta_boundary), 0, 0, 1, 1},
+  {&__pyx_kp_s_delta_bounds, __pyx_k_delta_bounds, sizeof(__pyx_k_delta_bounds), 0, 0, 1, 0},
   {&__pyx_n_s_delta_offset, __pyx_k_delta_offset, sizeof(__pyx_k_delta_offset), 0, 0, 1, 1},
   {&__pyx_n_s_delta_slope, __pyx_k_delta_slope, sizeof(__pyx_k_delta_slope), 0, 0, 1, 1},
   {&__pyx_n_s_delta_tau, __pyx_k_delta_tau, sizeof(__pyx_k_delta_tau), 0, 0, 1, 1},
   {&__pyx_n_s_df, __pyx_k_df, sizeof(__pyx_k_df), 0, 0, 1, 1},
   {&__pyx_n_s_df_pitch_tier, __pyx_k_df_pitch_tier, sizeof(__pyx_k_df_pitch_tier), 0, 0, 1, 1},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
+  {&__pyx_n_s_dot, __pyx_k_dot, sizeof(__pyx_k_dot), 0, 0, 1, 1},
   {&__pyx_n_s_duration, __pyx_k_duration, sizeof(__pyx_k_duration), 0, 0, 1, 1},
+  {&__pyx_n_s_end, __pyx_k_end, sizeof(__pyx_k_end), 0, 0, 1, 1},
   {&__pyx_n_s_enumerate, __pyx_k_enumerate, sizeof(__pyx_k_enumerate), 0, 0, 1, 1},
   {&__pyx_n_s_epsilon, __pyx_k_epsilon, sizeof(__pyx_k_epsilon), 0, 0, 1, 1},
   {&__pyx_kp_s_f0_gestures, __pyx_k_f0_gestures, sizeof(__pyx_k_f0_gestures), 0, 0, 1, 0},
   {&__pyx_n_s_figsize, __pyx_k_figsize, sizeof(__pyx_k_figsize), 0, 0, 1, 1},
   {&__pyx_n_s_figure, __pyx_k_figure, sizeof(__pyx_k_figure), 0, 0, 1, 1},
+  {&__pyx_n_s_file, __pyx_k_file, sizeof(__pyx_k_file), 0, 0, 1, 1},
   {&__pyx_n_s_file_offset, __pyx_k_file_offset, sizeof(__pyx_k_file_offset), 0, 0, 1, 1},
   {&__pyx_n_s_file_onset, __pyx_k_file_onset, sizeof(__pyx_k_file_onset), 0, 0, 1, 1},
   {&__pyx_n_s_fit, __pyx_k_fit, sizeof(__pyx_k_fit), 0, 0, 1, 1},
@@ -12320,6 +15254,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_fit_result, __pyx_k_fit_result, sizeof(__pyx_k_fit_result), 0, 0, 1, 1},
   {&__pyx_n_s_fit_results, __pyx_k_fit_results, sizeof(__pyx_k_fit_results), 0, 0, 1, 1},
   {&__pyx_n_s_fit_sequentially, __pyx_k_fit_sequentially, sizeof(__pyx_k_fit_sequentially), 0, 0, 1, 1},
+  {&__pyx_n_s_fitted_values, __pyx_k_fitted_values, sizeof(__pyx_k_fitted_values), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
   {&__pyx_n_s_from_csv, __pyx_k_from_csv, sizeof(__pyx_k_from_csv), 0, 0, 1, 1},
   {&__pyx_n_s_from_pitch_tier_file, __pyx_k_from_pitch_tier_file, sizeof(__pyx_k_from_pitch_tier_file), 0, 0, 1, 1},
@@ -12332,12 +15267,17 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_kp_s_gesture_sequence_type_unit, __pyx_k_gesture_sequence_type_unit, sizeof(__pyx_k_gesture_sequence_type_unit), 0, 0, 1, 0},
   {&__pyx_kp_s_gesture_value_slope_duration_s, __pyx_k_gesture_value_slope_duration_s, sizeof(__pyx_k_gesture_value_slope_duration_s), 0, 0, 1, 0},
   {&__pyx_n_s_getLogger, __pyx_k_getLogger, sizeof(__pyx_k_getLogger), 0, 0, 1, 1},
+  {&__pyx_n_s_get_contour, __pyx_k_get_contour, sizeof(__pyx_k_get_contour), 0, 0, 1, 1},
+  {&__pyx_n_s_get_correlation, __pyx_k_get_correlation, sizeof(__pyx_k_get_correlation), 0, 0, 1, 1},
   {&__pyx_n_s_get_optimized_boundaries, __pyx_k_get_optimized_boundaries, sizeof(__pyx_k_get_optimized_boundaries), 0, 0, 1, 1},
   {&__pyx_n_s_get_optimized_targets, __pyx_k_get_optimized_targets, sizeof(__pyx_k_get_optimized_targets), 0, 0, 1, 1},
+  {&__pyx_n_s_get_plot_limits, __pyx_k_get_plot_limits, sizeof(__pyx_k_get_plot_limits), 0, 0, 1, 1},
+  {&__pyx_n_s_get_rmse, __pyx_k_get_rmse, sizeof(__pyx_k_get_rmse), 0, 0, 1, 1},
   {&__pyx_n_s_get_samples, __pyx_k_get_samples, sizeof(__pyx_k_get_samples), 0, 0, 1, 1},
-  {&__pyx_n_s_green, __pyx_k_green, sizeof(__pyx_k_green), 0, 0, 1, 1},
+  {&__pyx_n_s_gray, __pyx_k_gray, sizeof(__pyx_k_gray), 0, 0, 1, 1},
   {&__pyx_n_s_gridspec_kw, __pyx_k_gridspec_kw, sizeof(__pyx_k_gridspec_kw), 0, 0, 1, 1},
   {&__pyx_n_s_header, __pyx_k_header, sizeof(__pyx_k_header), 0, 0, 1, 1},
+  {&__pyx_n_s_high, __pyx_k_high, sizeof(__pyx_k_high), 0, 0, 1, 1},
   {&__pyx_n_s_hop_length, __pyx_k_hop_length, sizeof(__pyx_k_hop_length), 0, 0, 1, 1},
   {&__pyx_n_s_hop_lenth, __pyx_k_hop_lenth, sizeof(__pyx_k_hop_lenth), 0, 0, 1, 1},
   {&__pyx_n_s_hspace, __pyx_k_hspace, sizeof(__pyx_k_hspace), 0, 0, 1, 1},
@@ -12357,10 +15297,13 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_kwargs, __pyx_k_kwargs, sizeof(__pyx_k_kwargs), 0, 0, 1, 1},
   {&__pyx_n_s_label_outer, __pyx_k_label_outer, sizeof(__pyx_k_label_outer), 0, 0, 1, 1},
   {&__pyx_n_s_lightgray, __pyx_k_lightgray, sizeof(__pyx_k_lightgray), 0, 0, 1, 1},
+  {&__pyx_n_s_lightgreen, __pyx_k_lightgreen, sizeof(__pyx_k_lightgreen), 0, 0, 1, 1},
   {&__pyx_n_s_log, __pyx_k_log, sizeof(__pyx_k_log), 0, 0, 1, 1},
   {&__pyx_n_s_logging, __pyx_k_logging, sizeof(__pyx_k_logging), 0, 0, 1, 1},
+  {&__pyx_n_s_low, __pyx_k_low, sizeof(__pyx_k_low), 0, 0, 1, 1},
   {&__pyx_n_s_ls, __pyx_k_ls, sizeof(__pyx_k_ls), 0, 0, 1, 1},
   {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
+  {&__pyx_n_s_marker, __pyx_k_marker, sizeof(__pyx_k_marker), 0, 0, 1, 1},
   {&__pyx_n_s_matplotlib_pyplot, __pyx_k_matplotlib_pyplot, sizeof(__pyx_k_matplotlib_pyplot), 0, 0, 1, 1},
   {&__pyx_n_s_max, __pyx_k_max, sizeof(__pyx_k_max), 0, 0, 1, 1},
   {&__pyx_n_s_max_cost_evaluations, __pyx_k_max_cost_evaluations, sizeof(__pyx_k_max_cost_evaluations), 0, 0, 1, 1},
@@ -12377,16 +15320,18 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_n_targets, __pyx_k_n_targets, sizeof(__pyx_k_n_targets), 0, 0, 1, 1},
   {&__pyx_n_s_n_windows, __pyx_k_n_windows, sizeof(__pyx_k_n_windows), 0, 0, 1, 1},
   {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
+  {&__pyx_n_s_name_2, __pyx_k_name_2, sizeof(__pyx_k_name_2), 0, 0, 1, 1},
   {&__pyx_n_s_navy, __pyx_k_navy, sizeof(__pyx_k_navy), 0, 0, 1, 1},
   {&__pyx_n_s_norm_factor_a, __pyx_k_norm_factor_a, sizeof(__pyx_k_norm_factor_a), 0, 0, 1, 1},
   {&__pyx_n_s_norm_factor_b, __pyx_k_norm_factor_b, sizeof(__pyx_k_norm_factor_b), 0, 0, 1, 1},
+  {&__pyx_n_s_normalized_values, __pyx_k_normalized_values, sizeof(__pyx_k_normalized_values), 0, 0, 1, 1},
   {&__pyx_n_s_np, __pyx_k_np, sizeof(__pyx_k_np), 0, 0, 1, 1},
   {&__pyx_n_s_numpy, __pyx_k_numpy, sizeof(__pyx_k_numpy), 0, 0, 1, 1},
   {&__pyx_kp_s_numpy_core_multiarray_failed_to, __pyx_k_numpy_core_multiarray_failed_to, sizeof(__pyx_k_numpy_core_multiarray_failed_to), 0, 0, 1, 0},
   {&__pyx_kp_s_numpy_core_umath_failed_to_impor, __pyx_k_numpy_core_umath_failed_to_impor, sizeof(__pyx_k_numpy_core_umath_failed_to_impor), 0, 0, 1, 0},
-  {&__pyx_n_s_o, __pyx_k_o, sizeof(__pyx_k_o), 0, 0, 1, 1},
   {&__pyx_n_s_offset, __pyx_k_offset, sizeof(__pyx_k_offset), 0, 0, 1, 1},
   {&__pyx_n_s_offset_time, __pyx_k_offset_time, sizeof(__pyx_k_offset_time), 0, 0, 1, 1},
+  {&__pyx_n_s_onset_state, __pyx_k_onset_state, sizeof(__pyx_k_onset_state), 0, 0, 1, 1},
   {&__pyx_n_s_onset_time, __pyx_k_onset_time, sizeof(__pyx_k_onset_time), 0, 0, 1, 1},
   {&__pyx_n_s_onset_time_mean, __pyx_k_onset_time_mean, sizeof(__pyx_k_onset_time_mean), 0, 0, 1, 1},
   {&__pyx_n_s_ooTextFile, __pyx_k_ooTextFile, sizeof(__pyx_k_ooTextFile), 0, 0, 1, 1},
@@ -12426,35 +15371,54 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_plot, __pyx_k_plot, sizeof(__pyx_k_plot), 0, 0, 1, 1},
   {&__pyx_n_s_plt, __pyx_k_plt, sizeof(__pyx_k_plt), 0, 0, 1, 1},
   {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
+  {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
   {&__pyx_n_s_qualname, __pyx_k_qualname, sizeof(__pyx_k_qualname), 0, 0, 1, 1},
   {&__pyx_n_s_queue_position, __pyx_k_queue_position, sizeof(__pyx_k_queue_position), 0, 0, 1, 1},
   {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
   {&__pyx_n_s_read_csv, __pyx_k_read_csv, sizeof(__pyx_k_read_csv), 0, 0, 1, 1},
   {&__pyx_n_s_red, __pyx_k_red, sizeof(__pyx_k_red), 0, 0, 1, 1},
   {&__pyx_n_s_rho_end, __pyx_k_rho_end, sizeof(__pyx_k_rho_end), 0, 0, 1, 1},
+  {&__pyx_n_s_rotation, __pyx_k_rotation, sizeof(__pyx_k_rotation), 0, 0, 1, 1},
+  {&__pyx_n_s_s, __pyx_k_s, sizeof(__pyx_k_s), 0, 0, 1, 1},
   {&__pyx_n_s_sample, __pyx_k_sample, sizeof(__pyx_k_sample), 0, 0, 1, 1},
+  {&__pyx_n_s_sample_times, __pyx_k_sample_times, sizeof(__pyx_k_sample_times), 0, 0, 1, 1},
   {&__pyx_n_s_samples, __pyx_k_samples, sizeof(__pyx_k_samples), 0, 0, 1, 1},
+  {&__pyx_n_s_savefig, __pyx_k_savefig, sizeof(__pyx_k_savefig), 0, 0, 1, 1},
   {&__pyx_n_s_scatter, __pyx_k_scatter, sizeof(__pyx_k_scatter), 0, 0, 1, 1},
   {&__pyx_n_s_self, __pyx_k_self, sizeof(__pyx_k_self), 0, 0, 1, 1},
   {&__pyx_n_s_sep, __pyx_k_sep, sizeof(__pyx_k_sep), 0, 0, 1, 1},
   {&__pyx_n_s_seq_fit, __pyx_k_seq_fit, sizeof(__pyx_k_seq_fit), 0, 0, 1, 1},
+  {&__pyx_kp_s_sequential_fit_principle_pdf, __pyx_k_sequential_fit_principle_pdf, sizeof(__pyx_k_sequential_fit_principle_pdf), 0, 0, 1, 0},
   {&__pyx_n_s_setLevel, __pyx_k_setLevel, sizeof(__pyx_k_setLevel), 0, 0, 1, 1},
+  {&__pyx_n_s_set_ylabel, __pyx_k_set_ylabel, sizeof(__pyx_k_set_ylabel), 0, 0, 1, 1},
+  {&__pyx_n_s_set_ylim, __pyx_k_set_ylim, sizeof(__pyx_k_set_ylim), 0, 0, 1, 1},
+  {&__pyx_n_s_set_yticklabels, __pyx_k_set_yticklabels, sizeof(__pyx_k_set_yticklabels), 0, 0, 1, 1},
+  {&__pyx_n_s_set_yticks, __pyx_k_set_yticks, sizeof(__pyx_k_set_yticks), 0, 0, 1, 1},
   {&__pyx_n_s_shape, __pyx_k_shape, sizeof(__pyx_k_shape), 0, 0, 1, 1},
   {&__pyx_n_s_sharex, __pyx_k_sharex, sizeof(__pyx_k_sharex), 0, 0, 1, 1},
   {&__pyx_n_s_show, __pyx_k_show, sizeof(__pyx_k_show), 0, 0, 1, 1},
+  {&__pyx_n_s_show_plot, __pyx_k_show_plot, sizeof(__pyx_k_show_plot), 0, 0, 1, 1},
   {&__pyx_n_s_skiprows, __pyx_k_skiprows, sizeof(__pyx_k_skiprows), 0, 0, 1, 1},
   {&__pyx_n_s_slope, __pyx_k_slope, sizeof(__pyx_k_slope), 0, 0, 1, 1},
+  {&__pyx_n_s_sqrt, __pyx_k_sqrt, sizeof(__pyx_k_sqrt), 0, 0, 1, 1},
   {&__pyx_n_s_st, __pyx_k_st, sizeof(__pyx_k_st), 0, 0, 1, 1},
   {&__pyx_n_s_step, __pyx_k_step, sizeof(__pyx_k_step), 0, 0, 1, 1},
   {&__pyx_n_s_subplots, __pyx_k_subplots, sizeof(__pyx_k_subplots), 0, 0, 1, 1},
+  {&__pyx_n_s_sum, __pyx_k_sum, sizeof(__pyx_k_sum), 0, 0, 1, 1},
   {&__pyx_n_s_target, __pyx_k_target, sizeof(__pyx_k_target), 0, 0, 1, 1},
   {&__pyx_n_s_target_index, __pyx_k_target_index, sizeof(__pyx_k_target_index), 0, 0, 1, 1},
+  {&__pyx_n_s_target_list, __pyx_k_target_list, sizeof(__pyx_k_target_list), 0, 0, 1, 1},
   {&__pyx_n_s_target_positions, __pyx_k_target_positions, sizeof(__pyx_k_target_positions), 0, 0, 1, 1},
   {&__pyx_n_s_target_sequence, __pyx_k_target_sequence, sizeof(__pyx_k_target_sequence), 0, 0, 1, 1},
+  {&__pyx_n_s_targets, __pyx_k_targets, sizeof(__pyx_k_targets), 0, 0, 1, 1},
   {&__pyx_n_s_tau, __pyx_k_tau, sizeof(__pyx_k_tau), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
+  {&__pyx_n_s_text, __pyx_k_text, sizeof(__pyx_k_text), 0, 0, 1, 1},
   {&__pyx_n_s_tg, __pyx_k_tg, sizeof(__pyx_k_tg), 0, 0, 1, 1},
+  {&__pyx_n_s_tgs, __pyx_k_tgs, sizeof(__pyx_k_tgs), 0, 0, 1, 1},
+  {&__pyx_n_s_tight_layout, __pyx_k_tight_layout, sizeof(__pyx_k_tight_layout), 0, 0, 1, 1},
   {&__pyx_n_s_time, __pyx_k_time, sizeof(__pyx_k_time), 0, 0, 1, 1},
+  {&__pyx_n_s_time_constant, __pyx_k_time_constant, sizeof(__pyx_k_time_constant), 0, 0, 1, 1},
   {&__pyx_n_s_times, __pyx_k_times, sizeof(__pyx_k_times), 0, 0, 1, 1},
   {&__pyx_n_s_tmp_targets, __pyx_k_tmp_targets, sizeof(__pyx_k_tmp_targets), 0, 0, 1, 1},
   {&__pyx_n_s_to_csv, __pyx_k_to_csv, sizeof(__pyx_k_to_csv), 0, 0, 1, 1},
@@ -12462,11 +15426,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_to_numpy, __pyx_k_to_numpy, sizeof(__pyx_k_to_numpy), 0, 0, 1, 1},
   {&__pyx_n_s_to_pitch_tier, __pyx_k_to_pitch_tier, sizeof(__pyx_k_to_pitch_tier), 0, 0, 1, 1},
   {&__pyx_n_s_um, __pyx_k_um, sizeof(__pyx_k_um), 0, 0, 1, 1},
+  {&__pyx_n_s_underflow_threshold, __pyx_k_underflow_threshold, sizeof(__pyx_k_underflow_threshold), 0, 0, 1, 1},
   {&__pyx_n_s_unit, __pyx_k_unit, sizeof(__pyx_k_unit), 0, 0, 1, 1},
   {&__pyx_n_s_use_early_stopping, __pyx_k_use_early_stopping, sizeof(__pyx_k_use_early_stopping), 0, 0, 1, 1},
   {&__pyx_n_s_utils_method, __pyx_k_utils_method, sizeof(__pyx_k_utils_method), 0, 0, 1, 1},
+  {&__pyx_n_s_va, __pyx_k_va, sizeof(__pyx_k_va), 0, 0, 1, 1},
   {&__pyx_n_s_value, __pyx_k_value, sizeof(__pyx_k_value), 0, 0, 1, 1},
   {&__pyx_n_s_values, __pyx_k_values, sizeof(__pyx_k_values), 0, 0, 1, 1},
+  {&__pyx_n_s_vertical, __pyx_k_vertical, sizeof(__pyx_k_vertical), 0, 0, 1, 1},
   {&__pyx_n_s_w, __pyx_k_w, sizeof(__pyx_k_w), 0, 0, 1, 1},
   {&__pyx_n_s_warning, __pyx_k_warning, sizeof(__pyx_k_warning), 0, 0, 1, 1},
   {&__pyx_n_s_warnings, __pyx_k_warnings, sizeof(__pyx_k_warnings), 0, 0, 1, 1},
@@ -12478,19 +15445,23 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_window_length, __pyx_k_window_length, sizeof(__pyx_k_window_length), 0, 0, 1, 1},
   {&__pyx_kp_s_window_length_must_be_smaller_th, __pyx_k_window_length_must_be_smaller_th, sizeof(__pyx_k_window_length_must_be_smaller_th), 0, 0, 1, 0},
   {&__pyx_n_s_windows, __pyx_k_windows, sizeof(__pyx_k_windows), 0, 0, 1, 1},
+  {&__pyx_n_s_windows_list, __pyx_k_windows_list, sizeof(__pyx_k_windows_list), 0, 0, 1, 1},
   {&__pyx_n_s_write, __pyx_k_write, sizeof(__pyx_k_write), 0, 0, 1, 1},
   {&__pyx_n_s_x, __pyx_k_x, sizeof(__pyx_k_x), 0, 0, 1, 1},
+  {&__pyx_n_s_xlabel, __pyx_k_xlabel, sizeof(__pyx_k_xlabel), 0, 0, 1, 1},
+  {&__pyx_n_s_y, __pyx_k_y, sizeof(__pyx_k_y), 0, 0, 1, 1},
   {&__pyx_n_s_ylim, __pyx_k_ylim, sizeof(__pyx_k_ylim), 0, 0, 1, 1},
   {&__pyx_n_s_ymax, __pyx_k_ymax, sizeof(__pyx_k_ymax), 0, 0, 1, 1},
   {&__pyx_n_s_ymin, __pyx_k_ymin, sizeof(__pyx_k_ymin), 0, 0, 1, 1},
   {&__pyx_n_s_zip, __pyx_k_zip, sizeof(__pyx_k_zip), 0, 0, 1, 1},
+  {&__pyx_n_s_zorder, __pyx_k_zorder, sizeof(__pyx_k_zorder), 0, 0, 1, 1},
   {0, 0, 0, 0, 0, 0, 0}
 };
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 164, __pyx_L1_error)
-  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 227, __pyx_L1_error)
-  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 260, __pyx_L1_error)
-  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(0, 448, __pyx_L1_error)
+  __pyx_builtin_zip = __Pyx_GetBuiltinName(__pyx_n_s_zip); if (!__pyx_builtin_zip) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_builtin_open = __Pyx_GetBuiltinName(__pyx_n_s_open); if (!__pyx_builtin_open) __PYX_ERR(0, 229, __pyx_L1_error)
+  __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(0, 332, __pyx_L1_error)
   __pyx_builtin_ImportError = __Pyx_GetBuiltinName(__pyx_n_s_ImportError); if (!__pyx_builtin_ImportError) __PYX_ERR(1, 945, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -12501,55 +15472,77 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "VocalTractLab/target_estimation.pyx":215
+  /* "VocalTractLab/target_estimation.pyx":217
  * 		max_in_value = np.max( self.in_values )
  * 		plt.scatter( self.in_times, self.in_values, c = 'darkorange' )
  * 		plt.plot( self.out_trajectory[ :, 0 ], self.out_trajectory[ :, 1 ], color = 'navy' )             # <<<<<<<<<<<<<<
  * 		for in_boundary, out_boundary in zip( self.in_boundaries, self.out_boundaries):
  * 			plt.axvline( in_boundary, ymin = 0.95, color = 'black' )
  */
-  __pyx_slice__2 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__2)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_slice__2 = PySlice_New(Py_None, Py_None, Py_None); if (unlikely(!__pyx_slice__2)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_slice__2);
   __Pyx_GIVEREF(__pyx_slice__2);
-  __pyx_tuple__3 = PyTuple_Pack(2, __pyx_slice__2, __pyx_int_0); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_tuple__3 = PyTuple_Pack(2, __pyx_slice__2, __pyx_int_0); if (unlikely(!__pyx_tuple__3)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__3);
   __Pyx_GIVEREF(__pyx_tuple__3);
-  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_slice__2, __pyx_int_1); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(2, __pyx_slice__2, __pyx_int_1); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 217, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
-  /* "VocalTractLab/target_estimation.pyx":227
+  /* "VocalTractLab/target_estimation.pyx":229
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0
  * 		ges_file = open( 'ges_file_path', 'w' )             # <<<<<<<<<<<<<<
  * 		ges_file.write( '<gestural_score>\n' )
  * 		ges_file.write( '\t<gesture_sequence type="{}" unit="{}">\n'.format( ges_type, unit) )
  */
-  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_n_s_ges_file_path, __pyx_n_s_w); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_tuple__6 = PyTuple_Pack(2, __pyx_n_s_ges_file_path, __pyx_n_s_w); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 229, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "VocalTractLab/target_estimation.pyx":238
+  /* "VocalTractLab/target_estimation.pyx":240
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )             # <<<<<<<<<<<<<<
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  * 		pitch_tier_file.write( 'PitchTier\n' )
  */
-  __pyx_tuple__7 = PyTuple_Pack(2, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_w); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(2, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_w); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
 
-  /* "VocalTractLab/target_estimation.pyx":508
- * 				target_sequence.append( window.fit_result.out_targets[ hop_length ] )
- * 			elif window.queue_position == n_windows - 1:
- * 				target_sequence.extend( window.fit_result.out_targets[ 1 : ] )             # <<<<<<<<<<<<<<
- * 	return
+  /* "VocalTractLab/target_estimation.pyx":342
+ * 			axs[ window.queue_position ].scatter( window.fit_result.in_times, window.fit_result.in_values, color = 'black', s=20, zorder = 3 )
+ * 			axs[ window.queue_position ].set_ylim( low, high )
+ * 			axs[ window.queue_position ].set_ylabel( '{}'.format( index + 1 ), color = (0,0,0,0) )             # <<<<<<<<<<<<<<
+ * 			axs[ window.queue_position ].set_yticks([])
+ * 			axs[ window.queue_position ].set_yticklabels([])
+ */
+  __pyx_tuple__11 = PyTuple_Pack(4, __pyx_int_0, __pyx_int_0, __pyx_int_0, __pyx_int_0); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 342, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+
+  /* "VocalTractLab/target_estimation.pyx":358
+ * 
+ * 		plt.xlabel( 'Time [s]' )
+ * 		figure.text( 0.02, 0.6, 'Contour [arb]', va='center', rotation='vertical' )             # <<<<<<<<<<<<<<
+ * 		#figure.supylabel('Contour [arb]')
+ * 		for ax in axs:
+ */
+  __pyx_tuple__12 = PyTuple_Pack(3, __pyx_float_0_02, __pyx_float_0_6, __pyx_kp_s_Contour_arb); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 358, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
+
+  /* "VocalTractLab/target_estimation.pyx":680
+ * 			target_list.append( window.fit_result.out_targets[ hop_length ] )
+ * 		elif window.queue_position == n_windows - 1:
+ * 			target_list.extend( window.fit_result.out_targets[ 1 : ] )             # <<<<<<<<<<<<<<
+ * 	return target_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_slice__12 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__12)) __PYX_ERR(0, 508, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_slice__12);
-  __Pyx_GIVEREF(__pyx_slice__12);
+  __pyx_slice__15 = PySlice_New(__pyx_int_1, Py_None, Py_None); if (unlikely(!__pyx_slice__15)) __PYX_ERR(0, 680, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_slice__15);
+  __Pyx_GIVEREF(__pyx_slice__15);
 
   /* "../../../anaconda3/lib/site-packages/numpy/__init__.pxd":945
  *         __pyx_import_array()
@@ -12558,9 +15551,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * cdef inline int import_umath() except -1:
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 945, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_multiarray_failed_to); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(1, 945, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__16);
+  __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "../../../anaconda3/lib/site-packages/numpy/__init__.pxd":951
  *         _import_umath()
@@ -12569,240 +15562,264 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * cdef inline int import_ufunc() except -1:
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 951, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_numpy_core_umath_failed_to_impor); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(1, 951, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
 
-  /* "VocalTractLab/target_estimation.pyx":143
+  /* "VocalTractLab/target_estimation.pyx":145
  * class Time_Signal():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):             # <<<<<<<<<<<<<<
  * 		self.times = input_times
  * 		self.values = input_values
  */
-  __pyx_tuple__16 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_input_times, __pyx_n_s_input_values); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__16);
-  __Pyx_GIVEREF(__pyx_tuple__16);
-  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 143, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_input_times, __pyx_n_s_input_values); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(3, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 145, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 145, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":149
+  /* "VocalTractLab/target_estimation.pyx":151
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
  * 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )
  * 		df_pitch_tier.columns = [ 'time', 'value' ]
  */
-  __pyx_tuple__18 = PyTuple_Pack(3, __pyx_n_s_cls, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_df_pitch_tier); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 149, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_from_pitch_tier_file, 149, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_tuple__21 = PyTuple_Pack(3, __pyx_n_s_cls, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_df_pitch_tier); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_codeobj__22 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__21, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_from_pitch_tier_file, 151, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__22)) __PYX_ERR(0, 151, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":156
+  /* "VocalTractLab/target_estimation.pyx":158
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_csv( cls, csv_file_path, **kwargs ):             # <<<<<<<<<<<<<<
  * 		df = pd.read_csv( csv_file_path , **kwargs )
  * 		#df.columns = [ 'time', 'value' ]
  */
-  __pyx_tuple__20 = PyTuple_Pack(4, __pyx_n_s_cls, __pyx_n_s_csv_file_path, __pyx_n_s_kwargs, __pyx_n_s_df); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 156, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_from_csv, 156, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_tuple__23 = PyTuple_Pack(4, __pyx_n_s_cls, __pyx_n_s_csv_file_path, __pyx_n_s_kwargs, __pyx_n_s_df); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 158, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__23, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_from_csv, 158, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 158, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":161
+  /* "VocalTractLab/target_estimation.pyx":163
  * 		return cls( df[ 'time' ], df[ 'value' ] )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def get_samples( self, ):             # <<<<<<<<<<<<<<
  * 		cdef vector[ Sample ] samples
  * 		cdef Sample sample
  */
-  __pyx_tuple__22 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_samples, __pyx_n_s_sample, __pyx_n_s_time, __pyx_n_s_value); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 161, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_samples, 161, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_tuple__25 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_samples, __pyx_n_s_sample, __pyx_n_s_time, __pyx_n_s_value); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_codeobj__26 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__25, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_samples, 163, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__26)) __PYX_ERR(0, 163, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":177
+  /* "VocalTractLab/target_estimation.pyx":179
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()
  * 	def __init__(             # <<<<<<<<<<<<<<
  * 		self,
  * 		in_times,
  */
-  __pyx_tuple__24 = PyTuple_Pack(29, __pyx_n_s_self, __pyx_n_s_in_times, __pyx_n_s_in_values, __pyx_n_s_in_boundaries, __pyx_n_s_par_init_bounds, __pyx_n_s_par_weight_slope, __pyx_n_s_par_weight_offset, __pyx_n_s_par_weight_tau, __pyx_n_s_par_weight_lambda, __pyx_n_s_par_delta_slope, __pyx_n_s_par_delta_offset, __pyx_n_s_par_delta_tau, __pyx_n_s_par_delta_boundary, __pyx_n_s_par_mean_slope, __pyx_n_s_par_mean_tau, __pyx_n_s_par_max_iterations, __pyx_n_s_par_max_cost_evaluations, __pyx_n_s_par_rho_end, __pyx_n_s_par_use_early_stopping, __pyx_n_s_par_epsilon, __pyx_n_s_par_patience, __pyx_n_s_out_targets, __pyx_n_s_out_boundaries, __pyx_n_s_out_trajectory, __pyx_n_s_out_ftmp, __pyx_n_s_out_fmin, __pyx_n_s_out_rmse, __pyx_n_s_out_corr, __pyx_n_s_out_time); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 177, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(29, 0, 29, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 177, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_tuple__27 = PyTuple_Pack(29, __pyx_n_s_self, __pyx_n_s_in_times, __pyx_n_s_in_values, __pyx_n_s_in_boundaries, __pyx_n_s_par_init_bounds, __pyx_n_s_par_weight_slope, __pyx_n_s_par_weight_offset, __pyx_n_s_par_weight_tau, __pyx_n_s_par_weight_lambda, __pyx_n_s_par_delta_slope, __pyx_n_s_par_delta_offset, __pyx_n_s_par_delta_tau, __pyx_n_s_par_delta_boundary, __pyx_n_s_par_mean_slope, __pyx_n_s_par_mean_tau, __pyx_n_s_par_max_iterations, __pyx_n_s_par_max_cost_evaluations, __pyx_n_s_par_rho_end, __pyx_n_s_par_use_early_stopping, __pyx_n_s_par_epsilon, __pyx_n_s_par_patience, __pyx_n_s_out_targets, __pyx_n_s_out_boundaries, __pyx_n_s_out_trajectory, __pyx_n_s_out_ftmp, __pyx_n_s_out_fmin, __pyx_n_s_out_rmse, __pyx_n_s_out_corr, __pyx_n_s_out_time); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 179, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_codeobj__28 = (PyObject*)__Pyx_PyCode_New(29, 0, 29, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__27, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 179, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__28)) __PYX_ERR(0, 179, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":211
+  /* "VocalTractLab/target_estimation.pyx":213
  * 		pass
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
  * 		min_in_value = np.min( self.in_values )
  * 		max_in_value = np.max( self.in_values )
  */
-  __pyx_tuple__26 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_min_in_value, __pyx_n_s_max_in_value, __pyx_n_s_in_boundary, __pyx_n_s_out_boundary); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 211, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_tuple__29 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_min_in_value, __pyx_n_s_max_in_value, __pyx_n_s_in_boundary, __pyx_n_s_out_boundary); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__29);
+  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(1, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__29, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 213, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(0, 213, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":223
+  /* "VocalTractLab/target_estimation.pyx":225
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_csv( self, csv_file_path ):             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_tuple__28 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_csv_file_path); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_csv, 223, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __pyx_tuple__31 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_csv_file_path); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 225, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(2, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__31, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_csv, 225, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 225, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":226
+  /* "VocalTractLab/target_estimation.pyx":228
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0             # <<<<<<<<<<<<<<
  * 		ges_file = open( 'ges_file_path', 'w' )
  * 		ges_file.write( '<gestural_score>\n' )
  */
-  __pyx_tuple__30 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_ges_file_path, __pyx_n_s_ges_type, __pyx_n_s_unit, __pyx_n_s_ges_file, __pyx_n_s_target); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(4, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_gestural_score, 226, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __pyx_tuple__32 = PyTuple_Pack(2, ((PyObject*)__pyx_kp_s_f0_gestures), ((PyObject*)__pyx_n_s_st)); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
+  __pyx_tuple__33 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_ges_file_path, __pyx_n_s_ges_type, __pyx_n_s_unit, __pyx_n_s_ges_file, __pyx_n_s_target); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(4, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_gestural_score, 228, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(2, ((PyObject*)__pyx_kp_s_f0_gestures), ((PyObject*)__pyx_n_s_st)); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
 
-  /* "VocalTractLab/target_estimation.pyx":237
+  /* "VocalTractLab/target_estimation.pyx":239
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  */
-  __pyx_tuple__33 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_pitch_tier_file, __pyx_n_s_sample); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_pitch_tier, 237, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 237, __pyx_L1_error)
+  __pyx_tuple__36 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_pitch_tier_file_path, __pyx_n_s_pitch_tier_file, __pyx_n_s_sample); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__36);
+  __Pyx_GIVEREF(__pyx_tuple__36);
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(2, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_to_pitch_tier, 239, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 239, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":251
+  /* "VocalTractLab/target_estimation.pyx":253
  * class Fit_Window():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
  * 		self.times = []
  * 		self.values = []
  */
-  __pyx_tuple__35 = PyTuple_Pack(10, __pyx_n_s_self, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_queue_position, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_kwargs, __pyx_n_s_time, __pyx_n_s_value); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__35);
-  __Pyx_GIVEREF(__pyx_tuple__35);
-  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(7, 0, 10, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__35, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 251, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __pyx_tuple__37 = PyTuple_Pack(2, ((PyObject *)__pyx_int_3), ((PyObject *)__pyx_int_1)); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_tuple__38 = PyTuple_Pack(11, __pyx_n_s_self, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_delta_boundary, __pyx_n_s_queue_position, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_kwargs, __pyx_n_s_time, __pyx_n_s_value); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__38);
+  __Pyx_GIVEREF(__pyx_tuple__38);
+  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(8, 0, 11, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 253, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_tuple__40 = PyTuple_Pack(2, ((PyObject *)__pyx_int_3), ((PyObject *)__pyx_int_1)); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__40);
+  __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "VocalTractLab/target_estimation.pyx":267
+  /* "VocalTractLab/target_estimation.pyx":270
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):             # <<<<<<<<<<<<<<
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
- * 		return
+ * 		self.fit_result = fit(
+ * 			times = self.times,
  */
-  __pyx_tuple__38 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_kwargs); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 267, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__38);
-  __Pyx_GIVEREF(__pyx_tuple__38);
-  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__38, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit, 267, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 267, __pyx_L1_error)
+  __pyx_tuple__41 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_kwargs); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 270, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit, 270, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 270, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":271
+  /* "VocalTractLab/target_estimation.pyx":280
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 271, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 280, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 280, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":281
+  /* "VocalTractLab/target_estimation.pyx":290
  * class Sequential_Fit():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, windows, times, values ):             # <<<<<<<<<<<<<<
  * 		self.windows = windows
- * 		for window in self.windows:
+ * 		self.times = times
  */
-  __pyx_tuple__41 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_windows, __pyx_n_s_window); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__41);
-  __Pyx_GIVEREF(__pyx_tuple__41);
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(2, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__41, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 281, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 281, __pyx_L1_error)
+  __pyx_tuple__44 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_windows, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_window); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__44);
+  __Pyx_GIVEREF(__pyx_tuple__44);
+  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(4, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__44, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_init, 290, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 290, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":287
- * 		return
+  /* "VocalTractLab/target_estimation.pyx":329
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
  */
-  __pyx_tuple__43 = PyTuple_Pack(6, __pyx_n_s_self, __pyx_n_s_figure, __pyx_n_s_axs, __pyx_n_s_window, __pyx_n_s_boundary, __pyx_n_s_ax); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__43);
-  __Pyx_GIVEREF(__pyx_tuple__43);
-  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__43, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 287, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(0, 287, __pyx_L1_error)
+  __pyx_tuple__46 = PyTuple_Pack(9, __pyx_n_s_self, __pyx_n_s_figure, __pyx_n_s_axs, __pyx_n_s_low, __pyx_n_s_high, __pyx_n_s_index, __pyx_n_s_window, __pyx_n_s_boundary, __pyx_n_s_ax); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 329, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__46);
+  __Pyx_GIVEREF(__pyx_tuple__46);
+  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(1, 0, 9, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__46, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_plot, 329, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 329, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":324
+  /* "VocalTractLab/target_estimation.pyx":382
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 
  * def convert_hz_to_st( values ):             # <<<<<<<<<<<<<<
  * 	return 12 * ( np.log( values ) / np.log( 2 ) )
  * 
  */
-  __pyx_tuple__45 = PyTuple_Pack(1, __pyx_n_s_values); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 324, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__45);
-  __Pyx_GIVEREF(__pyx_tuple__45);
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__45, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_convert_hz_to_st, 324, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(0, 324, __pyx_L1_error)
+  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_n_s_values); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 382, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__48);
+  __Pyx_GIVEREF(__pyx_tuple__48);
+  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(1, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__48, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_convert_hz_to_st, 382, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 382, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":331
+  /* "VocalTractLab/target_estimation.pyx":389
  * # 		Single core functions
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit(             # <<<<<<<<<<<<<<
  * 			times,
  * 			values,
  */
-  __pyx_tuple__47 = PyTuple_Pack(49, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_init_bounds, __pyx_n_s_weight_slope, __pyx_n_s_weight_offset, __pyx_n_s_weight_tau, __pyx_n_s_weight_lambda, __pyx_n_s_delta_slope, __pyx_n_s_delta_offset, __pyx_n_s_delta_tau, __pyx_n_s_delta_boundary, __pyx_n_s_mean_slope, __pyx_n_s_mean_tau, __pyx_n_s_max_iterations, __pyx_n_s_max_cost_evaluations, __pyx_n_s_rho_end, __pyx_n_s_use_early_stopping, __pyx_n_s_epsilon, __pyx_n_s_patience, __pyx_n_s_step, __pyx_n_s_norm_factor_a, __pyx_n_s_norm_factor_b, __pyx_n_s_c_input_times, __pyx_n_s_c_input_values, __pyx_n_s_c_boundaries, __pyx_n_s_c_init_bounds, __pyx_n_s_c_weight_slope, __pyx_n_s_c_weight_offset, __pyx_n_s_c_weight_tau, __pyx_n_s_c_weight_lambda, __pyx_n_s_c_delta_slope, __pyx_n_s_c_delta_offset, __pyx_n_s_c_delta_tau, __pyx_n_s_c_delta_boundary, __pyx_n_s_c_mean_slope, __pyx_n_s_c_mean_tau, __pyx_n_s_c_max_iterations, __pyx_n_s_c_max_cost_evaluations, __pyx_n_s_c_rho_end, __pyx_n_s_c_use_early_stopping, __pyx_n_s_c_epsilon, __pyx_n_s_c_patience, __pyx_n_s_fit_results, __pyx_n_s_fit_info, __pyx_n_s_x, __pyx_n_s_i, __pyx_n_s_target, __pyx_n_s_sample); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 331, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__47);
-  __Pyx_GIVEREF(__pyx_tuple__47);
-  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(20, 0, 49, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__47, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit, 331, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) __PYX_ERR(0, 331, __pyx_L1_error)
+  __pyx_tuple__50 = PyTuple_Pack(52, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_init_bounds, __pyx_n_s_weight_slope, __pyx_n_s_weight_offset, __pyx_n_s_weight_tau, __pyx_n_s_weight_lambda, __pyx_n_s_delta_slope, __pyx_n_s_delta_offset, __pyx_n_s_delta_tau, __pyx_n_s_delta_boundary, __pyx_n_s_mean_slope, __pyx_n_s_mean_tau, __pyx_n_s_max_iterations, __pyx_n_s_max_cost_evaluations, __pyx_n_s_rho_end, __pyx_n_s_use_early_stopping, __pyx_n_s_epsilon, __pyx_n_s_patience, __pyx_n_s_step, __pyx_n_s_norm_factor_a, __pyx_n_s_norm_factor_b, __pyx_n_s_normalized_values, __pyx_n_s_c_input_times, __pyx_n_s_c_input_values, __pyx_n_s_c_boundaries, __pyx_n_s_c_init_bounds, __pyx_n_s_c_weight_slope, __pyx_n_s_c_weight_offset, __pyx_n_s_c_weight_tau, __pyx_n_s_c_weight_lambda, __pyx_n_s_c_delta_slope, __pyx_n_s_c_delta_offset, __pyx_n_s_c_delta_tau, __pyx_n_s_c_delta_boundary, __pyx_n_s_c_mean_slope, __pyx_n_s_c_mean_tau, __pyx_n_s_c_max_iterations, __pyx_n_s_c_max_cost_evaluations, __pyx_n_s_c_rho_end, __pyx_n_s_c_use_early_stopping, __pyx_n_s_c_epsilon, __pyx_n_s_c_patience, __pyx_n_s_fit_results, __pyx_n_s_out_targets, __pyx_n_s_tgs, __pyx_n_s_out_trajectory, __pyx_n_s_fit_info, __pyx_n_s_x, __pyx_n_s_i, __pyx_n_s_target); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 389, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__50);
+  __Pyx_GIVEREF(__pyx_tuple__50);
+  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(20, 0, 52, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__50, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit, 389, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 389, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":465
+  /* "VocalTractLab/target_estimation.pyx":531
  * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit_sequentially( times,             # <<<<<<<<<<<<<<
  * 	                  values,
  * 	                  boundaries = [],
  */
-  __pyx_tuple__49 = PyTuple_Pack(15, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_init_bounds, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_n_passes, __pyx_n_s_kwargs, __pyx_n_s_step, __pyx_n_s_n_windows, __pyx_n_s_windows, __pyx_n_s_seq_fit, __pyx_n_s_target_sequence, __pyx_n_s_window, __pyx_n_s_x); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__49);
-  __Pyx_GIVEREF(__pyx_tuple__49);
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(7, 0, 15, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__49, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit_sequentially, 465, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 465, __pyx_L1_error)
+  __pyx_tuple__52 = PyTuple_Pack(24, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_boundaries, __pyx_n_s_init_bounds, __pyx_n_s_delta_boundary, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_n_passes, __pyx_n_s_underflow_threshold, __pyx_n_s_show_plot, __pyx_n_s_kwargs, __pyx_n_s_step, __pyx_n_s_windows_list, __pyx_n_s_index, __pyx_n_s_n_windows, __pyx_n_s_windows, __pyx_n_s_seq_fit, __pyx_n_s_out_boundaries, __pyx_n_s_out_targets, __pyx_n_s_tgs, __pyx_n_s_out_trajectory, __pyx_n_s_fit_info, __pyx_n_s_x, __pyx_n_s_window); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 531, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__52);
+  __Pyx_GIVEREF(__pyx_tuple__52);
+  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(10, 0, 24, 0, CO_OPTIMIZED|CO_NEWLOCALS|CO_VARKEYWORDS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__52, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_fit_sequentially, 531, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 531, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":511
- * 	return
+  /* "VocalTractLab/target_estimation.pyx":645
+ * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):             # <<<<<<<<<<<<<<
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):             # <<<<<<<<<<<<<<
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
  */
-  __pyx_tuple__51 = PyTuple_Pack(12, __pyx_n_s_windows, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_o, __pyx_n_s_boundary_sequence, __pyx_n_s_n_targets, __pyx_n_s_target_index, __pyx_n_s_index, __pyx_n_s_tmp_targets, __pyx_n_s_window, __pyx_n_s_onset_time_mean, __pyx_n_s_x); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 511, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__51);
-  __Pyx_GIVEREF(__pyx_tuple__51);
-  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(4, 0, 12, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__51, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_optimized_boundaries, 511, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) __PYX_ERR(0, 511, __pyx_L1_error)
+  __pyx_tuple__54 = PyTuple_Pack(13, __pyx_n_s_windows, __pyx_n_s_window_length, __pyx_n_s_hop_length, __pyx_n_s_underflow_threshold, __pyx_n_s_boundary_list, __pyx_n_s_n_targets, __pyx_n_s_target_index, __pyx_n_s_index, __pyx_n_s_tmp_targets, __pyx_n_s_window, __pyx_n_s_onset_time_mean, __pyx_n_s_boundaries, __pyx_n_s_x); if (unlikely(!__pyx_tuple__54)) __PYX_ERR(0, 645, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__54);
+  __Pyx_GIVEREF(__pyx_tuple__54);
+  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(4, 0, 13, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__54, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_optimized_boundaries, 645, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 645, __pyx_L1_error)
 
-  /* "VocalTractLab/target_estimation.pyx":529
- * 	return boundary_sequence
+  /* "VocalTractLab/target_estimation.pyx":671
+ * 	return boundary_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):             # <<<<<<<<<<<<<<
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  */
-  __pyx_tuple__53 = PyTuple_Pack(5, __pyx_n_s_windows, __pyx_n_s_hop_length, __pyx_n_s_n_windows, __pyx_n_s_target_sequence, __pyx_n_s_window); if (unlikely(!__pyx_tuple__53)) __PYX_ERR(0, 529, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__53);
-  __Pyx_GIVEREF(__pyx_tuple__53);
-  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__53, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_optimized_targets, 529, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(0, 529, __pyx_L1_error)
+  __pyx_tuple__56 = PyTuple_Pack(5, __pyx_n_s_windows, __pyx_n_s_hop_length, __pyx_n_s_n_windows, __pyx_n_s_target_list, __pyx_n_s_window); if (unlikely(!__pyx_tuple__56)) __PYX_ERR(0, 671, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__56);
+  __Pyx_GIVEREF(__pyx_tuple__56);
+  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(2, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__56, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_optimized_targets, 671, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 671, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":683
+ * 	return target_list
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_correlation( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );
+ */
+  __pyx_tuple__58 = PyTuple_Pack(6, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_target_sequence, __pyx_n_s_fitted_values, __pyx_n_s_x, __pyx_n_s_y); if (unlikely(!__pyx_tuple__58)) __PYX_ERR(0, 683, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__58);
+  __Pyx_GIVEREF(__pyx_tuple__58);
+  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(3, 0, 6, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__58, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_correlation, 683, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 683, __pyx_L1_error)
+
+  /* "VocalTractLab/target_estimation.pyx":689
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_rmse( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	#print( 'len times: {}'.format( len( times ) ) )
+ * 	#print( 'len values: {}'.format( len( values ) ) )
+ */
+  __pyx_tuple__60 = PyTuple_Pack(4, __pyx_n_s_times, __pyx_n_s_values, __pyx_n_s_target_sequence, __pyx_n_s_fitted_values); if (unlikely(!__pyx_tuple__60)) __PYX_ERR(0, 689, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__60);
+  __Pyx_GIVEREF(__pyx_tuple__60);
+  __pyx_codeobj__61 = (PyObject*)__Pyx_PyCode_New(3, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__60, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_VocalTractLab_target_estimation_2, __pyx_n_s_get_rmse, 689, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__61)) __PYX_ERR(0, 689, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -12816,12 +15833,15 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_float_0_1 = PyFloat_FromDouble(0.1); if (unlikely(!__pyx_float_0_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_0_2 = PyFloat_FromDouble(0.2); if (unlikely(!__pyx_float_0_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_0_5 = PyFloat_FromDouble(0.5); if (unlikely(!__pyx_float_0_5)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_float_0_6 = PyFloat_FromDouble(0.6); if (unlikely(!__pyx_float_0_6)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_1_0 = PyFloat_FromDouble(1.0); if (unlikely(!__pyx_float_1_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_1e6 = PyFloat_FromDouble(1e6); if (unlikely(!__pyx_float_1e6)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_0_01 = PyFloat_FromDouble(0.01); if (unlikely(!__pyx_float_0_01)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_float_0_02 = PyFloat_FromDouble(0.02); if (unlikely(!__pyx_float_0_02)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_0_95 = PyFloat_FromDouble(0.95); if (unlikely(!__pyx_float_0_95)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_1eneg_6 = PyFloat_FromDouble(1e-6); if (unlikely(!__pyx_float_1eneg_6)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_20_0 = PyFloat_FromDouble(20.0); if (unlikely(!__pyx_float_20_0)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_float_0_010 = PyFloat_FromDouble(0.010); if (unlikely(!__pyx_float_0_010)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_float_100_0 = PyFloat_FromDouble(100.0); if (unlikely(!__pyx_float_100_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_0 = PyInt_FromLong(0); if (unlikely(!__pyx_int_0)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -12829,10 +15849,11 @@ static CYTHON_SMALL_CODE int __Pyx_InitGlobals(void) {
   __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_5 = PyInt_FromLong(5); if (unlikely(!__pyx_int_5)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_8 = PyInt_FromLong(8); if (unlikely(!__pyx_int_8)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_9 = PyInt_FromLong(9); if (unlikely(!__pyx_int_9)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_10 = PyInt_FromLong(10); if (unlikely(!__pyx_int_10)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_12 = PyInt_FromLong(12); if (unlikely(!__pyx_int_12)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_20 = PyInt_FromLong(20); if (unlikely(!__pyx_int_20)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_int_600 = PyInt_FromLong(600); if (unlikely(!__pyx_int_600)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_1000 = PyInt_FromLong(1000); if (unlikely(!__pyx_int_1000)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_neg_1 = PyInt_FromLong(-1); if (unlikely(!__pyx_int_neg_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   return 0;
@@ -13133,7 +16154,7 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_init_sys_getdefaultencoding_params() < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   #endif
   if (__pyx_module_is_main_VocalTractLab__target_estimation) {
-    if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+    if (PyObject_SetAttr(__pyx_m, __pyx_n_s_name_2, __pyx_n_s_main) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   }
   #if PY_MAJOR_VERSION >= 3
   {
@@ -13261,7 +16282,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_getLogger); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_name); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_name_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -13314,9 +16335,9 @@ if (!__Pyx_RefNanny) {
  */
   __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_INCREF(__pyx_n_s__15);
-  __Pyx_GIVEREF(__pyx_n_s__15);
-  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_n_s__15);
+  __Pyx_INCREF(__pyx_n_s__18);
+  __Pyx_GIVEREF(__pyx_n_s__18);
+  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_n_s__18);
   __pyx_t_2 = __Pyx_Import(__pyx_n_s_matplotlib_pyplot, __pyx_t_3, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -13348,133 +16369,154 @@ if (!__Pyx_RefNanny) {
  * from itertools import cycle
  * 
  * import VocalTractLab.targets as tg             # <<<<<<<<<<<<<<
- * 
- * 
+ * from VocalTractLab.plotting_tools import get_plot_limits
+ * #from VocalTractLab.targets import Target_Sequence
  */
   __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_INCREF(__pyx_n_s__15);
-  __Pyx_GIVEREF(__pyx_n_s__15);
-  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_n_s__15);
+  __Pyx_INCREF(__pyx_n_s__18);
+  __Pyx_GIVEREF(__pyx_n_s__18);
+  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_n_s__18);
   __pyx_t_2 = __Pyx_Import(__pyx_n_s_VocalTractLab_targets, __pyx_t_3, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_tg, __pyx_t_2) < 0) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":141
+  /* "VocalTractLab/target_estimation.pyx":64
+ * 
+ * import VocalTractLab.targets as tg
+ * from VocalTractLab.plotting_tools import get_plot_limits             # <<<<<<<<<<<<<<
+ * #from VocalTractLab.targets import Target_Sequence
+ * 
+ */
+  __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_INCREF(__pyx_n_s_get_plot_limits);
+  __Pyx_GIVEREF(__pyx_n_s_get_plot_limits);
+  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_get_plot_limits);
+  __pyx_t_3 = __Pyx_Import(__pyx_n_s_VocalTractLab_plotting_tools, __pyx_t_2, -1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_get_plot_limits); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 64, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_plot_limits, __pyx_t_2) < 0) __PYX_ERR(0, 64, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":143
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Time_Signal():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):
  */
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Time_Signal, __pyx_n_s_Time_Signal, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Time_Signal, __pyx_n_s_Time_Signal, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
 
-  /* "VocalTractLab/target_estimation.pyx":143
+  /* "VocalTractLab/target_estimation.pyx":145
  * class Time_Signal():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):             # <<<<<<<<<<<<<<
  * 		self.times = input_times
  * 		self.values = input_values
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_1__init__, 0, __pyx_n_s_Time_Signal___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_1__init__, 0, __pyx_n_s_Time_Signal___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 145, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 145, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":149
+  /* "VocalTractLab/target_estimation.pyx":151
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
  * 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )
  * 		df_pitch_tier.columns = [ 'time', 'value' ]
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_3from_pitch_tier_file, __Pyx_CYFUNCTION_CLASSMETHOD, __pyx_n_s_Time_Signal_from_pitch_tier_file, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_3from_pitch_tier_file, __Pyx_CYFUNCTION_CLASSMETHOD, __pyx_n_s_Time_Signal_from_pitch_tier_file, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__22)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
 
-  /* "VocalTractLab/target_estimation.pyx":148
+  /* "VocalTractLab/target_estimation.pyx":150
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod             # <<<<<<<<<<<<<<
  * 	def from_pitch_tier_file( cls, pitch_tier_file_path ):
  * 		df_pitch_tier = pd.read_csv( pitch_tier_file_path , sep = '\t', skiprows= 3 , header = None )
  */
-  __pyx_t_1 = __Pyx_Method_ClassMethod(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Method_ClassMethod(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_from_pitch_tier_file, __pyx_t_1) < 0) __PYX_ERR(0, 149, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_from_pitch_tier_file, __pyx_t_1) < 0) __PYX_ERR(0, 151, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":156
+  /* "VocalTractLab/target_estimation.pyx":158
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod
  * 	def from_csv( cls, csv_file_path, **kwargs ):             # <<<<<<<<<<<<<<
  * 		df = pd.read_csv( csv_file_path , **kwargs )
  * 		#df.columns = [ 'time', 'value' ]
  */
-  __pyx_t_1 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_5from_csv, __Pyx_CYFUNCTION_CLASSMETHOD, __pyx_n_s_Time_Signal_from_csv, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__21)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_5from_csv, __Pyx_CYFUNCTION_CLASSMETHOD, __pyx_n_s_Time_Signal_from_csv, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 158, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
 
-  /* "VocalTractLab/target_estimation.pyx":155
+  /* "VocalTractLab/target_estimation.pyx":157
  * 		return cls( df_pitch_tier[ 'time' ].to_numpy(), df_pitch_tier[ 'value' ].to_numpy() )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@classmethod             # <<<<<<<<<<<<<<
  * 	def from_csv( cls, csv_file_path, **kwargs ):
  * 		df = pd.read_csv( csv_file_path , **kwargs )
  */
-  __pyx_t_3 = __Pyx_Method_ClassMethod(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_Method_ClassMethod(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_from_csv, __pyx_t_3) < 0) __PYX_ERR(0, 156, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_from_csv, __pyx_t_2) < 0) __PYX_ERR(0, 158, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":161
+  /* "VocalTractLab/target_estimation.pyx":163
  * 		return cls( df[ 'time' ], df[ 'value' ] )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def get_samples( self, ):             # <<<<<<<<<<<<<<
  * 		cdef vector[ Sample ] samples
  * 		cdef Sample sample
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_7get_samples, 0, __pyx_n_s_Time_Signal_get_samples, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__23)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_samples, __pyx_t_3) < 0) __PYX_ERR(0, 161, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_11Time_Signal_7get_samples, 0, __pyx_n_s_Time_Signal_get_samples, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__26)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_get_samples, __pyx_t_2) < 0) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":141
+  /* "VocalTractLab/target_estimation.pyx":143
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Time_Signal():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def __init__( self, input_times, input_values ):
  */
-  __pyx_t_3 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Time_Signal, __pyx_empty_tuple, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Time_Signal, __pyx_t_3) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Time_Signal, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Time_Signal, __pyx_t_2) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":174
+  /* "VocalTractLab/target_estimation.pyx":176
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Fit_Result():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()
  */
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Fit_Result, __pyx_n_s_Fit_Result, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 174, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Fit_Result, __pyx_n_s_Fit_Result, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
 
-  /* "VocalTractLab/target_estimation.pyx":176
+  /* "VocalTractLab/target_estimation.pyx":178
  * class Fit_Result():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()             # <<<<<<<<<<<<<<
  * 	def __init__(
  * 		self,
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_um); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_um); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_autoargs); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_autoargs); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -13489,18 +16531,18 @@ if (!__Pyx_RefNanny) {
   }
   __pyx_t_1 = (__pyx_t_4) ? __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_4) : __Pyx_PyObject_CallNoArg(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
+  if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":177
+  /* "VocalTractLab/target_estimation.pyx":179
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()
  * 	def __init__(             # <<<<<<<<<<<<<<
  * 		self,
  * 		in_times,
  */
-  __pyx_t_5 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_1__init__, 0, __pyx_n_s_Fit_Result___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__25)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_1__init__, 0, __pyx_n_s_Fit_Result___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__28)); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __pyx_t_4 = NULL;
   if (CYTHON_UNPACK_METHODS && unlikely(PyMethod_Check(__pyx_t_1))) {
@@ -13512,279 +16554,303 @@ if (!__Pyx_RefNanny) {
       __Pyx_DECREF_SET(__pyx_t_1, function);
     }
   }
-  __pyx_t_3 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_4, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
+  __pyx_t_2 = (__pyx_t_4) ? __Pyx_PyObject_Call2Args(__pyx_t_1, __pyx_t_4, __pyx_t_5) : __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5);
   __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 176, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 178, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 177, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 179, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":211
+  /* "VocalTractLab/target_estimation.pyx":213
  * 		pass
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
  * 		min_in_value = np.min( self.in_values )
  * 		max_in_value = np.max( self.in_values )
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_3plot, 0, __pyx_n_s_Fit_Result_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__27)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_plot, __pyx_t_3) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_3plot, 0, __pyx_n_s_Fit_Result_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__30)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_plot, __pyx_t_2) < 0) __PYX_ERR(0, 213, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":223
+  /* "VocalTractLab/target_estimation.pyx":225
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_csv( self, csv_file_path ):             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_5to_csv, 0, __pyx_n_s_Fit_Result_to_csv, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_to_csv, __pyx_t_3) < 0) __PYX_ERR(0, 223, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_5to_csv, 0, __pyx_n_s_Fit_Result_to_csv, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 225, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_to_csv, __pyx_t_2) < 0) __PYX_ERR(0, 225, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":226
+  /* "VocalTractLab/target_estimation.pyx":228
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_gestural_score( self, ges_file_path, ges_type = 'f0-gestures', unit = 'st' ): #Attention: neutral is always 0             # <<<<<<<<<<<<<<
  * 		ges_file = open( 'ges_file_path', 'w' )
  * 		ges_file.write( '<gestural_score>\n' )
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_7to_gestural_score, 0, __pyx_n_s_Fit_Result_to_gestural_score, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_tuple__32);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_to_gestural_score, __pyx_t_3) < 0) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_7to_gestural_score, 0, __pyx_n_s_Fit_Result_to_gestural_score, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_tuple__35);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_to_gestural_score, __pyx_t_2) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":237
+  /* "VocalTractLab/target_estimation.pyx":239
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def to_pitch_tier( self, pitch_tier_file_path ):             # <<<<<<<<<<<<<<
  * 		pitch_tier_file = open( 'pitch_tier_file_path', 'w' )
  * 		pitch_tier_file.write( 'ooTextFile\n' )
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_9to_pitch_tier, 0, __pyx_n_s_Fit_Result_to_pitch_tier, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_to_pitch_tier, __pyx_t_3) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Result_9to_pitch_tier, 0, __pyx_n_s_Fit_Result_to_pitch_tier, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_to_pitch_tier, __pyx_t_2) < 0) __PYX_ERR(0, 239, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":174
+  /* "VocalTractLab/target_estimation.pyx":176
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Fit_Result():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	@um.autoargs()
  */
-  __pyx_t_3 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Fit_Result, __pyx_empty_tuple, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 174, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Fit_Result, __pyx_t_3) < 0) __PYX_ERR(0, 174, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Fit_Result, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Fit_Result, __pyx_t_2) < 0) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":249
+  /* "VocalTractLab/target_estimation.pyx":251
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Fit_Window():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):
  */
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Fit_Window, __pyx_n_s_Fit_Window, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 249, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Fit_Window, __pyx_n_s_Fit_Window, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
 
-  /* "VocalTractLab/target_estimation.pyx":251
+  /* "VocalTractLab/target_estimation.pyx":253
  * class Fit_Window():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):             # <<<<<<<<<<<<<<
  * 		self.times = []
  * 		self.values = []
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_1__init__, 0, __pyx_n_s_Fit_Window___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_3, __pyx_tuple__37);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_1__init__, 0, __pyx_n_s_Fit_Window___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_tuple__40);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":267
+  /* "VocalTractLab/target_estimation.pyx":270
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def fit( self, **kwargs ):             # <<<<<<<<<<<<<<
- * 		self.fit_result = fit( self.times, self.values, self.boundaries, **self.kwargs )
- * 		return
+ * 		self.fit_result = fit(
+ * 			times = self.times,
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_3fit, 0, __pyx_n_s_Fit_Window_fit, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_fit, __pyx_t_3) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_3fit, 0, __pyx_n_s_Fit_Window_fit, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 270, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_fit, __pyx_t_2) < 0) __PYX_ERR(0, 270, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":271
+  /* "VocalTractLab/target_estimation.pyx":280
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot():             # <<<<<<<<<<<<<<
  * 		return
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_5plot, 0, __pyx_n_s_Fit_Window_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 271, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_plot, __pyx_t_3) < 0) __PYX_ERR(0, 271, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_10Fit_Window_5plot, 0, __pyx_n_s_Fit_Window_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 280, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_plot, __pyx_t_2) < 0) __PYX_ERR(0, 280, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":249
+  /* "VocalTractLab/target_estimation.pyx":251
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Fit_Window():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, times, values, boundaries, queue_position, window_length = 3, hop_length = 1, **kwargs ):
+ * 	def __init__( self, times, values, boundaries, delta_boundary, queue_position, window_length = 3, hop_length = 1, **kwargs ):
  */
-  __pyx_t_3 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Fit_Window, __pyx_empty_tuple, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 249, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Fit_Window, __pyx_t_3) < 0) __PYX_ERR(0, 249, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Fit_Window, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Fit_Window, __pyx_t_2) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":279
+  /* "VocalTractLab/target_estimation.pyx":288
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Sequential_Fit():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):
+ * 	def __init__( self, windows, times, values ):
  */
-  __pyx_t_2 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Sequential_Fit, __pyx_n_s_Sequential_Fit, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 279, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_3 = __Pyx_Py3MetaclassPrepare((PyObject *) NULL, __pyx_empty_tuple, __pyx_n_s_Sequential_Fit, __pyx_n_s_Sequential_Fit, (PyObject *) NULL, __pyx_n_s_VocalTractLab_target_estimation, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
 
-  /* "VocalTractLab/target_estimation.pyx":281
+  /* "VocalTractLab/target_estimation.pyx":290
  * class Sequential_Fit():
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):             # <<<<<<<<<<<<<<
+ * 	def __init__( self, windows, times, values ):             # <<<<<<<<<<<<<<
  * 		self.windows = windows
- * 		for window in self.windows:
+ * 		self.times = times
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_14Sequential_Fit_1__init__, 0, __pyx_n_s_Sequential_Fit___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_init, __pyx_t_3) < 0) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_14Sequential_Fit_1__init__, 0, __pyx_n_s_Sequential_Fit___init, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_init, __pyx_t_2) < 0) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":287
- * 		return
+  /* "VocalTractLab/target_estimation.pyx":329
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 	def plot( self, ):             # <<<<<<<<<<<<<<
- * 		figure, axs = plt.subplots( len( self.windows ), figsize = (8, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
- * 		for window in self.windows:
+ * 		figure, axs = plt.subplots( len( self.windows ), figsize = (12, 4/3 *len( self.windows ) ), sharex = True, gridspec_kw = {'hspace': 0} )
+ * 		low, high = get_plot_limits( self.values, 0.2 )
  */
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_14Sequential_Fit_3plot, 0, __pyx_n_s_Sequential_Fit_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_plot, __pyx_t_3) < 0) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_New(&__pyx_mdef_13VocalTractLab_17target_estimation_14Sequential_Fit_3plot, 0, __pyx_n_s_Sequential_Fit_plot, NULL, __pyx_n_s_VocalTractLab_target_estimation, __pyx_d, ((PyObject *)__pyx_codeobj__47)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 329, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (__Pyx_SetNameInClass(__pyx_t_3, __pyx_n_s_plot, __pyx_t_2) < 0) __PYX_ERR(0, 329, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":279
+  /* "VocalTractLab/target_estimation.pyx":288
  * 
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * class Sequential_Fit():             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * 	def __init__( self, windows ):
+ * 	def __init__( self, windows, times, values ):
  */
-  __pyx_t_3 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Sequential_Fit, __pyx_empty_tuple, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 279, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Sequential_Fit, __pyx_t_3) < 0) __PYX_ERR(0, 279, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_Py3ClassCreate(((PyObject*)&__Pyx_DefaultClassType), __pyx_n_s_Sequential_Fit, __pyx_empty_tuple, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_Sequential_Fit, __pyx_t_2) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":324
+  /* "VocalTractLab/target_estimation.pyx":382
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * 
  * def convert_hz_to_st( values ):             # <<<<<<<<<<<<<<
  * 	return 12 * ( np.log( values ) / np.log( 2 ) )
  * 
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_1convert_hz_to_st, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 324, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_convert_hz_to_st, __pyx_t_2) < 0) __PYX_ERR(0, 324, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_1convert_hz_to_st, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 382, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_convert_hz_to_st, __pyx_t_3) < 0) __PYX_ERR(0, 382, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":334
+  /* "VocalTractLab/target_estimation.pyx":392
  * 			times,
  * 			values,
  * 			boundaries = [],             # <<<<<<<<<<<<<<
  * 			init_bounds = 4,
  * 			weight_slope = 1.0,
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_k__10 = __pyx_t_2;
-  __Pyx_GIVEREF(__pyx_t_2);
-  __pyx_t_2 = 0;
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 392, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_k__13 = __pyx_t_3;
+  __Pyx_GIVEREF(__pyx_t_3);
+  __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":331
+  /* "VocalTractLab/target_estimation.pyx":389
  * # 		Single core functions
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit(             # <<<<<<<<<<<<<<
  * 			times,
  * 			values,
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_3fit, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 331, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fit, __pyx_t_2) < 0) __PYX_ERR(0, 331, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_3fit, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 389, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fit, __pyx_t_3) < 0) __PYX_ERR(0, 389, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":467
+  /* "VocalTractLab/target_estimation.pyx":533
  * def fit_sequentially( times,
  * 	                  values,
  * 	                  boundaries = [],             # <<<<<<<<<<<<<<
- * 	                  init_bounds = 9,
- * 	                  window_length = 3,
+ * 	                  init_bounds: int = 9,
+ * 	                  delta_boundary: int = 0,
  */
-  __pyx_t_2 = PyList_New(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 467, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_k__11 = __pyx_t_2;
-  __Pyx_GIVEREF(__pyx_t_2);
-  __pyx_t_2 = 0;
+  __pyx_t_3 = PyList_New(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 533, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_k__14 = __pyx_t_3;
+  __Pyx_GIVEREF(__pyx_t_3);
+  __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":465
+  /* "VocalTractLab/target_estimation.pyx":531
  * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def fit_sequentially( times,             # <<<<<<<<<<<<<<
  * 	                  values,
  * 	                  boundaries = [],
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_5fit_sequentially, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fit_sequentially, __pyx_t_2) < 0) __PYX_ERR(0, 465, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_5fit_sequentially, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 531, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_fit_sequentially, __pyx_t_3) < 0) __PYX_ERR(0, 531, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":511
- * 	return
+  /* "VocalTractLab/target_estimation.pyx":645
+ * 	return Fit_Result( **fit_info )
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
- * def get_optimized_boundaries( windows, window_length, hop_length, o ):             # <<<<<<<<<<<<<<
- * 	boundary_sequence = []
- * 	n_targets = windows[-1].target_positions[-1] + 1
+ * def get_optimized_boundaries( windows, window_length, hop_length, underflow_threshold = 0.010 ):             # <<<<<<<<<<<<<<
+ * 	boundary_list = []
+ * 	n_targets = windows[-1].target_positions[-1]# + 1
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_7get_optimized_boundaries, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 511, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_optimized_boundaries, __pyx_t_2) < 0) __PYX_ERR(0, 511, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_7get_optimized_boundaries, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 645, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_optimized_boundaries, __pyx_t_3) < 0) __PYX_ERR(0, 645, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "VocalTractLab/target_estimation.pyx":529
- * 	return boundary_sequence
+  /* "VocalTractLab/target_estimation.pyx":671
+ * 	return boundary_list
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * def get_optimized_targets( windows, hop_length ):             # <<<<<<<<<<<<<<
  * 	n_windows = len( windows )
- * 	target_sequence = []
+ * 	target_list = []
  */
-  __pyx_t_2 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_9get_optimized_targets, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 529, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_optimized_targets, __pyx_t_2) < 0) __PYX_ERR(0, 529, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_9get_optimized_targets, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 671, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_optimized_targets, __pyx_t_3) < 0) __PYX_ERR(0, 671, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":683
+ * 	return target_list
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_correlation( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	fitted_values = target_sequence.get_contour( sample_times = times )[ :, 1 ]
+ * 	x = values - np.mean( values );
+ */
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_11get_correlation, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 683, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_correlation, __pyx_t_3) < 0) __PYX_ERR(0, 683, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+
+  /* "VocalTractLab/target_estimation.pyx":689
+ * 	return ( np.dot(x, y) ) / ( ( np.sqrt( np.sum( x**2 ) ) ) * ( np.sqrt( np.sum( y**2 ) ) ) );
+ * #---------------------------------------------------------------------------------------------------------------------------------------------------#
+ * def get_rmse( times, values, target_sequence ):             # <<<<<<<<<<<<<<
+ * 	#print( 'len times: {}'.format( len( times ) ) )
+ * 	#print( 'len values: {}'.format( len( values ) ) )
+ */
+  __pyx_t_3 = PyCFunction_NewEx(&__pyx_mdef_13VocalTractLab_17target_estimation_13get_rmse, NULL, __pyx_n_s_VocalTractLab_target_estimation); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 689, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_rmse, __pyx_t_3) < 0) __PYX_ERR(0, 689, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "VocalTractLab/target_estimation.pyx":1
  * #####################################################################################################################################################             # <<<<<<<<<<<<<<
  * #---------------------------------------------------------------------------------------------------------------------------------------------------#
  * #	- This file is a part of the VocalTractLab Python module PyVTL, see https://github.com/paul-krug/VocalTractLab
  */
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_test, __pyx_t_3) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "vector.to_py":60
  * 
@@ -14906,6 +17972,245 @@ static CYTHON_INLINE int __Pyx_PyObject_Append(PyObject* L, PyObject* x) {
     return 0;
 }
 
+/* PyObjectCallMethod0 */
+static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name) {
+    PyObject *method = NULL, *result = NULL;
+    int is_method = __Pyx_PyObject_GetMethod(obj, method_name, &method);
+    if (likely(is_method)) {
+        result = __Pyx_PyObject_CallOneArg(method, obj);
+        Py_DECREF(method);
+        return result;
+    }
+    if (unlikely(!method)) goto bad;
+    result = __Pyx_PyObject_CallNoArg(method);
+    Py_DECREF(method);
+bad:
+    return result;
+}
+
+/* RaiseNoneIterError */
+static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
+    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
+}
+
+/* UnpackTupleError */
+static void __Pyx_UnpackTupleError(PyObject *t, Py_ssize_t index) {
+    if (t == Py_None) {
+      __Pyx_RaiseNoneNotIterableError();
+    } else if (PyTuple_GET_SIZE(t) < index) {
+      __Pyx_RaiseNeedMoreValuesError(PyTuple_GET_SIZE(t));
+    } else {
+      __Pyx_RaiseTooManyValuesError(index);
+    }
+}
+
+/* UnpackTuple2 */
+static CYTHON_INLINE int __Pyx_unpack_tuple2_exact(
+        PyObject* tuple, PyObject** pvalue1, PyObject** pvalue2, int decref_tuple) {
+    PyObject *value1 = NULL, *value2 = NULL;
+#if CYTHON_COMPILING_IN_PYPY
+    value1 = PySequence_ITEM(tuple, 0);  if (unlikely(!value1)) goto bad;
+    value2 = PySequence_ITEM(tuple, 1);  if (unlikely(!value2)) goto bad;
+#else
+    value1 = PyTuple_GET_ITEM(tuple, 0);  Py_INCREF(value1);
+    value2 = PyTuple_GET_ITEM(tuple, 1);  Py_INCREF(value2);
+#endif
+    if (decref_tuple) {
+        Py_DECREF(tuple);
+    }
+    *pvalue1 = value1;
+    *pvalue2 = value2;
+    return 0;
+#if CYTHON_COMPILING_IN_PYPY
+bad:
+    Py_XDECREF(value1);
+    Py_XDECREF(value2);
+    if (decref_tuple) { Py_XDECREF(tuple); }
+    return -1;
+#endif
+}
+static int __Pyx_unpack_tuple2_generic(PyObject* tuple, PyObject** pvalue1, PyObject** pvalue2,
+                                       int has_known_size, int decref_tuple) {
+    Py_ssize_t index;
+    PyObject *value1 = NULL, *value2 = NULL, *iter = NULL;
+    iternextfunc iternext;
+    iter = PyObject_GetIter(tuple);
+    if (unlikely(!iter)) goto bad;
+    if (decref_tuple) { Py_DECREF(tuple); tuple = NULL; }
+    iternext = Py_TYPE(iter)->tp_iternext;
+    value1 = iternext(iter); if (unlikely(!value1)) { index = 0; goto unpacking_failed; }
+    value2 = iternext(iter); if (unlikely(!value2)) { index = 1; goto unpacking_failed; }
+    if (!has_known_size && unlikely(__Pyx_IternextUnpackEndCheck(iternext(iter), 2))) goto bad;
+    Py_DECREF(iter);
+    *pvalue1 = value1;
+    *pvalue2 = value2;
+    return 0;
+unpacking_failed:
+    if (!has_known_size && __Pyx_IterFinish() == 0)
+        __Pyx_RaiseNeedMoreValuesError(index);
+bad:
+    Py_XDECREF(iter);
+    Py_XDECREF(value1);
+    Py_XDECREF(value2);
+    if (decref_tuple) { Py_XDECREF(tuple); }
+    return -1;
+}
+
+/* dict_iter */
+static CYTHON_INLINE PyObject* __Pyx_dict_iterator(PyObject* iterable, int is_dict, PyObject* method_name,
+                                                   Py_ssize_t* p_orig_length, int* p_source_is_dict) {
+    is_dict = is_dict || likely(PyDict_CheckExact(iterable));
+    *p_source_is_dict = is_dict;
+    if (is_dict) {
+#if !CYTHON_COMPILING_IN_PYPY
+        *p_orig_length = PyDict_Size(iterable);
+        Py_INCREF(iterable);
+        return iterable;
+#elif PY_MAJOR_VERSION >= 3
+        static PyObject *py_items = NULL, *py_keys = NULL, *py_values = NULL;
+        PyObject **pp = NULL;
+        if (method_name) {
+            const char *name = PyUnicode_AsUTF8(method_name);
+            if (strcmp(name, "iteritems") == 0) pp = &py_items;
+            else if (strcmp(name, "iterkeys") == 0) pp = &py_keys;
+            else if (strcmp(name, "itervalues") == 0) pp = &py_values;
+            if (pp) {
+                if (!*pp) {
+                    *pp = PyUnicode_FromString(name + 4);
+                    if (!*pp)
+                        return NULL;
+                }
+                method_name = *pp;
+            }
+        }
+#endif
+    }
+    *p_orig_length = 0;
+    if (method_name) {
+        PyObject* iter;
+        iterable = __Pyx_PyObject_CallMethod0(iterable, method_name);
+        if (!iterable)
+            return NULL;
+#if !CYTHON_COMPILING_IN_PYPY
+        if (PyTuple_CheckExact(iterable) || PyList_CheckExact(iterable))
+            return iterable;
+#endif
+        iter = PyObject_GetIter(iterable);
+        Py_DECREF(iterable);
+        return iter;
+    }
+    return PyObject_GetIter(iterable);
+}
+static CYTHON_INLINE int __Pyx_dict_iter_next(
+        PyObject* iter_obj, CYTHON_NCP_UNUSED Py_ssize_t orig_length, CYTHON_NCP_UNUSED Py_ssize_t* ppos,
+        PyObject** pkey, PyObject** pvalue, PyObject** pitem, int source_is_dict) {
+    PyObject* next_item;
+#if !CYTHON_COMPILING_IN_PYPY
+    if (source_is_dict) {
+        PyObject *key, *value;
+        if (unlikely(orig_length != PyDict_Size(iter_obj))) {
+            PyErr_SetString(PyExc_RuntimeError, "dictionary changed size during iteration");
+            return -1;
+        }
+        if (unlikely(!PyDict_Next(iter_obj, ppos, &key, &value))) {
+            return 0;
+        }
+        if (pitem) {
+            PyObject* tuple = PyTuple_New(2);
+            if (unlikely(!tuple)) {
+                return -1;
+            }
+            Py_INCREF(key);
+            Py_INCREF(value);
+            PyTuple_SET_ITEM(tuple, 0, key);
+            PyTuple_SET_ITEM(tuple, 1, value);
+            *pitem = tuple;
+        } else {
+            if (pkey) {
+                Py_INCREF(key);
+                *pkey = key;
+            }
+            if (pvalue) {
+                Py_INCREF(value);
+                *pvalue = value;
+            }
+        }
+        return 1;
+    } else if (PyTuple_CheckExact(iter_obj)) {
+        Py_ssize_t pos = *ppos;
+        if (unlikely(pos >= PyTuple_GET_SIZE(iter_obj))) return 0;
+        *ppos = pos + 1;
+        next_item = PyTuple_GET_ITEM(iter_obj, pos);
+        Py_INCREF(next_item);
+    } else if (PyList_CheckExact(iter_obj)) {
+        Py_ssize_t pos = *ppos;
+        if (unlikely(pos >= PyList_GET_SIZE(iter_obj))) return 0;
+        *ppos = pos + 1;
+        next_item = PyList_GET_ITEM(iter_obj, pos);
+        Py_INCREF(next_item);
+    } else
+#endif
+    {
+        next_item = PyIter_Next(iter_obj);
+        if (unlikely(!next_item)) {
+            return __Pyx_IterFinish();
+        }
+    }
+    if (pitem) {
+        *pitem = next_item;
+    } else if (pkey && pvalue) {
+        if (__Pyx_unpack_tuple2(next_item, pkey, pvalue, source_is_dict, source_is_dict, 1))
+            return -1;
+    } else if (pkey) {
+        *pkey = next_item;
+    } else {
+        *pvalue = next_item;
+    }
+    return 1;
+}
+
+/* MergeKeywords */
+static int __Pyx_MergeKeywords(PyObject *kwdict, PyObject *source_mapping) {
+    PyObject *iter, *key = NULL, *value = NULL;
+    int source_is_dict, result;
+    Py_ssize_t orig_length, ppos = 0;
+    iter = __Pyx_dict_iterator(source_mapping, 0, __pyx_n_s_items, &orig_length, &source_is_dict);
+    if (unlikely(!iter)) {
+        PyObject *args;
+        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) goto bad;
+        PyErr_Clear();
+        args = PyTuple_Pack(1, source_mapping);
+        if (likely(args)) {
+            PyObject *fallback = PyObject_Call((PyObject*)&PyDict_Type, args, NULL);
+            Py_DECREF(args);
+            if (likely(fallback)) {
+                iter = __Pyx_dict_iterator(fallback, 1, __pyx_n_s_items, &orig_length, &source_is_dict);
+                Py_DECREF(fallback);
+            }
+        }
+        if (unlikely(!iter)) goto bad;
+    }
+    while (1) {
+        result = __Pyx_dict_iter_next(iter, orig_length, &ppos, &key, &value, NULL, source_is_dict);
+        if (unlikely(result < 0)) goto bad;
+        if (!result) break;
+        if (unlikely(PyDict_Contains(kwdict, key))) {
+            __Pyx_RaiseDoubleKeywordsError("function", key);
+            result = -1;
+        } else {
+            result = PyDict_SetItem(kwdict, key, value);
+        }
+        Py_DECREF(key);
+        Py_DECREF(value);
+        if (unlikely(result < 0)) goto bad;
+    }
+    Py_XDECREF(iter);
+    return 0;
+bad:
+    Py_XDECREF(iter);
+    return -1;
+}
+
 /* PyIntCompare */
 static CYTHON_INLINE PyObject* __Pyx_PyInt_EqObjC(PyObject *op1, PyObject *op2, CYTHON_UNUSED long intval, CYTHON_UNUSED long inplace) {
     if (op1 == op2) {
@@ -15164,243 +18469,9 @@ static PyObject* __Pyx_PyInt_SubtractObjC(PyObject *op1, PyObject *op2, CYTHON_U
 }
 #endif
 
-/* PyObjectCallMethod0 */
-static PyObject* __Pyx_PyObject_CallMethod0(PyObject* obj, PyObject* method_name) {
-    PyObject *method = NULL, *result = NULL;
-    int is_method = __Pyx_PyObject_GetMethod(obj, method_name, &method);
-    if (likely(is_method)) {
-        result = __Pyx_PyObject_CallOneArg(method, obj);
-        Py_DECREF(method);
-        return result;
-    }
-    if (unlikely(!method)) goto bad;
-    result = __Pyx_PyObject_CallNoArg(method);
-    Py_DECREF(method);
-bad:
-    return result;
-}
-
-/* RaiseNoneIterError */
-static CYTHON_INLINE void __Pyx_RaiseNoneNotIterableError(void) {
-    PyErr_SetString(PyExc_TypeError, "'NoneType' object is not iterable");
-}
-
-/* UnpackTupleError */
-static void __Pyx_UnpackTupleError(PyObject *t, Py_ssize_t index) {
-    if (t == Py_None) {
-      __Pyx_RaiseNoneNotIterableError();
-    } else if (PyTuple_GET_SIZE(t) < index) {
-      __Pyx_RaiseNeedMoreValuesError(PyTuple_GET_SIZE(t));
-    } else {
-      __Pyx_RaiseTooManyValuesError(index);
-    }
-}
-
-/* UnpackTuple2 */
-static CYTHON_INLINE int __Pyx_unpack_tuple2_exact(
-        PyObject* tuple, PyObject** pvalue1, PyObject** pvalue2, int decref_tuple) {
-    PyObject *value1 = NULL, *value2 = NULL;
-#if CYTHON_COMPILING_IN_PYPY
-    value1 = PySequence_ITEM(tuple, 0);  if (unlikely(!value1)) goto bad;
-    value2 = PySequence_ITEM(tuple, 1);  if (unlikely(!value2)) goto bad;
-#else
-    value1 = PyTuple_GET_ITEM(tuple, 0);  Py_INCREF(value1);
-    value2 = PyTuple_GET_ITEM(tuple, 1);  Py_INCREF(value2);
-#endif
-    if (decref_tuple) {
-        Py_DECREF(tuple);
-    }
-    *pvalue1 = value1;
-    *pvalue2 = value2;
-    return 0;
-#if CYTHON_COMPILING_IN_PYPY
-bad:
-    Py_XDECREF(value1);
-    Py_XDECREF(value2);
-    if (decref_tuple) { Py_XDECREF(tuple); }
-    return -1;
-#endif
-}
-static int __Pyx_unpack_tuple2_generic(PyObject* tuple, PyObject** pvalue1, PyObject** pvalue2,
-                                       int has_known_size, int decref_tuple) {
-    Py_ssize_t index;
-    PyObject *value1 = NULL, *value2 = NULL, *iter = NULL;
-    iternextfunc iternext;
-    iter = PyObject_GetIter(tuple);
-    if (unlikely(!iter)) goto bad;
-    if (decref_tuple) { Py_DECREF(tuple); tuple = NULL; }
-    iternext = Py_TYPE(iter)->tp_iternext;
-    value1 = iternext(iter); if (unlikely(!value1)) { index = 0; goto unpacking_failed; }
-    value2 = iternext(iter); if (unlikely(!value2)) { index = 1; goto unpacking_failed; }
-    if (!has_known_size && unlikely(__Pyx_IternextUnpackEndCheck(iternext(iter), 2))) goto bad;
-    Py_DECREF(iter);
-    *pvalue1 = value1;
-    *pvalue2 = value2;
-    return 0;
-unpacking_failed:
-    if (!has_known_size && __Pyx_IterFinish() == 0)
-        __Pyx_RaiseNeedMoreValuesError(index);
-bad:
-    Py_XDECREF(iter);
-    Py_XDECREF(value1);
-    Py_XDECREF(value2);
-    if (decref_tuple) { Py_XDECREF(tuple); }
-    return -1;
-}
-
-/* dict_iter */
-static CYTHON_INLINE PyObject* __Pyx_dict_iterator(PyObject* iterable, int is_dict, PyObject* method_name,
-                                                   Py_ssize_t* p_orig_length, int* p_source_is_dict) {
-    is_dict = is_dict || likely(PyDict_CheckExact(iterable));
-    *p_source_is_dict = is_dict;
-    if (is_dict) {
-#if !CYTHON_COMPILING_IN_PYPY
-        *p_orig_length = PyDict_Size(iterable);
-        Py_INCREF(iterable);
-        return iterable;
-#elif PY_MAJOR_VERSION >= 3
-        static PyObject *py_items = NULL, *py_keys = NULL, *py_values = NULL;
-        PyObject **pp = NULL;
-        if (method_name) {
-            const char *name = PyUnicode_AsUTF8(method_name);
-            if (strcmp(name, "iteritems") == 0) pp = &py_items;
-            else if (strcmp(name, "iterkeys") == 0) pp = &py_keys;
-            else if (strcmp(name, "itervalues") == 0) pp = &py_values;
-            if (pp) {
-                if (!*pp) {
-                    *pp = PyUnicode_FromString(name + 4);
-                    if (!*pp)
-                        return NULL;
-                }
-                method_name = *pp;
-            }
-        }
-#endif
-    }
-    *p_orig_length = 0;
-    if (method_name) {
-        PyObject* iter;
-        iterable = __Pyx_PyObject_CallMethod0(iterable, method_name);
-        if (!iterable)
-            return NULL;
-#if !CYTHON_COMPILING_IN_PYPY
-        if (PyTuple_CheckExact(iterable) || PyList_CheckExact(iterable))
-            return iterable;
-#endif
-        iter = PyObject_GetIter(iterable);
-        Py_DECREF(iterable);
-        return iter;
-    }
-    return PyObject_GetIter(iterable);
-}
-static CYTHON_INLINE int __Pyx_dict_iter_next(
-        PyObject* iter_obj, CYTHON_NCP_UNUSED Py_ssize_t orig_length, CYTHON_NCP_UNUSED Py_ssize_t* ppos,
-        PyObject** pkey, PyObject** pvalue, PyObject** pitem, int source_is_dict) {
-    PyObject* next_item;
-#if !CYTHON_COMPILING_IN_PYPY
-    if (source_is_dict) {
-        PyObject *key, *value;
-        if (unlikely(orig_length != PyDict_Size(iter_obj))) {
-            PyErr_SetString(PyExc_RuntimeError, "dictionary changed size during iteration");
-            return -1;
-        }
-        if (unlikely(!PyDict_Next(iter_obj, ppos, &key, &value))) {
-            return 0;
-        }
-        if (pitem) {
-            PyObject* tuple = PyTuple_New(2);
-            if (unlikely(!tuple)) {
-                return -1;
-            }
-            Py_INCREF(key);
-            Py_INCREF(value);
-            PyTuple_SET_ITEM(tuple, 0, key);
-            PyTuple_SET_ITEM(tuple, 1, value);
-            *pitem = tuple;
-        } else {
-            if (pkey) {
-                Py_INCREF(key);
-                *pkey = key;
-            }
-            if (pvalue) {
-                Py_INCREF(value);
-                *pvalue = value;
-            }
-        }
-        return 1;
-    } else if (PyTuple_CheckExact(iter_obj)) {
-        Py_ssize_t pos = *ppos;
-        if (unlikely(pos >= PyTuple_GET_SIZE(iter_obj))) return 0;
-        *ppos = pos + 1;
-        next_item = PyTuple_GET_ITEM(iter_obj, pos);
-        Py_INCREF(next_item);
-    } else if (PyList_CheckExact(iter_obj)) {
-        Py_ssize_t pos = *ppos;
-        if (unlikely(pos >= PyList_GET_SIZE(iter_obj))) return 0;
-        *ppos = pos + 1;
-        next_item = PyList_GET_ITEM(iter_obj, pos);
-        Py_INCREF(next_item);
-    } else
-#endif
-    {
-        next_item = PyIter_Next(iter_obj);
-        if (unlikely(!next_item)) {
-            return __Pyx_IterFinish();
-        }
-    }
-    if (pitem) {
-        *pitem = next_item;
-    } else if (pkey && pvalue) {
-        if (__Pyx_unpack_tuple2(next_item, pkey, pvalue, source_is_dict, source_is_dict, 1))
-            return -1;
-    } else if (pkey) {
-        *pkey = next_item;
-    } else {
-        *pvalue = next_item;
-    }
-    return 1;
-}
-
-/* MergeKeywords */
-static int __Pyx_MergeKeywords(PyObject *kwdict, PyObject *source_mapping) {
-    PyObject *iter, *key = NULL, *value = NULL;
-    int source_is_dict, result;
-    Py_ssize_t orig_length, ppos = 0;
-    iter = __Pyx_dict_iterator(source_mapping, 0, __pyx_n_s_items, &orig_length, &source_is_dict);
-    if (unlikely(!iter)) {
-        PyObject *args;
-        if (!PyErr_ExceptionMatches(PyExc_AttributeError)) goto bad;
-        PyErr_Clear();
-        args = PyTuple_Pack(1, source_mapping);
-        if (likely(args)) {
-            PyObject *fallback = PyObject_Call((PyObject*)&PyDict_Type, args, NULL);
-            Py_DECREF(args);
-            if (likely(fallback)) {
-                iter = __Pyx_dict_iterator(fallback, 1, __pyx_n_s_items, &orig_length, &source_is_dict);
-                Py_DECREF(fallback);
-            }
-        }
-        if (unlikely(!iter)) goto bad;
-    }
-    while (1) {
-        result = __Pyx_dict_iter_next(iter, orig_length, &ppos, &key, &value, NULL, source_is_dict);
-        if (unlikely(result < 0)) goto bad;
-        if (!result) break;
-        if (unlikely(PyDict_Contains(kwdict, key))) {
-            __Pyx_RaiseDoubleKeywordsError("function", key);
-            result = -1;
-        } else {
-            result = PyDict_SetItem(kwdict, key, value);
-        }
-        Py_DECREF(key);
-        Py_DECREF(value);
-        if (unlikely(result < 0)) goto bad;
-    }
-    Py_XDECREF(iter);
-    return 0;
-bad:
-    Py_XDECREF(iter);
-    return -1;
+/* None */
+static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
+    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
 }
 
 /* PyIntBinop */
@@ -15526,11 +18597,6 @@ static PyObject* __Pyx_PyInt_AddCObj(PyObject *op1, PyObject *op2, CYTHON_UNUSED
     return (inplace ? PyNumber_InPlaceAdd : PyNumber_Add)(op1, op2);
 }
 #endif
-
-/* None */
-static CYTHON_INLINE void __Pyx_RaiseUnboundLocalError(const char *varname) {
-    PyErr_Format(PyExc_UnboundLocalError, "local variable '%s' referenced before assignment", varname);
-}
 
 /* GetTopmostException */
 #if CYTHON_USE_EXC_INFO_STACK
@@ -17081,6 +20147,112 @@ static PyObject* __pyx_convert__to_py_struct__PitchTarget(struct PitchTarget s) 
   Py_DECREF(res);
   return NULL;
 }
+/* Print */
+#if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION < 3
+static PyObject *__Pyx_GetStdout(void) {
+    PyObject *f = PySys_GetObject((char *)"stdout");
+    if (!f) {
+        PyErr_SetString(PyExc_RuntimeError, "lost sys.stdout");
+    }
+    return f;
+}
+static int __Pyx_Print(PyObject* f, PyObject *arg_tuple, int newline) {
+    int i;
+    if (!f) {
+        if (!(f = __Pyx_GetStdout()))
+            return -1;
+    }
+    Py_INCREF(f);
+    for (i=0; i < PyTuple_GET_SIZE(arg_tuple); i++) {
+        PyObject* v;
+        if (PyFile_SoftSpace(f, 1)) {
+            if (PyFile_WriteString(" ", f) < 0)
+                goto error;
+        }
+        v = PyTuple_GET_ITEM(arg_tuple, i);
+        if (PyFile_WriteObject(v, f, Py_PRINT_RAW) < 0)
+            goto error;
+        if (PyString_Check(v)) {
+            char *s = PyString_AsString(v);
+            Py_ssize_t len = PyString_Size(v);
+            if (len > 0) {
+                switch (s[len-1]) {
+                    case ' ': break;
+                    case '\f': case '\r': case '\n': case '\t': case '\v':
+                        PyFile_SoftSpace(f, 0);
+                        break;
+                    default:  break;
+                }
+            }
+        }
+    }
+    if (newline) {
+        if (PyFile_WriteString("\n", f) < 0)
+            goto error;
+        PyFile_SoftSpace(f, 0);
+    }
+    Py_DECREF(f);
+    return 0;
+error:
+    Py_DECREF(f);
+    return -1;
+}
+#else
+static int __Pyx_Print(PyObject* stream, PyObject *arg_tuple, int newline) {
+    PyObject* kwargs = 0;
+    PyObject* result = 0;
+    PyObject* end_string;
+    if (unlikely(!__pyx_print)) {
+        __pyx_print = PyObject_GetAttr(__pyx_b, __pyx_n_s_print);
+        if (!__pyx_print)
+            return -1;
+    }
+    if (stream) {
+        kwargs = PyDict_New();
+        if (unlikely(!kwargs))
+            return -1;
+        if (unlikely(PyDict_SetItem(kwargs, __pyx_n_s_file, stream) < 0))
+            goto bad;
+        if (!newline) {
+            end_string = PyUnicode_FromStringAndSize(" ", 1);
+            if (unlikely(!end_string))
+                goto bad;
+            if (PyDict_SetItem(kwargs, __pyx_n_s_end, end_string) < 0) {
+                Py_DECREF(end_string);
+                goto bad;
+            }
+            Py_DECREF(end_string);
+        }
+    } else if (!newline) {
+        if (unlikely(!__pyx_print_kwargs)) {
+            __pyx_print_kwargs = PyDict_New();
+            if (unlikely(!__pyx_print_kwargs))
+                return -1;
+            end_string = PyUnicode_FromStringAndSize(" ", 1);
+            if (unlikely(!end_string))
+                return -1;
+            if (PyDict_SetItem(__pyx_print_kwargs, __pyx_n_s_end, end_string) < 0) {
+                Py_DECREF(end_string);
+                return -1;
+            }
+            Py_DECREF(end_string);
+        }
+        kwargs = __pyx_print_kwargs;
+    }
+    result = PyObject_Call(__pyx_print, arg_tuple, kwargs);
+    if (unlikely(kwargs) && (kwargs != __pyx_print_kwargs))
+        Py_DECREF(kwargs);
+    if (!result)
+        return -1;
+    Py_DECREF(result);
+    return 0;
+bad:
+    if (kwargs != __pyx_print_kwargs)
+        Py_XDECREF(kwargs);
+    return -1;
+}
+#endif
+
 /* Declarations */
 #if CYTHON_CCOMPLEX
   #ifdef __cplusplus
@@ -17818,6 +20990,43 @@ raise_neg_overflow:
         "can't convert negative value to size_t");
     return (size_t) -1;
 }
+
+/* PrintOne */
+#if !CYTHON_COMPILING_IN_PYPY && PY_MAJOR_VERSION < 3
+static int __Pyx_PrintOne(PyObject* f, PyObject *o) {
+    if (!f) {
+        if (!(f = __Pyx_GetStdout()))
+            return -1;
+    }
+    Py_INCREF(f);
+    if (PyFile_SoftSpace(f, 0)) {
+        if (PyFile_WriteString(" ", f) < 0)
+            goto error;
+    }
+    if (PyFile_WriteObject(o, f, Py_PRINT_RAW) < 0)
+        goto error;
+    if (PyFile_WriteString("\n", f) < 0)
+        goto error;
+    Py_DECREF(f);
+    return 0;
+error:
+    Py_DECREF(f);
+    return -1;
+    /* the line below is just to avoid C compiler
+     * warnings about unused functions */
+    return __Pyx_Print(f, NULL, 0);
+}
+#else
+static int __Pyx_PrintOne(PyObject* stream, PyObject *o) {
+    int res;
+    PyObject* arg_tuple = PyTuple_Pack(1, o);
+    if (unlikely(!arg_tuple))
+        return -1;
+    res = __Pyx_Print(stream, arg_tuple, 1);
+    Py_DECREF(arg_tuple);
+    return res;
+}
+#endif
 
 /* CIntFromPy */
 static CYTHON_INLINE long __Pyx_PyInt_As_long(PyObject *x) {
