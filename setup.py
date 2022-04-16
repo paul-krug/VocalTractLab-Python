@@ -114,13 +114,13 @@ with open('VocalTractLab/__init__.py') as f:
 # Build extension modules 
 EXT_MODULES = cythonize(
     [
-        Extension( 'VocalTractLab.target_estimation',
-              ['VocalTractLab/target_estimation.pyx'],
-              language="c++",
-              libraries=['VocalTractLab/TargetOptimizerApi'],
-              library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
-              include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
-              ),
+        #Extension( 'VocalTractLab.target_estimation',
+        #      ['VocalTractLab/target_estimation.pyx'],
+        #      language="c++",
+        #      libraries=['VocalTractLab/TargetOptimizerApi'],
+        #      library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
+        #      include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
+        #      ),
         Extension( 'VocalTractLab.VocalTractLabApi',
               ['VocalTractLab/VocalTractLabApi.pyx'],
               language="c",
@@ -162,7 +162,7 @@ Operating System :: Unix
 """
 
 
-cmdclass = dict( build_target_optimizer = Build_Target_Optimizer,
+cmdclass = dict( #build_target_optimizer = Build_Target_Optimizer,
                  build_vtl = Build_VTL,
                  build_py = Build_Backends,
                  )
