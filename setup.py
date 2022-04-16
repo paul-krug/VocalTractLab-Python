@@ -122,12 +122,12 @@ EXT_MODULES = cythonize(
         #      include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
         #      ),
         Extension( 'VocalTractLab.VocalTractLabApi',
-              [ os.path.join( WORKING_PATH, 'VocalTractLab/VocalTractLabApi.pyx' ) ],
+              [ './VocalTractLab/VocalTractLabApi.pyx' ],
               language="c",
-              libraries=[ os.path.join( WORKING_PATH, 'VocalTractLab/VocalTractLabApi' ) ],
-              library_dirs=[ WORKING_PATH, os.path.join( WORKING_PATH, 'VocalTractLab/' ), os.path.join( WORKING_PATH, 'VocalTractLab/VocalTractLabApi' ) ],
-              include_dirs=[ np.get_include(), WORKING_PATH, os.path.join( WORKING_PATH, 'VocalTractLab/' ), os.path.join( WORKING_PATH, 'VocalTractLab/VocalTractLabApi' ) ],
-              runtime_library_dirs=[ WORKING_PATH, os.path.join( WORKING_PATH, 'VocalTractLab/' ), os.path.join( WORKING_PATH, 'VocalTractLab/VocalTractLabApi' ) ],
+              libraries=[ './VocalTractLab/VocalTractLabApi' ],
+              library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+              include_dirs=[ np.get_include(), './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+              runtime_library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               ),
     ]
 )
