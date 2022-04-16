@@ -4,7 +4,12 @@ __version__ = '0.4'
 
 import os
 import sys
+print( 'full sys path: 1' )
+print( '\n'.join(sys.path) )
+print( 'init path: ', os.path.realpath( __file__ ) )
 sys.path.append( os.path.realpath( __file__ ) )
+print( 'full sys path: 2' )
+print( '\n'.join(sys.path) )
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
@@ -62,7 +67,7 @@ from VocalTractLab.targets import Synchronous_Target_Score
 from VocalTractLab.targets import Sub_Glottal_Motor_Score
 from VocalTractLab.targets import Supra_Glottal_Motor_Score
 from VocalTractLab.targets import Motor_Score
-from VocalTractLab import target_estimation
+#from VocalTractLab import target_estimation
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence
 from VocalTractLab.tract_sequence import Supra_Glottal_Sequence
 from VocalTractLab.tract_sequence import Motor_Sequence

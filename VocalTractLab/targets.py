@@ -52,7 +52,7 @@ from VocalTractLab.function_tools import is_iterable
 from VocalTractLab.tract_sequence import Sub_Glottal_Sequence, Supra_Glottal_Sequence, Motor_Sequence
 from VocalTractLab.audio_tools import get_f0
 import VocalTractLab.VocalTractLabApi as vtl
-from VocalTractLab.target_estimation import fit
+#from VocalTractLab.target_estimation import fit
 
 def get_name_of( variable ):
 	return [ k for k, v in locals().items() if v is variable ][ 0 ]
