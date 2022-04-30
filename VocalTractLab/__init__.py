@@ -7,7 +7,7 @@ import sys
 print( 'full sys path: 1' )
 print( '\n'.join(sys.path) )
 print( 'init path: ', os.path.realpath( __file__ ) )
-sys.path.append( os.path.realpath( __file__ ) )
+sys.path.append( os.path.dirname( __file__ ) )
 print( 'full sys path: 2' )
 print( '\n'.join(sys.path) )
 

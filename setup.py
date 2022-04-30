@@ -49,7 +49,8 @@ class Build_Target_Optimizer( build_py ):
             shutil.move( os.path.join( 'release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         else:
             file_extension = '.so'
-            shutil.move( 'lib' + api_name + file_extension, os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            #shutil.move( 'lib' + api_name + file_extension, os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            shutil.move( 'lib' + api_name + file_extension, os.getenv( 'PATH' )[0] )
         #print( os.listdir( os.getcwd() ) )
         #print( os.listdir( os.path.join( os.getcwd(), 'CMakeFiles' ) ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
