@@ -126,8 +126,8 @@ EXT_MODULES = cythonize(
               [ './VocalTractLab/VocalTractLabApi.pyx' ],
               language="c",
               libraries=[ './VocalTractLab/VocalTractLabApi' ],
-              library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-              include_dirs=[ np.get_include(), './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+              library_dirs=[ './' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+              include_dirs=[ np.get_include() ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               #runtime_library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               ),
     ]
