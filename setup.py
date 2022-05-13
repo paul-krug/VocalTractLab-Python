@@ -77,7 +77,12 @@ class Build_VTL( build_py ):
             shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         else:
             file_extension = '.so'
-            shutil.move( 'lib' + api_name + file_extension, '/usr/local/lib/' )
+            try:
+                shutil.move( 'lib' + api_name + file_extension, '/usr/local/lib/' )
+            except Exception:
+                print( 'WARNING: Could not move libVocalTractLabApi to standard location /usr/local/lib/ ' +
+                    ' Make shure you have permission or manually move the file to an appropriate location.' +
+                    'File is located at {}'.format( os.path.join( WORKING_PATH, 'libVocalTractLabApi.so' ) ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         #print( ' chir dir: ' )
         #print( os.listdir( os.getcwd() ) )
