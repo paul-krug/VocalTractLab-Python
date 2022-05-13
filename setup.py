@@ -67,7 +67,7 @@ class Build_VTL( build_py ):
         #    os.chdir(tmpdir)
         #subprocess.check_call( [ 'cmake', '.' ] )
         #subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
-        subprocess.check_call( [ 'cmake', '..', '-DCMAKE_BUILD_TYPE=Release' ] )
+        subprocess.check_call( [ 'cmake', '.', '-DCMAKE_BUILD_TYPE=Release' ] )
         subprocess.check_call( [ 'cmake', '--build', '.', '--target', 'VocalTractLabBackend', '--config', 'Release' ] )
 
         api_name = 'VocalTractLabApi'
