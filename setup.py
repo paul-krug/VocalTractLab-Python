@@ -65,10 +65,10 @@ class Build_VTL( build_py ):
         os.chdir( 'VocalTractLab/src/vocaltractlab-backend' )
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
-        #subprocess.check_call( [ 'cmake', '.' ] )
-        #subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
-        subprocess.check_call( [ 'cmake', '.', '-DCMAKE_BUILD_TYPE=Release' ] )
-        subprocess.check_call( [ 'cmake', '--build', '.', '--target', 'VocalTractLabApi', '--config', 'Release' ] )
+        subprocess.check_call( [ 'cmake', '.' ] )
+        subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
+        #subprocess.check_call( [ 'cmake', '.', '-DCMAKE_BUILD_TYPE=Release' ] )
+        #subprocess.check_call( [ 'cmake', '--build', '.', '--target', 'VocalTractLabApi', '--config', 'Release' ] )
 
         api_name = 'VocalTractLabApi'
         if sys.platform == 'win32':
