@@ -65,24 +65,24 @@ class Build_VTL( build_py ):
         os.chdir( 'VocalTractLab/src/vocaltractlab-backend' )
         #with TemporaryDirectory() as tmpdir:
         #    os.chdir(tmpdir)
-        subprocess.check_call( [ 'cmake', '.' ] )
-        subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
-        #subprocess.check_call( [ 'cmake', '.', '-DCMAKE_BUILD_TYPE=Release' ] )
-        #subprocess.check_call( [ 'cmake', '--build', '.', '--target', 'VocalTractLabApi', '--config', 'Release' ] )
+        #subprocess.check_call( [ 'cmake', '.' ] )
+        #subprocess.check_call( [ 'cmake', '--build', '.', '--config', 'Release' ] )
+        subprocess.check_call( [ 'cmake', '.', '-DCMAKE_BUILD_TYPE=Release' ] )
+        subprocess.check_call( [ 'cmake', '--build', '.', '--target', 'VocalTractLabApi', '--config', 'Release' ] )
 
         api_name = 'VocalTractLabApi'
         if sys.platform == 'win32':
             file_extension = '.dll'
             shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
             shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
-        else:
-            file_extension = '.so'
-            try:
-                shutil.move( 'lib' + api_name + file_extension, '/usr/local/lib/' )
-            except Exception:
-                print( 'WARNING: Could not move libVocalTractLabApi to standard location /usr/local/lib/ ' +
-                    ' Make shure you have permission or manually move the file to an appropriate location.' +
-                    'File is located at {}'.format( os.path.join( WORKING_PATH, 'libVocalTractLabApi.so' ) ) )
+        #else:
+        #    file_extension = '.so'
+        #    try:
+        #        shutil.move( 'lib' + api_name + file_extension, '/usr/local/lib/' )
+        #    except Exception:
+        #        print( 'WARNING: Could not move libVocalTractLabApi to standard location /usr/local/lib/ ' +
+        #            ' Make shure you have permission or manually move the file to an appropriate location.' +
+        #            'File is located at {}'.format( os.path.join( WORKING_PATH, 'libVocalTractLabApi.so' ) ) )
         shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         #print( ' chir dir: ' )
         #print( os.listdir( os.getcwd() ) )
@@ -119,6 +119,12 @@ with open('VocalTractLab/__init__.py') as f:
             version = version.strip("'")
             continue
 
+if sys.platform == 'win32':
+    runtime_library_dirs = None
+elif sys.platform == 'darwin':
+    runtime_library_dirs=[ '@loader_path/src/vocaltractlab-backend' ]
+else:
+    runtime_library_dirs=[ '$ORIGIN/src/vocaltractlab-backend']
 
 # Build extension modules 
 EXT_MODULES = cythonize(
@@ -144,7 +150,7 @@ EXT_MODULES = cythonize(
               libraries=[ 'VocalTractLabApi' ],
               library_dirs=[ './VocalTractLab/src/vocaltractlab-backend' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               include_dirs=[ np.get_include(), './VocalTractLab/src/vocaltractlab-backend' ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-              runtime_library_dirs=[ '$ORIGIN/src/vocaltractlab-backend']#'./', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+              runtime_library_dirs=runtime_library_dirs #'./', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
               )
     ]
 )
