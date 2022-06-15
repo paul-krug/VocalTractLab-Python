@@ -61,31 +61,27 @@ class Tube_State():
 		self.incisor_position = incisor_position
 		self.tongue_tip_side_elevation = tongue_tip_side_elevation
 		self.velum_opening = velum_opening
+		self.open_limit = 0.3  # 0.3 cm^2 for open tracts
+		self.tight_limit = 0.001 # above 0.001 tight, below or equal closed # actual value is 0.0001 however
 		self.constriction = self.get_constriction()
 		return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_constriction( self, return_str = False ):
-		open_limit = 0.3  # 0.3 cm^2 for open tracts
-		tight_limit = 0.001 # above 0.001 tight, below or equal closed
 		constriction_strings = [ 'open', 'tight', 'closed' ]
 		min_area = np.min( self.tube_area )
 		constriction = None
-		if min_area >= open_limit:
+		if min_area >= self.open_limit:
 			constriction = 0
-		elif min_area > tight_limit:
+		elif min_area > self.tight_limit:
 			constriction = 1
-		elif min_area <= tight_limit:
+		elif min_area <= self.tight_limit:
 			constriction = 2
 		if not return_str:
 			return constriction
 		else:
 			return constriction_strings[ constriction ]
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def plot( self, 
-	          axs = None, 
-			  **kwargs,
-	          ):
-		figure, axs = get_plot( n_rows = 1, axs = axs )
+	def get_tube_area_function( self ):
 		tube_x = [ self.tube_length[ 0 ] ]
 		for length in self.tube_length[ 1: ]:
 			tube_x.append( tube_x[ -1 ] + length )
@@ -100,12 +96,60 @@ class Tube_State():
 					else:
 						tmp_length = tube_x[ index ]
 						break
+		return np.array( [ x, y ] )
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_constriction_threshold_crossings( self, tube_area_function ):
+		tight_crossings = []
+		close_crossings = []
+		tight_crossed = False
+		close_crossed = False
+		for x in tube_area_function:
+			y = x[1]
+			if tight_crossed == False and y < self.open_limit:
+				tight_crossings.append( x )
+				tight_crossed = True
+			if tight_crossed == True and y >= self.open_limit:
+				tight_crossings.append( x )
+				tight_crossed = False
+			if close_crossed == False and y < self.tight_limit:
+				close_crossings.append( x )
+				close_crossed = True
+			if close_crossed == True and y >= self.tight_limit:
+				close_crossings.append( x )
+				close_crossed = False
+		return tight_crossings, close_crossings
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def has_precise_constriction( self ):
+		x, y = self.get_tube_area_function()
+		if self.constriction == 2:
+			if not self.threshold_crossings in [ [1,1], [2,2] ]:
+				return False
+		elif self.constriction == 1:
+			if not self.threshold_crossings in [ [2,0], [1,0] ]:
+				return False
+		elif self.constriction == 0:
+			return False
+		if self.constriction_has_local_minimum( x, y, ):
+			return False
+		return True
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def plot( self, 
+	          axs = None, 
+			  **kwargs,
+	          ):
+		figure, axs = get_plot( n_rows = 1, axs = axs )
+		tube_area_function = self.get_tube_area_function()
 		axs[0].set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
 		#y = [ val for val in x  ]
 		#x = [ self.tube_length[ 0 ] ]
 		#for length in self.tube_length[ 1: ]:
 		#	x.append( x[ -1 ] + length )
-		axs[0].plot( x, y )
+		axs[0].plot( tube_area_function[ :, 0 ], tube_area_function[ :, 1 ] )
+		tight_crossings, close_crossings = self.get_constriction_threshold_crossings( tube_area_function )
+		for tight_crossing in tight_crossings:
+			axs[0].scatter( tight_crossing[0], tight_crossing[1], color = 'red', marker = 'x' )
+		for close_crossing in close_crossings:
+			axs[0].scatter( tight_crossing[0], tight_crossing[1], color = 'purple', marker = 'x' )
 		finalize_plot( figure, axs, **kwargs )
 		#ax.set( xlabel = 'Tube Length [cm]', ylabel = r'Cross-sectional Area [cm$^2$]' )
 		return axs
