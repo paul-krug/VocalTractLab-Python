@@ -90,7 +90,7 @@ def get_plot( n_rows = 1,
 	#	gridspec_kw = gridspec_kw = {'hspace': 0}
 	#else:
 	#	gridspec_kw = {}
-	if axs == None:
+	if isinstance(axs, type(None) ):
 		figure, axs = plt.subplots( n_rows, n_columns, figsize = (8, 4/3 * n_rows ), sharex = sharex, gridspec_kw = gridspec_kw )
 	else:
 		figure = None
