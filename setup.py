@@ -73,8 +73,8 @@ class Build_VTL( build_py ):
         api_name = 'VocalTractLabApi'
         if sys.platform == 'win32':
             file_extension = '.dll'
-            shutil.move( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
-            shutil.move( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            shutil.copy( os.path.join( 'Release', api_name + file_extension ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+            shutil.copy( os.path.join( 'Release', api_name + '.lib' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         #else:
         #    file_extension = '.so'
         #    try:
@@ -83,7 +83,7 @@ class Build_VTL( build_py ):
         #        print( 'WARNING: Could not move libVocalTractLabApi to standard location /usr/local/lib/ ' +
         #            ' Make shure you have permission or manually move the file to an appropriate location.' +
         #            'File is located at {}'.format( os.path.join( WORKING_PATH, 'libVocalTractLabApi.so' ) ) )
-        shutil.move( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
+        shutil.copy( os.path.join( '', api_name + '.h' ), os.path.join( WORKING_PATH, 'VocalTractLab' ) )
         #print( ' chir dir: ' )
         #print( os.listdir( os.getcwd() ) )
         os.chdir( WORKING_PATH )
