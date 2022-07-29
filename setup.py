@@ -120,40 +120,53 @@ with open('VocalTractLab/__init__.py') as f:
             continue
 
 if sys.platform == 'win32':
-    runtime_library_dirs = None
-elif sys.platform == 'darwin':
-    runtime_library_dirs=[ '@loader_path/src/vocaltractlab-backend' ]
+    #runtime_library_dirs = None
+    EXT_MODULES = cythonize(
+        [
+            Extension( 'VocalTractLab.VocalTractLabApi',
+                  [ './VocalTractLab/VocalTractLabApi.pyx' ],
+                  language="c",
+                  libraries=[ 'VocalTractLabApi' ],
+                  library_dirs=[ './VocalTractLab/src/vocaltractlab-backend', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  include_dirs=[ np.get_include(), './VocalTractLab/src/vocaltractlab-backend', './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  #runtime_library_dirs=runtime_library_dirs #'./', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  )
+            ]
+    )
 else:
-    runtime_library_dirs=[ '$ORIGIN/src/vocaltractlab-backend']
+    if sys.platform == 'darwin':
+        runtime_library_dirs=[ '@loader_path/src/vocaltractlab-backend' ]
+    else:
+        runtime_library_dirs=[ '$ORIGIN/src/vocaltractlab-backend']
 
-# Build extension modules 
-EXT_MODULES = cythonize(
-    [
-        #Extension( 'VocalTractLab.target_estimation',
-        #      ['VocalTractLab/target_estimation.pyx'],
-        #      language="c++",
-        #      libraries=['VocalTractLab/TargetOptimizerApi'],
-        #      library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
-        #      include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
-        #      ),
-        #Extension( 'VocalTractLab.VocalTractLabApi',
-        #      [ './VocalTractLab/VocalTractLabApi.pyx' ],
-        #      language="c",
-        #      libraries=[ './VocalTractLab/VocalTractLabApi' ],
-        #      library_dirs=[ './' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-        #      include_dirs=[ np.get_include() ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-        #      #runtime_library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-        #      ),
-        Extension( 'VocalTractLab.VocalTractLabApi',
-              [ './VocalTractLab/VocalTractLabApi.pyx' ],
-              language="c",
-              libraries=[ 'VocalTractLabApi' ],
-              library_dirs=[ './VocalTractLab/src/vocaltractlab-backend' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-              include_dirs=[ np.get_include(), './VocalTractLab/src/vocaltractlab-backend' ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-              runtime_library_dirs=runtime_library_dirs #'./', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
-              )
-    ]
-)
+    # Build extension modules 
+    EXT_MODULES = cythonize(
+        [
+            #Extension( 'VocalTractLab.target_estimation',
+            #      ['VocalTractLab/target_estimation.pyx'],
+            #      language="c++",
+            #      libraries=['VocalTractLab/TargetOptimizerApi'],
+            #      library_dirs=['.'],#, './src/', './src/targetoptimizer-backend/'],
+            #      include_dirs=[np.get_include()],#, './src/', './src/targetoptimizer-backend/']
+            #      ),
+            #Extension( 'VocalTractLab.VocalTractLabApi',
+            #      [ './VocalTractLab/VocalTractLabApi.pyx' ],
+            #      language="c",
+            #      libraries=[ './VocalTractLab/VocalTractLabApi' ],
+            #      library_dirs=[ './' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+            #      include_dirs=[ np.get_include() ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+            #      #runtime_library_dirs=[ './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+            #      ),
+            Extension( 'VocalTractLab.VocalTractLabApi',
+                  [ './VocalTractLab/VocalTractLabApi.pyx' ],
+                  language="c",
+                  libraries=[ 'VocalTractLabApi' ],
+                  library_dirs=[ './VocalTractLab/src/vocaltractlab-backend' ],# './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  include_dirs=[ np.get_include(), './VocalTractLab/src/vocaltractlab-backend' ],# './', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  runtime_library_dirs=runtime_library_dirs #'./', './VocalTractLab/', './VocalTractLab/VocalTractLabApi' ],
+                  )
+        ]
+    )
 
 # Dependencies
 DEPENDENCIES = [
