@@ -170,7 +170,7 @@ else:
 
 # Dependencies
 DEPENDENCIES = [
-    'beautifulsoup4>=4.11.1'
+    'beautifulsoup4>=4.11.1',
     'librosa>=0.8.1',
     'matplotlib>=3.4.3',
     'numpy>=1.22.0',
