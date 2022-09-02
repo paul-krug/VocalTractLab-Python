@@ -1,0 +1,422 @@
+<speaker>
+  <vocal_tract_model>
+    <anatomy>
+      <palate>
+        <p0 x="0.0000" z="-1.5740" teeth_height="0.0000" top_teeth_width="0.8263" bottom_teeth_width="0.8263" palate_height="0.9035" palate_angle_deg="60.8000"/>
+        <p1 x="0.0000" z="-1.5740" teeth_height="0.0000" top_teeth_width="0.8263" bottom_teeth_width="0.8263" palate_height="0.9035" palate_angle_deg="60.8000"/>
+        <p2 x="0.2754" z="-1.5740" teeth_height="0.3000" top_teeth_width="0.7870" bottom_teeth_width="0.7870" palate_height="0.9602" palate_angle_deg="60.8000"/>
+        <p3 x="1.2754" z="-1.4166" teeth_height="0.3000" top_teeth_width="0.7870" bottom_teeth_width="0.7870" palate_height="1.0781" palate_angle_deg="60.8000"/>
+        <p4 x="1.9754" z="-1.2592" teeth_height="0.3600" top_teeth_width="0.6296" bottom_teeth_width="0.6296" palate_height="0.9434" palate_angle_deg="60.8000"/>
+        <p5 x="2.6254" z="-1.1018" teeth_height="0.4200" top_teeth_width="0.5509" bottom_teeth_width="0.5509" palate_height="0.4717" palate_angle_deg="38.0000"/>
+        <p6 x="3.0254" z="-0.8657" teeth_height="0.4800" top_teeth_width="0.5115" bottom_teeth_width="0.2361" palate_height="0.1011" palate_angle_deg="23.4000"/>
+        <p7 x="3.1754" z="-0.4722" teeth_height="0.4800" top_teeth_width="0.6296" bottom_teeth_width="0.1574" palate_height="0.0000" palate_angle_deg="0.0000"/>
+        <p8 x="3.1754" z="0.0000" teeth_height="0.4800" top_teeth_width="0.6689" bottom_teeth_width="0.1574" palate_height="0.0000" palate_angle_deg="0.0000"/>
+      </palate>
+      <jaw fulcrum_x="-6.5000" fulcrum_y="2.0000" rest_pos_x="0.0000" rest_pos_y="-0.8000" tooth_root_length="0.5498">
+        <p0 x="0.0000" z="-1.4953" teeth_height="0.0000" top_teeth_width="0.8263" bottom_teeth_width="0.8263" jaw_height="1.0308" jaw_angle_deg="69.5000"/>
+        <p1 x="0.0000" z="-1.4953" teeth_height="0.0000" top_teeth_width="0.8657" bottom_teeth_width="0.8657" jaw_height="1.0308" jaw_angle_deg="69.5000"/>
+        <p2 x="0.8254" z="-1.4953" teeth_height="0.3000" top_teeth_width="0.8263" bottom_teeth_width="0.8263" jaw_height="1.0308" jaw_angle_deg="69.5000"/>
+        <p3 x="1.8254" z="-1.2592" teeth_height="0.3000" top_teeth_width="0.7083" bottom_teeth_width="0.7083" jaw_height="1.0308" jaw_angle_deg="69.5000"/>
+        <p4 x="2.5254" z="-1.1018" teeth_height="0.3000" top_teeth_width="0.5902" bottom_teeth_width="0.5902" jaw_height="0.6872" jaw_angle_deg="42.2000"/>
+        <p5 x="2.9254" z="-0.8657" teeth_height="0.3300" top_teeth_width="0.4722" bottom_teeth_width="0.5509" jaw_height="0.2749" jaw_angle_deg="35.8000"/>
+        <p6 x="3.1254" z="-0.5509" teeth_height="0.3600" top_teeth_width="0.2361" bottom_teeth_width="0.6296" jaw_height="0.0893" jaw_angle_deg="31.4000"/>
+        <p7 x="3.1754" z="-0.3935" teeth_height="0.4200" top_teeth_width="0.1574" bottom_teeth_width="0.7083" jaw_height="0.0000" jaw_angle_deg="0.0000"/>
+        <p8 x="3.1754" z="0.0000" teeth_height="0.4200" top_teeth_width="0.1574" bottom_teeth_width="0.7083" jaw_height="0.0000" jaw_angle_deg="0.0000"/>
+      </jaw>
+      <lips width="0.5212"/>
+      <tongue>
+        <tip radius="0.1634"/>
+        <body radius_x="1.4702" radius_y="0.9921"/>
+        <root automatic_calc="0" trx_slope="0.9562" trx_intercept="-3.7953" try_slope="0.8491" try_intercept="-1.2743"/>
+      </tongue>
+      <velum uvula_width="0.3858" uvula_height="0.4961" uvula_depth="0.5509" max_nasal_port_area="1.7259" >
+        <low points="-1.371 -0.7 -1.097 -0.3793 -0.7676 -0.1388 -0.329 0.1418 0 0.3022 "/>
+        <mid points="-1.919 -0.1388 -1.7 0.1017 -1.261 0.2621 -0.6579 0.4224 0 0.5587 "/>
+        <high points="-1.919 0.2621 -1.645 0.6229 -1.206 0.8233 -0.6579 0.8634 0 0.9035 "/>
+      </velum>
+      <pharynx fulcrum_x="-2.6009" fulcrum_y="0.8345" rotation_angle_deg="-90.0000" top_rib_y="-1.4000" upper_depth="2.9905" lower_depth="2.6757" back_side_width="1.5000"/>
+      <larynx upper_depth="0.7870" lower_depth="0.7870" epiglottis_width="0.2756" epiglottis_height="0.8819" epiglottis_depth="1.1018" epiglottis_angle_deg="100.0000">
+        <narrow points="1.419 0 0.8276 -0.125 1.136 -0.75 1.883 -2 0.916 -2 0.4357 -0.75 0 -0.625 0 0 "/>
+        <wide points="2.601 0 1.679 -0.125 1.412 -0.75 1.883 -2 0.916 -2 0.7115 -0.75 0 -0.625 0 0 "/>
+      </larynx>
+      <piriform_fossa length="2.5000" volume="1.5000"/>
+      <subglottal_cavity length="23.0000"/>
+      <nasal_cavity length="11.4000"/>
+      <param index="0"   name="HX"   description="Hyoid position (horz.)"  unit="cm"    min="0.000"  max="1.000"  neutral="1.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="1"   name="HY"   description="Hyoid position (vert.)"  unit="cm"    min="-3.111"  max="-1.733"  neutral="-2.655"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="2"   name="JX"   description="Jaw position (horz.)"    unit="cm"    min="-0.408"  max="0.000"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="3"   name="JA"   description="Jaw angle"               unit="deg."  min="-7.000"  max="0.000"  neutral="-3.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="4"   name="LP"   description="Lip protrusion"          unit="cm"    min="-1.000"  max="1.000"  neutral="-0.070"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="5"   name="LD"   description="Lip distance"            unit="cm"    min="-1.102"  max="2.205"  neutral="0.524"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="6"   name="VS"   description="Velum shape"             unit=""      min="0.000"  max="1.000"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="7"   name="VO"   description="Velum opening"           unit="cm^2"  min="-0.100"  max="1.000"  neutral="-0.100"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="8"   name="TCX"  description="Tongue body (horz.)"     unit="cm"    min="-3.290"  max="2.702"  neutral="-0.439"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="9"   name="TCY"  description="Tongue body (vert.)"     unit="cm"    min="-1.457"  max="0.747"  neutral="-0.702"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="10"  name="TTX"  description="Tongue tip (horz.)"      unit="cm"    min="1.013"  max="3.716"  neutral="2.365"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="11"  name="TTY"  description="Tongue tip (vert.)"      unit="cm"    min="-1.457"  max="1.574"  neutral="-0.591"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="12"  name="TBX"  description="Tongue blade (horz.)"    unit="cm"    min="-3.290"  max="2.702"  neutral="1.351"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="13"  name="TBY"  description="Tongue blade (vert.)"    unit="cm"    min="-1.457"  max="2.952"  neutral="0.397"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="14"  name="TRX"  description="Tongue root (horz.)"     unit="cm"    min="-4.386"  max="1.351"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="15"  name="TRY"  description="Tongue root (vert.)"     unit="cm"    min="-3.111"  max="0.196"  neutral="0.137"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="16"  name="TS1"  description="Tongue side elevation 1" unit="cm"    min="0.000"  max="0.787"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="17"  name="TS2"  description="Tongue side elevation 2" unit="cm"    min="0.000"  max="0.787"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+      <param index="18"  name="TS3"  description="Tongue side elevation 3" unit="cm"    min="-0.787"  max="0.787"  neutral="0.000"  positive_velocity_factor="1.000"  negative_velocity_factor="1.000" />
+    </anatomy>
+    <shapes>
+    </shapes>
+  </vocal_tract_model>
+  <glottis_models>
+    <glottis_model type="Geometric glottis" selected="1">
+      <static_params>
+        <param index="0" name="RT"  description="Rest thickness" unit="cm" min="0.300000"  max="1.000000"   neutral="0.450000"  />
+        <param index="1" name="RL"  description="Rest length"    unit="cm" min="0.500000"  max="2.000000"   neutral="1.600000"  />
+        <param index="2" name="RF0" description="Rest f0"        unit="Hz" min="50.000000" max="400.000000" neutral="120.000000"/>
+        <param index="3" name="CL"  description="Chink length"   unit="cm" min="0.100000"  max="0.500000"   neutral="0.400000"  />
+      </static_params>
+      <control_params>
+        <param index="0"  name="F0" description="Fundamental frequency" unit="Hz"   min="40.000000"  max="600.000000"   neutral="120.000000" />
+        <param index="1"  name="PR" description="Lung pressure"         unit="dPa"  min="0.000000"   max="20000.000000" neutral="8000.000000"/>
+        <param index="2"  name="XB" description="Lower displacement"    unit="cm"   min="-0.050000"  max="0.300000"     neutral="0.010000"   />
+        <param index="3"  name="XT" description="Upper displacement"    unit="cm"   min="-0.050000"  max="0.300000"     neutral="0.020000"   />
+        <param index="4"  name="CA" description="Chink area"            unit="cm^2" min="-0.250000"  max="0.250000"     neutral="0.050000"   />
+        <param index="5"  name="PL" description="Phase lag"             unit="rad." min="0.000000"   max="3.141500"     neutral="1.220000"   />
+        <param index="6"  name="RA" description="Relative amplitude"    unit=""     min="-1.000000"  max="1.000000"     neutral="1.000000"   />
+        <param index="7"  name="DP" description="Double pulsing"        unit=""     min="0.000000"   max="1.000000"     neutral="0.050000"   />
+        <param index="8"  name="PS" description="Pulse skewness"        unit=""     min="-0.500000"  max="0.500000"     neutral="0.000000"   />
+        <param index="9"  name="FL" description="Flutter"               unit="%"    min="0.000000"   max="100.000000"   neutral="25.000000"  />
+        <param index="10" name="AS" description="Aspiration strength"   unit="dB"   min="-40.000000" max="0.000000"     neutral="-10.000000" />
+      </control_params>
+      <shapes>
+        <shape name="default">
+          <control_param name="F0" value="102.216476"/>
+          <control_param name="PR" value="7850.264062"/>
+          <control_param name="XB" value="0.010200"/>
+          <control_param name="XT" value="0.020350"/>
+          <control_param name="CA" value="0.050000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="stop">
+          <control_param name="F0" value="108.672036"/>
+          <control_param name="PR" value="7999.996827"/>
+          <control_param name="XB" value="-0.009750"/>
+          <control_param name="XT" value="-0.010100"/>
+          <control_param name="CA" value="-0.001000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="-0.204000"/>
+          <control_param name="DP" value="0.504000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="pressed">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.000050"/>
+          <control_param name="XT" value="0.010200"/>
+          <control_param name="CA" value="0.025000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="modal">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.010200"/>
+          <control_param name="XT" value="0.020350"/>
+          <control_param name="CA" value="0.050000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="breathy">
+          <control_param name="F0" value="102.216476"/>
+          <control_param name="PR" value="7850.264062"/>
+          <control_param name="XB" value="0.019650"/>
+          <control_param name="XT" value="0.030500"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="h">
+          <control_param name="F0" value="108.672036"/>
+          <control_param name="PR" value="7999.996827"/>
+          <control_param name="XB" value="0.044850"/>
+          <control_param name="XT" value="0.045200"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="0.002000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="whisper">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.099800"/>
+          <control_param name="XT" value="0.100150"/>
+          <control_param name="CA" value="0.250000"/>
+          <control_param name="PL" value="0.880000"/>
+          <control_param name="RA" value="0.000000"/>
+          <control_param name="DP" value="0.000000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="hoarse">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.020350"/>
+          <control_param name="XT" value="0.040300"/>
+          <control_param name="CA" value="0.160000"/>
+          <control_param name="PL" value="0.880000"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.203000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiced-fricative">
+          <control_param name="F0" value="143.675142"/>
+          <control_param name="PR" value="0.000000"/>
+          <control_param name="XB" value="0.050100"/>
+          <control_param name="XT" value="0.050100"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.047000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiced-plosive">
+          <control_param name="F0" value="143.675142"/>
+          <control_param name="PR" value="0.000000"/>
+          <control_param name="XB" value="0.010200"/>
+          <control_param name="XT" value="0.020000"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.050000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiceless-fricative">
+          <control_param name="F0" value="104.960000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.100150"/>
+          <control_param name="XT" value="0.099800"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="0.000000"/>
+          <control_param name="DP" value="0.046000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiceless-plosive">
+          <control_param name="F0" value="104.898545"/>
+          <control_param name="PR" value="7999.326591"/>
+          <control_param name="XB" value="0.099800"/>
+          <control_param name="XT" value="0.099800"/>
+          <control_param name="CA" value="0.100000"/>
+          <control_param name="PL" value="1.222044"/>
+          <control_param name="RA" value="0.000000"/>
+          <control_param name="DP" value="0.054000"/>
+          <control_param name="PS" value="0.000000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="hoarse2">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="-0.009750"/>
+          <control_param name="XT" value="-0.009750"/>
+          <control_param name="CA" value="0.160000"/>
+          <control_param name="PL" value="0.880000"/>
+          <control_param name="RA" value="1.000000"/>
+          <control_param name="DP" value="0.203000"/>
+          <control_param name="PS" value="0.500000"/>
+          <control_param name="FL" value="25.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+      </shapes>
+    </glottis_model>
+    <glottis_model type="Two-mass model" selected="0">
+      <static_params>
+        <param index="0"  name="COL" description="Cord length"              unit="cm"      min="0.500000"  max="2.000000"      neutral="1.300000"     />
+        <param index="1"  name="LRT" description="Lower rest thickness"     unit="cm"      min="0.100000"  max="0.500000"      neutral="0.250000"     />
+        <param index="2"  name="URT" description="Upper rest thickness"     unit="cm"      min="0.010000"  max="0.200000"      neutral="0.050000"     />
+        <param index="3"  name="LRM" description="Lower rest mass"          unit="g"       min="0.010000"  max="0.200000"      neutral="0.125000"     />
+        <param index="4"  name="URM" description="Upper rest mass"          unit="g"       min="0.010000"  max="0.200000"      neutral="0.025000"     />
+        <param index="5"  name="LDR" description="Lower damping ratio"      unit=""        min="0.000000"  max="3.000000"      neutral="0.100000"     />
+        <param index="6"  name="UDR" description="Upper damping ratio"      unit=""        min="0.000000"  max="3.000000"      neutral="0.600000"     />
+        <param index="7"  name="LSK" description="Lower spring k"           unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="80000.000000" />
+        <param index="8"  name="USK" description="Upper spring k"           unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="8000.000000"  />
+        <param index="9"  name="LSE" description="Lower spring eta"         unit="1/cm^2"  min="0.000000"  max="1000.000000"   neutral="100.000000"   />
+        <param index="10" name="USE" description="Upper spring eta"         unit="1/cm^2"  min="0.000000"  max="1000.000000"   neutral="100.000000"   />
+        <param index="11" name="LCK" description="Lower contact spring k"   unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="240000.000000"/>
+        <param index="12" name="UCK" description="Upper contact spring k"   unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="24000.000000" />
+        <param index="13" name="LCE" description="Lower contact spring eta" unit="1/cm^2"  min="0.000000"  max="1000.000000"   neutral="500.000000"   />
+        <param index="14" name="UCE" description="Upper contact spring eta" unit="1/cm^2"  min="0.000000"  max="1000.000000"   neutral="500.000000"   />
+        <param index="15" name="CSK" description="Coupling spring k"        unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="25000.000000" />
+        <param index="16" name="CRW" description="Critical width"           unit="cm"      min="0.000000"  max="0.200000"      neutral="0.000000"     />
+        <param index="17" name="NF0" description="Natural F0"               unit="Hz"      min="20.000000" max="500.000000"    neutral="158.000000"   />
+        <param index="18" name="dF0" description="Derivative d(F0)/dQ"      unit="Hz"      min="20.000000" max="500.000000"    neutral="100.000000"   />
+        <param index="19" name="CL"  description="Chink length"             unit="cm"      min="0.000000"  max="0.500000"      neutral="0.200000"     />
+      </static_params>
+      <control_params>
+        <param index="0" name="F0"  description="Fundamental frequency"   unit="Hz"   min="40.000000" max="600.000000"   neutral="120.000000" />
+        <param index="1" name="PR"  description="Lung pressure"           unit="dPa"  min="0.000000"  max="20000.000000" neutral="8000.000000"/>
+        <param index="2" name="XB"  description="Lower rest displacement" unit="cm"   min="-0.050000" max="0.300000"     neutral="0.010000"   />
+        <param index="3" name="XT"  description="Upper rest displacement" unit="cm"   min="-0.050000" max="0.300000"     neutral="0.010000"   />
+        <param index="4" name="EAA" description="Extra arytenoid area"    unit="cm^2" min="-0.250000" max="0.250000"     neutral="0.000000"   />
+        <param index="5" name="DF"  description="Damping factor"          unit=""     min="0.300000"  max="3.000000"     neutral="1.000000"   />
+      </control_params>
+      <shapes>
+        <shape name="default">
+          <control_param name="F0"  value="120.000000"/>
+          <control_param name="PR"  value="8000.000000"/>
+          <control_param name="XB"  value="0.004950"/>
+          <control_param name="XT"  value="0.000400"/>
+          <control_param name="EAA" value="0.000000"/>
+          <control_param name="DF"  value="1.000000"/>
+        </shape>
+        <shape name="modal">
+          <control_param name="F0"  value="120.000000"/>
+          <control_param name="PR"  value="8000.000000"/>
+          <control_param name="XB"  value="0.004950"/>
+          <control_param name="XT"  value="0.000400"/>
+          <control_param name="EAA" value="0.000000"/>
+          <control_param name="DF"  value="1.000000"/>
+        </shape>
+        <shape name="open">
+          <control_param name="F0"  value="120.000000"/>
+          <control_param name="PR"  value="8000.000000"/>
+          <control_param name="XB"  value="0.050100"/>
+          <control_param name="XT"  value="0.050100"/>
+          <control_param name="EAA" value="-0.250000"/>
+          <control_param name="DF"  value="1.000000"/>
+        </shape>
+        <shape name="stop">
+          <control_param name="F0"  value="120.000000"/>
+          <control_param name="PR"  value="8000.000000"/>
+          <control_param name="XB"  value="-0.029700"/>
+          <control_param name="XT"  value="-0.030000"/>
+          <control_param name="EAA" value="-0.250000"/>
+          <control_param name="DF"  value="1.000000"/>
+        </shape>
+      </shapes>
+    </glottis_model>
+    <glottis_model type="Triangular glottis" selected="0">
+      <static_params>
+        <param index="0"  name="COL" description="Cord length"            unit="cm"      min="0.500000"  max="2.000000"      neutral="1.300000"     />
+        <param index="1"  name="LRT" description="Lower rest thickness"   unit="cm"      min="0.100000"  max="0.500000"      neutral="0.240000"     />
+        <param index="2"  name="URT" description="Upper rest thickness"   unit="cm"      min="0.010000"  max="0.200000"      neutral="0.060000"     />
+        <param index="3"  name="LRM" description="Lower rest mass"        unit="g"       min="0.010000"  max="0.200000"      neutral="0.120000"     />
+        <param index="4"  name="URM" description="Upper rest mass"        unit="g"       min="0.010000"  max="0.200000"      neutral="0.030000"     />
+        <param index="5"  name="LDR" description="Lower damping ratio"    unit=""        min="0.000000"  max="3.000000"      neutral="0.100000"     />
+        <param index="6"  name="UDR" description="Upper damping ratio"    unit=""        min="0.000000"  max="3.000000"      neutral="0.600000"     />
+        <param index="7"  name="LSK" description="Lower spring k"         unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="80000.000000" />
+        <param index="8"  name="USK" description="Upper spring k"         unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="8000.000000"  />
+        <param index="9"  name="LCK" description="Lower contact spring k" unit="dyne/cm" min="0.000000"  max="500000.000000" neutral="240000.000000"/>
+        <param index="10" name="UCK" description="Upper contact spring k" unit="dyne/cm" min="0.000000"  max="500000.000000" neutral="24000.000000" />
+        <param index="11" name="CSK" description="Coupling spring k"      unit="dyne/cm" min="0.000000"  max="400000.000000" neutral="25000.000000" />
+        <param index="12" name="IL"  description="Inlet length"           unit="cm"      min="0.000000"  max="1.000000"      neutral="0.050000"     />
+        <param index="13" name="OL"  description="Outlet length"          unit="cm"      min="0.000000"  max="0.500000"      neutral="0.010000"     />
+        <param index="14" name="NF0" description="Natural f0"             unit="Hz"      min="20.000000" max="500.000000"    neutral="129.000000"   />
+        <param index="15" name="dF0" description="Derivative d(F0)/dQ"    unit="Hz"      min="20.000000" max="500.000000"    neutral="125.510000"   />
+      </static_params>
+      <control_params>
+        <param index="0" name="F0" description="Fundamental frequency"   unit="Hz"   min="40.000000"  max="600.000000"   neutral="120.000000" />
+        <param index="1" name="PR" description="Lung pressure"           unit="dPa"  min="0.000000"   max="20000.000000" neutral="8000.000000"/>
+        <param index="2" name="XB" description="Lower rest displacement" unit="cm"   min="-0.050000"  max="0.300000"     neutral="0.010000"   />
+        <param index="3" name="XT" description="Upper rest displacement" unit="cm"   min="-0.050000"  max="0.300000"     neutral="0.010000"   />
+        <param index="4" name="AA" description="Arytenoid area"          unit="cm^2" min="-0.100000"  max="0.500000"     neutral="0.000000"   />
+        <param index="5" name="AS" escription="Aspiration strength"      unit="dB"   min="-40.000000" max="0.000000"     neutral="-40.000000" />
+      </control_params>
+      <shapes>
+        <shape name="default">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.004950"/>
+          <control_param name="XT" value="0.000400"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="stop">
+          <control_param name="F0" value="105.627486"/>
+          <control_param name="PR" value="1424.066347"/>
+          <control_param name="XB" value="-0.029700"/>
+          <control_param name="XT" value="-0.030100"/>
+          <control_param name="AA" value="0.000000"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="modal">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.004950"/>
+          <control_param name="XT" value="0.000400"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="h">
+          <control_param name="F0" value="120.405059"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.080200"/>
+          <control_param name="XT" value="0.079850"/>
+          <control_param name="AA" value="0.010400"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiced-fricative">
+          <control_param name="F0" value="113.573271"/>
+          <control_param name="PR" value="7999.817730"/>
+          <control_param name="XB" value="0.020350"/>
+          <control_param name="XT" value="0.019650"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiceless-fricative">
+          <control_param name="F0" value="111.718118"/>
+          <control_param name="PR" value="7973.638321"/>
+          <control_param name="XB" value="0.102250"/>
+          <control_param name="XT" value="0.102250"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiceless-plosive">
+          <control_param name="F0" value="120.388382"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.050100"/>
+          <control_param name="XT" value="0.050100"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+        <shape name="voiced-plosive">
+          <control_param name="F0" value="120.000000"/>
+          <control_param name="PR" value="8000.000000"/>
+          <control_param name="XB" value="0.004950"/>
+          <control_param name="XT" value="0.000400"/>
+          <control_param name="AA" value="0.000200"/>
+          <control_param name="AS" value="-10.000000"/>
+        </shape>
+      </shapes>
+    </glottis_model>
+  </glottis_models>
+</speaker>
