@@ -40,6 +40,7 @@ import ctypes
 import os
 import warnings
 import time
+import io
 
 from libcpp cimport bool
 
@@ -64,7 +65,7 @@ from VocalTractLab.tube_states import Tube_State
 import VocalTractLab.audio_tools as AT
 import VocalTractLab.function_tools as FT
 
-
+from tools_mp import multiprocess
 
 import librosa
 import multiprocessing as mp
@@ -561,6 +562,51 @@ def tract_sequence_to_svg( motor_sequence_list,
 	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+def supra_glottal_sequence_to_svg(
+	supra_glottal_sequence,
+	output_directory = None,
+	fps: int = 60,
+	#save_video = False,
+	workers: int = None,
+	verbose = True,
+	):
+	if not isinstance( supra_glottal_sequence, ( Supra_Glottal_Sequence ) ): # could also be motor seq or str
+		raise ValueError( 'motor_sequence argument must be Motor_Sequence, not {}'.format( type( supra_glottal_sequence ) ) )
+	if fps is None:
+		if output_directory is None:
+			args = [
+				( supra_glottal_state, None )
+				for supra_glottal_state in supra_glottal_sequence.states.to_numpy()
+				]
+		else:
+			args = [ 
+				( supra_glottal_state, os.path.join( output_directory, '{}.svg'.format( index ) ) )
+				for index, supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() )
+				]
+	else:
+		resampled_index = [ round( index * (44100 / 110) / fps ) for index in range( 0, supra_glottal_sequence.length ) ]
+		resampled_tract_states = [
+			supra_glottal_state for supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() ) if index in resampled_index
+			]
+		if output_directory is None:
+			args = [
+				( supra_glottal_state, None )
+				for supra_glottal_state in resampled_tract_states
+				]
+		else:
+			args = [ 
+				( supra_glottal_state, os.path.join( output_directory, '{}.svg'.format( index ) ) )
+				for index, supra_glottal_state in enumerate( resampled_tract_states )
+				]
+	data = multiprocess(
+		_supra_glottal_state_to_svg,
+		args,
+		return_data = True,
+		verbose = verbose,
+		workers = workers,
+		)
+	return data
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 def tract_sequence_to_transfer_functions( motor_sequence,
 	                                      n_spectrum_samples: int = 8192,
 	                                      save_magnitude_spectrum: bool = True,
@@ -932,6 +978,24 @@ def _tract_sequence_to_svg( args ):
 		fileName = ( svg_dir + '/tract_{}.svg'.format( index ) ).encode()
 		vtlExportTractSvg( &tractParams[0], fileName )
 	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _supra_glottal_state_to_svg( args ):
+	supra_glottal_state, svg_path = args
+	if svg_path is None:
+		fileName = io.BytesIO( b'abcd' ).read()
+	else:
+		fileName = svg_path.encode()
+	constants = get_constants()
+	cdef np.ndarray[np.float64_t, ndim = 1] tractParams = np.zeros(
+		constants['n_tract_params'],
+		dtype = 'float64',
+		)
+	tractParams = supra_glottal_state.ravel()
+	vtlExportTractSvg(
+		&tractParams[0],
+		fileName,
+		)
+	return fileName
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_transfer_function( args ):
 	tract_state, n_spectrum_samples, save_magnitude_spectrum, save_phase_spectrum = args
