@@ -194,6 +194,21 @@ C_EXPORT int vtlGetTractParams(const char *shapeName, double *tractParams);
 C_EXPORT int vtlExportTractSvg(double *tractParams, const char *fileName);
 
 
+
+// ****************************************************************************
+// Exports the vocal tract contours for the given vector of vocal tract
+// parameters as a SVG (XML) string (scalable vector graphics).
+// Char array svgStr should have approximately 7000 characters
+//
+// Function return value:
+// 0: success.
+// 1: The API has not been initialized.
+// 2: Writing the SVG file failed.
+// ****************************************************************************
+
+C_EXPORT int vtlExportTractSvgToStr(double *tractParams, char *svgStr);
+
+
 // ****************************************************************************
 // Provides the tube data (especially the area function) for the given vector
 // of tractParams. The vectors tubeLength_cm, tubeArea_cm2, and tubeArticulator, 
@@ -207,6 +222,25 @@ C_EXPORT int vtlExportTractSvg(double *tractParams, const char *fileName);
 // ****************************************************************************
 
 C_EXPORT int vtlTractToTube(double* tractParams,
+  double* tubeLength_cm, double* tubeArea_cm2, int* tubeArticulator,
+  double* incisorPos_cm, double* tongueTipSideElevation, double* velumOpening_cm2);
+
+
+// ****************************************************************************
+// Provides the tube data (especially the area function) for the given vector
+// of tractParams. This version does NOT store and restore the previous vocal
+// tract state. That means it is twice as fast as vtlTractToTube.
+// The vectors tubeLength_cm, tubeArea_cm2, and tubeArticulator, 
+// must each have as many elements as tube sections.
+// The values incisorPos_cm, tongueTipSideElevation, and velumOpening_cm2 are 
+// one double value each.
+//
+// Function return value:
+// 0: success.
+// 1: The API has not been initialized.
+// ****************************************************************************
+
+C_EXPORT int vtlFastTractToTube(double* tractParams,
   double* tubeLength_cm, double* tubeArea_cm2, int* tubeArticulator,
   double* incisorPos_cm, double* tongueTipSideElevation, double* velumOpening_cm2);
 

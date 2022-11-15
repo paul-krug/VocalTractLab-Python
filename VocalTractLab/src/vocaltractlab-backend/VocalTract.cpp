@@ -7033,6 +7033,271 @@ bool VocalTract::exportTractContourSvg(const string &fileName, bool addCenterLin
 
 
 // ****************************************************************************
+// Export the vocal tract contour lines as SVG string in memory.
+// ****************************************************************************
+
+std::string VocalTract::exportTractContourSvgToStr(bool addCenterLine, bool addCutVectors)
+{
+  const double SCALE = 37.8;    // 1 cm in Corel Draw are 37.8 "default units" (pixels?)
+  int indent = 0;
+  int i;
+  const string standardAttributes = "stroke=\"black\" stroke-width=\"1.5\" stroke-linecap=\"round\" "
+    "stroke-linejoin=\"round\" fill=\"none\"";
+  const string stippledAttribute = "stroke-dasharray=\"4.158, 4.158\"";
+  Surface *s = NULL;
+  Point3D Q;
+  bool includeTeeth = true;
+  bool includeRibs = false;
+
+  stringstream ss;
+
+  //if (!ss)
+  //{
+  //  printf("Error: Could not open the SVG file\n");
+  //  return false;
+  //}
+
+  // Write the "header and open the svg- and the group element.
+
+  ss << "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";
+  ss << "<svg width=\"100%\" height=\"100%\" viewBox=\"-60 -90 300 500\" version=\"1.1\" xmlns=\"http://www.w3.org/2000/svg\">\n";
+  indent += 2;
+
+  ss << string(indent, ' ') << "<g>\n";
+  indent += 2;
+
+  // ****************************************************************
+  // Draw all contour lines.
+  // ****************************************************************
+
+  // ****************************************************************
+  // The upper contour.
+  // ****************************************************************
+
+  // First part of the upper cover
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[UPPER_COVER];
+  addRibsSvg(ss, s, 0, NUM_LARYNX_RIBS + NUM_PHARYNX_RIBS, s->numRibPoints - 1);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // Uvula
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[UVULA];
+  addRibsSvg(ss, s, 0, s->numRibs - 1, s->numRibPoints - 1);
+  addRibsSvg(ss, s, s->numRibs - 1, 0, 0);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // Last part of the upper cover
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[UPPER_COVER];
+  addRibsSvg(ss, s, NUM_LARYNX_RIBS + NUM_PHARYNX_RIBS + 1, s->numRibs - 1, s->numRibPoints - 1);
+
+  // Upper incisors
+  s = &surface[UPPER_TEETH];
+  addRibPointsSvg(ss, s, s->numRibs - 2, 0, 3);
+
+  // Upper lip
+  s = &surface[UPPER_LIP];
+  addRibPointsSvg(ss, s, s->numRibs - 1, 1, s->numRibPoints - 1);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+
+  // ****************************************************************
+  // Lower cover
+  // ****************************************************************
+
+  // Laryngeal part of the lower cover
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[LOWER_COVER];
+  addRibsSvg(ss, s, 0, NUM_LARYNX_RIBS - 1, s->numRibPoints - 1);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // Epiglottis
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[EPIGLOTTIS];
+  addRibsSvg(ss, s, 0, s->numRibs - 1, s->numRibPoints - 1);
+  addRibsSvg(ss, s, s->numRibs - 1, 0, 0);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // Rest of the lower cover
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  s = &surface[LOWER_COVER];
+  addRibsSvg(ss, s, NUM_LARYNX_RIBS, s->numRibs - 1, s->numRibPoints - 1);
+
+  // Lower incisors
+  s = &surface[LOWER_TEETH];
+  addRibPointsSvg(ss, s, s->numRibs - 2, 0, 3);
+
+  // Lower lip
+  s = &surface[LOWER_LIP];
+  addRibPointsSvg(ss, s, s->numRibs - 1, 1, s->numRibPoints - 1);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // ****************************************************************
+  // The ribs for the upper and lower cover.
+  // ****************************************************************
+
+  if (includeRibs)
+  {
+    // Ribs of the upper cover.
+    s = &surface[UPPER_COVER];
+    for (i = 0; i < s->numRibs; i++)
+    {
+      ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+      addRibPointsSvg(ss, s, i, 0, s->numRibPoints - 1);
+      ss << "\"/>\n";      // Close the points attribute and the polyline tag
+    }
+
+    // Ribs of the lower cover.
+    s = &surface[LOWER_COVER];
+    for (i = 0; i < s->numRibs; i++)
+    {
+      ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+      addRibPointsSvg(ss, s, i, 0, s->numRibPoints - 1);
+      ss << "\"/>\n";      // Close the points attribute and the polyline tag
+    }
+
+    // Border between the upper and lower cover.
+    s = &surface[UPPER_COVER];
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibsSvg(ss, s, 0, NUM_LARYNX_RIBS + NUM_PHARYNX_RIBS +
+      NUM_VELUM_RIBS - 1, 0);
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+  }
+
+  // ****************************************************************
+  // Tongue
+  // ****************************************************************
+
+  s = &surface[TONGUE];
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+  addRibsSvg(ss, s, 0, s->numRibs - 1, s->numRibPoints / 2);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // Off the center line (1 cm to the right)
+  ss << string(indent, ' ') << "<polyline " << standardAttributes << " " << stippledAttribute;
+  ss << " points=\"";  // Open the polyline tag and points attribute
+  addRibsSvg(ss, s, 0, s->numRibs - 1, 1);
+  ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+  // ****************************************************************
+  // Teeth
+  // ****************************************************************
+
+  if (includeTeeth)
+  {
+    // Upper teeth
+    s = &surface[UPPER_TEETH];
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibsSvg(ss, s, 0, s->numRibs - 1, 0);    // Upper inner edge
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibsSvg(ss, s, 0, s->numRibs - 5, 2);    // Lower outer edge
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibPointsSvg(ss, s, 0, 0, 1);          // Draw the most posterior rib completely
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+    // Lower teeth
+    s = &surface[LOWER_TEETH];
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibsSvg(ss, s, 0, s->numRibs - 1, 0);    // Lower inner edge
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibsSvg(ss, s, 0, s->numRibs - 8, 2);    // Upper outer edge
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+
+    ss << string(indent, ' ') << "<polyline " << standardAttributes << " points=\"";  // Open the polyline tag and points attribute
+    addRibPointsSvg(ss, s, 0, 0, 1);          // Draw the most posterior rib completely
+    ss << "\"/>\n";      // Close the points attribute and the polyline tag
+  }
+
+
+  // ****************************************************************
+  // Include the center line.
+  // ****************************************************************
+
+  CenterLinePoint *cl = &centerLine[0];
+
+  if (addCenterLine)
+  {
+    Point2D P0, P1;
+
+    ss << string(indent, ' ') << "<g>\n";
+    indent += 2;
+
+    for (i = 0; i < NUM_CENTERLINE_POINTS - 1; i++)
+    {
+      P0 = cl[i].point;
+      P1 = cl[i + 1].point;
+
+      ss << string(indent, ' ')
+        << "<line x1=\"" << SCALE*P0.x << "\" "
+        << "y1=\"" << -SCALE*P0.y << "\" "
+        << "x2=\"" << SCALE*P1.x << "\" "
+        << "y2=\"" << -SCALE*P1.y << "\" "
+        << "stroke=\"rgb(0,0,0)\" stroke-width=\"2.0\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n";
+    }
+
+    indent -= 2;
+    ss << string(indent, ' ') << "</g>\n";
+  }
+
+  // ****************************************************************
+  // Include the normal vectors.
+  // ****************************************************************
+
+  if (addCutVectors)
+  {
+    Point2D P0, P1;
+    double strokeWidth = 0.5;
+
+    ss << string(indent, ' ') << "<g>\n";
+    indent += 2;
+
+    for (i = 0; i < NUM_CENTERLINE_POINTS; i++)
+    {
+      P0 = cl[i].point + cl[i].min*cl[i].normal;
+      P1 = cl[i].point + cl[i].max*cl[i].normal;
+
+      ss << string(indent, ' ')
+        << "<line x1=\"" << SCALE*P0.x << "\" "
+        << "y1=\"" << -SCALE*P0.y << "\" "
+        << "x2=\"" << SCALE*P1.x << "\" "
+        << "y2=\"" << -SCALE*P1.y << "\" "
+        << "stroke=\"rgb(0,0,0)\" stroke-width=\"1.0\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>\n";
+    }
+
+    indent -= 2;
+    ss << string(indent, ' ') << "</g>\n";
+  }
+
+  // ****************************************************************
+  // Finished drawing the contour lines.
+  // ****************************************************************
+
+  // Close the group element ****************************************
+  indent -= 2;
+  ss << string(indent, ' ') << "</g>\n";
+
+  // Close the svg element ******************************************
+  indent -= 2;
+  ss << "</svg>\n";
+
+  // Close the file *************************************************
+  std::string svg_str = ss.str();
+  ss.str( std::string() );
+  ss.clear();
+
+  return svg_str;
+}
+
+
+
+// ****************************************************************************
 // Adds the point coordinates of some rib points to an output stream.
 // ****************************************************************************
 

@@ -574,6 +574,61 @@ int vtlExportTractSvg(double *tractParams, const char *fileName)
 }
 
 
+
+// ****************************************************************************
+// Exports the vocal tract contours for the given vector of vocal tract
+// parameters as a SVG (XML) string (scalable vector graphics).
+//
+// Function return value:
+// 0: success.
+// 1: The API has not been initialized.
+// 2: Writing the SVG file failed.
+// ****************************************************************************
+
+int vtlExportTractSvgToStr(double *tractParams, char *svgStr)
+{
+  if (!vtlApiInitialized)
+  {
+    printf("Error: The API has not been initialized.\n");
+    return 1;
+  }
+
+  // Store the current control parameter values.
+  vocalTract->storeControlParams();
+
+  // Set the given vocal tract parameters.
+  int i;
+  for (i = 0; i < VocalTract::NUM_PARAMS; i++)
+  {
+    vocalTract->param[i].x = tractParams[i];
+  }
+  //vocalTract->calculateAll();
+  vocalTract->calcSurfaces();
+  
+  // Export the contour as an SVG string.
+  std::string svg = vocalTract->exportTractContourSvgToStr(false, false);
+  strcpy( svgStr, svg.c_str() );
+
+  
+  // Restore the previous control parameter values and 
+  // recalculate the vocal tract shape.
+
+  //vocalTract->restoreControlParams();
+  //vocalTract->calculateAll();
+
+  //if ( int( svg.size ) + 10 < int( sizeof( svgStr ) ) )
+  //{
+  //  return 0;
+  //}
+  //else
+  //{
+  //  return 2;
+  //}
+  return 0;
+}
+
+
+
 // ****************************************************************************
 // Provides the tube data (especially the area function) for the given vector
 // of tractParams. The vectors tubeLength_cm, tubeArea_cm2, and tubeArticulator, 
@@ -644,10 +699,81 @@ int vtlTractToTube(double *tractParams,
   // ****************************************************************
 
   vocalTract->restoreControlParams();
-  vocalTract->calculateAll();
+  //vocalTract->calculateAll(); gets called at the end of restoreControlParams anyway, so this increases comp. time for no reason
 
   return 0;
 }
+
+
+
+
+// ****************************************************************************
+// Provides the tube data (especially the area function) for the given vector
+// of tractParams. This version does NOT store and restore the previous vocal
+// tract state. That means it is twice as fast as vtlTractToTube.
+// The vectors tubeLength_cm, tubeArea_cm2, and tubeArticulator, 
+// must each have as many elements as tube sections.
+// The values incisorPos_cm, tongueTipSideElevation, and velumOpening_cm2 are 
+// one double value each.
+//
+// Function return value:
+// 0: success.
+// 1: The API has not been initialized.
+// ****************************************************************************
+
+int vtlFastTractToTube(double *tractParams,
+  double *tubeLength_cm, double *tubeArea_cm2, int *tubeArticulator,
+  double *incisorPos_cm, double *tongueTipSideElevation, double *velumOpening_cm2)
+{
+  if (!vtlApiInitialized)
+  {
+    printf("Error: The API has not been initialized.\n");
+    return 1;
+  }
+
+
+  // ****************************************************************
+  // Set the given vocal tract parameters.
+  // ****************************************************************
+
+  int i;
+  for (i = 0; i < VocalTract::NUM_PARAMS; i++)
+  {
+    vocalTract->param[i].x = tractParams[i];
+  }
+
+  // ****************************************************************
+  // Get the tube for the new vocal tract shape.
+  // ****************************************************************
+
+  Tube tube;
+  vocalTract->calculateAll();
+  vocalTract->getTube(&tube);
+
+  // ****************************************************************
+  // Copy the tube parameters to the user arrays.
+  // ****************************************************************
+
+  Tube::Section *ts = NULL;
+  for (i = 0; i < Tube::NUM_PHARYNX_MOUTH_SECTIONS; i++)
+  {
+    ts = &tube.pharynxMouthSection[i];
+
+    tubeLength_cm[i] = ts->length_cm;
+    tubeArea_cm2[i] = ts->area_cm2;
+    tubeArticulator[i] = ts->articulator;
+  }
+
+  *incisorPos_cm = tube.teethPosition_cm;
+  *tongueTipSideElevation = tube.tongueTipSideElevation;
+  *velumOpening_cm2 = tube.getVelumOpening_cm2();
+
+
+  return 0;
+}
+
+
+
 
 
 // ****************************************************************************

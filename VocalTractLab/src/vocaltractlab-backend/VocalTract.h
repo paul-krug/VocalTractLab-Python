@@ -441,6 +441,7 @@ public:
   
   bool exportCrossSections(const string &fileName);
   bool exportTractContourSvg(const string &fileName, bool addCenterLine, bool addCutVectors);
+  std::string exportTractContourSvgToStr(bool addCenterLine, bool addCutVectors);
   void addRibPointsSvg(ostream &os, Surface *s, int rib, int firstRibPoint, int lastRibPoint);
   void addRibsSvg(ostream &os, Surface *s, int firstRib, int lastRib, int ribPoint);
 

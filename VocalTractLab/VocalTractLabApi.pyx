@@ -121,6 +121,11 @@ cdef extern from "VocalTractLabApi.h":
 		                   const char *fileName
 		                   );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlExportTractSvgToStr(
+		double *tractParams,
+		const char *svgStr,
+		);
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGesturalScoreToAudio( const char *gesFileName,
 		                         const char *wavFileName,
 		                         double *audio,
@@ -205,14 +210,25 @@ cdef extern from "VocalTractLabApi.h":
 		                         int *numSamples,
 		                         );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlTractToTube( double *tractParams,
-	                    double *tubeLength_cm,
-	                    double *tubeArea_cm2,
-	                    int *tubeArticulator,
-	                    double *incisorPos_cm,
-	                    double *tongueTipSideElevation,
-	                    double *velumOpening_cm2
-	                    );
+	int vtlTractToTube(
+		double *tractParams,
+		double *tubeLength_cm,
+		double *tubeArea_cm2,
+		int *tubeArticulator,
+		double *incisorPos_cm,
+		double *tongueTipSideElevation,
+		double *velumOpening_cm2
+		);
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	int vtlFastTractToTube(
+		double *tractParams,
+		double *tubeLength_cm,
+		double *tubeArea_cm2,
+		int *tubeArticulator,
+		double *incisorPos_cm,
+		double *tongueTipSideElevation,
+		double *velumOpening_cm2
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 #####################################################################################################################################################
 
@@ -598,8 +614,40 @@ def supra_glottal_sequence_to_svg(
 				( supra_glottal_state, os.path.join( output_directory, '{}.svg'.format( index ) ) )
 				for index, supra_glottal_state in enumerate( resampled_tract_states )
 				]
-	data = multiprocess(
+	multiprocess(
 		_supra_glottal_state_to_svg,
+		args,
+		return_data = False,
+		verbose = verbose,
+		workers = workers,
+		)
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def supra_glottal_sequence_to_svg_str(
+	supra_glottal_sequence,
+	fps: int = 60,
+	#save_video = False,
+	workers: int = None,
+	verbose = True,
+	):
+	if not isinstance( supra_glottal_sequence, ( Supra_Glottal_Sequence ) ): # could also be motor seq or str
+		raise ValueError( 'motor_sequence argument must be Motor_Sequence, not {}'.format( type( supra_glottal_sequence ) ) )
+	if fps is None:
+		args = [
+			( supra_glottal_state )
+			for supra_glottal_state in supra_glottal_sequence.states.to_numpy()
+			]
+	else:
+		resampled_index = [ round( index * (44100 / 110) / fps ) for index in range( 0, supra_glottal_sequence.length ) ]
+		resampled_tract_states = [
+			supra_glottal_state for supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() ) if index in resampled_index
+			]
+		args = [
+			( supra_glottal_state )
+			for supra_glottal_state in resampled_tract_states
+			]
+	data = multiprocess(
+		_supra_glottal_state_to_svg_str,
 		args,
 		return_data = True,
 		verbose = verbose,
@@ -626,27 +674,33 @@ def tract_sequence_to_transfer_functions( motor_sequence,
 	transfer_functions = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
 	return transfer_functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_tube_states( motor_sequence,
-	                               save_tube_length: bool = True,
-	                               save_tube_area: bool = True,
-	                               save_tube_articulator: bool = True,
-	                               save_incisor_position: bool = True,
-	                               save_tongue_tip_side_elevation: bool = True,
-	                               save_velum_opening: bool = True,
-	                               workers: int = None,
-	                             ):
+def tract_sequence_to_tube_states(
+	motor_sequence,
+	save_tube_length: bool = True,
+	save_tube_area: bool = True,
+	save_tube_articulator: bool = True,
+	save_incisor_position: bool = True,
+	save_tongue_tip_side_elevation: bool = True,
+	save_velum_opening: bool = True,
+	fast_calculation = True,
+	workers: int = None,
+	):
 	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
 		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
 	if isinstance( motor_sequence, Motor_Sequence ):
 		motor_sequence = motor_sequence.to_supra_glottal_sequence()
 	tract_param_data = []
-	args = [ [ state,
-	           save_tube_length,
-	           save_tube_area,
-	           save_tube_articulator,
-	           save_incisor_position,
-	           save_tongue_tip_side_elevation,
-	           save_velum_opening ] 
+	args = [
+		[
+			state,
+			save_tube_length,
+			save_tube_area,
+			save_tube_articulator,
+			save_incisor_position,
+			save_tongue_tip_side_elevation,
+			save_velum_opening,
+			fast_calculation,
+			] 
 		for state in motor_sequence.states.to_numpy() ]
 	if len( args ) <= 4:
 		tube_states = [ _tract_state_to_tube_state( arg ) for arg in args ]
@@ -995,7 +1049,22 @@ def _supra_glottal_state_to_svg( args ):
 		&tractParams[0],
 		fileName,
 		)
-	return fileName
+	return
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+def _supra_glottal_state_to_svg_str( args ):
+	supra_glottal_state = args
+	svgStr = ( ' ' * 10000 ).encode()
+	constants = get_constants()
+	cdef np.ndarray[np.float64_t, ndim = 1] tractParams = np.zeros(
+		constants['n_tract_params'],
+		dtype = 'float64',
+		)
+	tractParams = supra_glottal_state.ravel()
+	vtlExportTractSvgToStr(
+		&tractParams[0],
+		svgStr,
+		)
+	return svgStr.decode()
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_transfer_function( args ):
 	tract_state, n_spectrum_samples, save_magnitude_spectrum, save_phase_spectrum = args
@@ -1018,7 +1087,16 @@ def _tract_state_to_transfer_function( args ):
 	return Transfer_Function( magnitude_spectrum, phase_spectrum, n_spectrum_samples )
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _tract_state_to_tube_state( args ):
-	tract_state, save_tube_length, save_tube_area, save_tube_articulator, save_incisor_position, save_tongue_tip_side_elevation, save_velum_opening = args
+	[
+		tract_state,
+		save_tube_length,
+		save_tube_area,
+		save_tube_articulator,
+		save_incisor_position,
+		save_tongue_tip_side_elevation,
+		save_velum_opening,
+		fast_calculation,
+		] = args
 	tube_length = None
 	tube_area = None
 	tube_articulator = None
@@ -1033,14 +1111,26 @@ def _tract_state_to_tube_state( args ):
 	cdef double incisorPos_cm = 0.0
 	cdef double tongueTipSideElevation = 0.0
 	cdef double velumOpening_cm2 = 0.0
-	vtlTractToTube( &tractParams[0],
-	                &tubeLength_cm[0],
-	                &tubeArea_cm2[0],
-	                &tubeArticulator[0],
-	                &incisorPos_cm,
-	                &tongueTipSideElevation,
-	                &velumOpening_cm2
-	                )
+	if fast_calculation:
+		vtlFastTractToTube(
+			&tractParams[0],
+			&tubeLength_cm[0],
+			&tubeArea_cm2[0],
+			&tubeArticulator[0],
+			&incisorPos_cm,
+			&tongueTipSideElevation,
+			&velumOpening_cm2
+			)
+	else:
+		vtlTractToTube(
+			&tractParams[0],
+			&tubeLength_cm[0],
+			&tubeArea_cm2[0],
+			&tubeArticulator[0],
+			&incisorPos_cm,
+			&tongueTipSideElevation,
+			&velumOpening_cm2
+			)
 	if save_tube_length:
 		tube_length = np.array( tubeLength_cm )
 	if save_tube_area:
