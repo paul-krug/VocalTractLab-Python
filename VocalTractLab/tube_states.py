@@ -73,14 +73,37 @@ class Tube_State():
 		constriction = None
 		if min_area >= self.open_limit:
 			constriction = 0
+		elif np.isclose( min_area, 0.15 ):
+			constriction = 3
+		elif np.isclose( min_area, 0.25 ):
+			constriction = 4
 		elif min_area > self.tight_limit:
 			constriction = 1
-		elif min_area <= self.tight_limit:
+		elif np.isclose( min_area, 0.0001 ):
 			constriction = 2
 		if not return_str:
 			return constriction
 		else:
 			return constriction_strings[ constriction ]
+#---------------------------------------------------------------------------------------------------------------------------------------------------#
+	def get_constriction_class(
+		self,
+		tube_area,
+		):
+		constriction = None
+		if tube_area >= self.open_limit:
+			constriction = 0
+		elif np.isclose( tube_area, 0.15 ):
+			constriction = 3
+		elif np.isclose( tube_area, 0.25 ):
+			constriction = 4
+		elif tube_area > self.tight_limit:
+			constriction = 1
+		elif np.isclose( tube_area, 0.0001 ):
+			constriction = 2
+		elif tube_area <= self.tight_limit:
+			constriction = 5
+		return constriction
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	def get_tube_area_function( self ):
 		tube_x = [ self.tube_length[ 0 ] ]
@@ -99,7 +122,10 @@ class Tube_State():
 						break
 		return np.array( [ x, y ] ).T
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	def get_constriction_threshold_crossings( self ):
+	def get_constriction_threshold_crossings(
+		self,
+		n_tongue_sections = 8,
+		):
 		tight_crossings = []
 		close_crossings = []
 		tight_crossed = False
@@ -133,7 +159,7 @@ class Tube_State():
 		for ar in self.tube_articulator:
 			#print(ar)
 			if ar == 1:
-				if ( tongue_counter % round(n_tongue/4) == 0 ) and ( tongue_section < 3 ):
+				if ( tongue_counter % round(n_tongue/n_tongue_sections) == 0 ) and ( tongue_section < (n_tongue_sections-1) ):
 					tongue_section += 1
 				tongue_counter += 1
 				tube_articulator_tokens.append(
@@ -143,20 +169,43 @@ class Tube_State():
 				tube_articulator_tokens.append(
 					articulator_token[ str( ar ) ]
 					)
-		#stop
 		self.tube_articulator_tokens = tube_articulator_tokens
+
+		assert len( self.tube_area ) == len( self.tube_length ), 'Not the same length, ta: {}, tl: {}'.format(
+			len( self.tube_area ),
+			len( self.tube_length ),
+			)
+		assert len( self.tube_area ) == len( self.tube_articulator_tokens ), 'Not the same length, ta: {}, ar: {}'.format(
+			len( self.tube_area ),
+			len( self.tube_articulator_tokens ),
+			)
+
 		x = 0
 		for ta, tl, ar in zip( self.tube_area, self.tube_length, self.tube_articulator_tokens ):
 			if tight_crossed == False and ta < self.open_limit:
 				tight_crossings.append( x )
 				tight_tb_articulators = []
-				tight_tb_articulators.append( [ x, ar ] )
+				tight_tb_articulators.append(
+					dict(
+						start = x,
+						place_of_articulation = ar,
+						tube_area = ta,
+						constriction_class = self.get_constriction_class( ta ),
+						)
+					)
 				#tight_articulators.append( [ x, ar ] )
 				tight_crossed = True
-			if tight_crossed == True and ta < self.open_limit:
+			elif tight_crossed == True and ta < self.open_limit:
 				#tight_articulators.append( [ x, ar ] )
-				tight_tb_articulators.append( [ x, ar ] )
-			if tight_crossed == True and ta >= self.open_limit:
+				tight_tb_articulators.append(
+					dict(
+						start = x,
+						place_of_articulation = ar,
+						tube_area = ta,
+						constriction_class = self.get_constriction_class( ta ),
+						)
+					)
+			elif tight_crossed == True and ta >= self.open_limit:
 				tight_crossings.append( x )
 				#tight_articulators.append( ar )
 				tight_articulators.append( tight_tb_articulators )
@@ -165,11 +214,25 @@ class Tube_State():
 				close_crossings.append( x )
 				#close_articulators.append( [ x, ar ] )
 				close_tb_articulators = []
-				close_tb_articulators.append( [ x, ar ] )
+				close_tb_articulators.append(
+					dict(
+						start = x,
+						place_of_articulation = ar,
+						tube_area = ta,
+						constriction_class = self.get_constriction_class( ta ),
+						)
+					)
 				close_crossed = True
-			if close_crossed == True and ta < self.tight_limit:
-				close_tb_articulators.append( [ x, ar ] )
-			if close_crossed == True and ta >= self.tight_limit:
+			elif close_crossed == True and ta < self.tight_limit:
+				close_tb_articulators.append(
+					dict(
+						start = x,
+						place_of_articulation = ar,
+						tube_area = ta,
+						constriction_class = self.get_constriction_class( ta ),
+						)
+					)
+			elif close_crossed == True and ta >= self.tight_limit:
 				close_articulators.append( close_tb_articulators )
 				close_crossings.append( x )
 				close_crossed = False
@@ -277,7 +340,7 @@ class Tube_State():
 			axs[0].scatter( tight_constriction[ 'end' ], 0.3, color = 'red', marker = 'x' )
 			axs[0].plot( [tight_constriction[ 'start' ], tight_constriction[ 'start' ] + tight_constriction[ 'length' ] ], [ 0.9 , 0.9 ] )
 			for element in tight_constriction[ 'articulators' ]:
-				axs[0].text( s=element[1], x=element[0], y = 0.35 )
+				axs[0].text( s=element[ 'place_of_articulation' ], x=element[ 'start' ], y = 0.35 )
 		for close_constriction in close_constrictions:
 			#axs[0].scatter( close_crossing[0], close_crossing[1], color = 'green', marker = 'o' )
 			#axs[0].scatter( close_crossing[0], 0.001, color = 'green', marker = 'o' )

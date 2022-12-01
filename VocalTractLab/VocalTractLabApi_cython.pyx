@@ -117,98 +117,112 @@ cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlClose();
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlExportTractSvg( double *tractParams,
-		                   const char *fileName
-		                   );
+	int vtlExportTractSvg(
+		double *tractParams,
+		const char *fileName
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlExportTractSvgToStr(
 		double *tractParams,
 		const char *svgStr,
 		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToAudio( const char *gesFileName,
-		                         const char *wavFileName,
-		                         double *audio,
-		                         int *numSamples,
-		                         bool enableConsoleOutput
-		                         );
+	int vtlGesturalScoreToAudio(
+		const char *gesFileName,
+		const char *wavFileName,
+		double *audio,
+		int *numSamples,
+		bool enableConsoleOutput
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGesturalScoreToTractSequence( const char *gesFileName, 
-		                                 const char *tractSequenceFileName
-		                                 );
+	int vtlGesturalScoreToTractSequence(
+		const char *gesFileName, 
+		const char *tractSequenceFileName
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetConstants( int *audioSamplingRate,
-		                 int *numTubeSections,
-		                 int *numVocalTractParams,
-		                 int *numGlottisParams,
-		                 int *numAudioSamplesPerTractState,
-		                 double *internalSamplingRate
-		                 );
+	int vtlGetConstants(
+		int *audioSamplingRate,
+		int *numTubeSections,
+		int *numVocalTractParams,
+		int *numGlottisParams,
+		int *numAudioSamplesPerTractState,
+		double *internalSamplingRate
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlGetDefaultTransferFunctionOptions( TransferFunctionOptions *opts );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGesturalScoreDuration( const char *gesFileName,
-		                             int *numAudioSamples,
-		                             int *numGestureSamples
-		                             );
+	int vtlGetGesturalScoreDuration(
+		const char *gesFileName,
+		int *numAudioSamples,
+		int *numGestureSamples
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGlottisParamInfo( char *names,
-		                        char *descriptions,
-		                        char *units,
-		                        double *paramMin,
-		                        double *paramMax,
-		                        double *paramStandard,
-		                        );
+	int vtlGetGlottisParamInfo(
+		char *names,
+		char *descriptions,
+		char *units,
+		double *paramMin,
+		double *paramMax,
+		double *paramStandard,
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetTractParamInfo( char *names,
-		                      char *descriptions,
-		                      char *units,
-		                      double *paramMin,
-		                      double *paramMax,
-		                      double *paramStandard,
-		                      );
+	int vtlGetTractParamInfo(
+		char *names,
+		char *descriptions,
+		char *units,
+		double *paramMin,
+		double *paramMax,
+		double *paramStandard,
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetGlottisParams( const char *shapeName,
-	                         double *glottisParams,
-	                         );
+	int vtlGetGlottisParams(
+		const char *shapeName,
+	    double *glottisParams,
+	    );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetTractParams( const char *shapeName,
-	                       double *tractParams,
-	                       );
+	int vtlGetTractParams(
+		const char *shapeName,
+	    double *tractParams,
+	    );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlGetTransferFunction( double *tractParams,
-	                            int numSpectrumSamples,
-	                            TransferFunctionOptions *opts,
-	                            double *magnitude,
-	                            double *phase_rad
-	                            );
+	int vtlGetTransferFunction(
+		double *tractParams,
+	    int numSpectrumSamples,
+	    TransferFunctionOptions *opts,
+	    double *magnitude,
+	    double *phase_rad
+	    );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	void vtlGetVersion( char *version );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlInitialize( const char *speakerFileName );
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlInputTractToLimitedTract( double *inTractParams,
-		                             double *outTractParams
-		                             );
+	int vtlInputTractToLimitedTract(
+		double *inTractParams,
+		double *outTractParams
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlSegmentSequenceToGesturalScore( const char *segFileName,
-		                                   const char *gesFileName,
-		                                   bool enableConsoleOutput,
-		                                   );
+	int vtlSegmentSequenceToGesturalScore(
+		const char *segFileName,
+		const char *gesFileName,
+		bool enableConsoleOutput,
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlSynthBlock( double *tractParams,
-		               double *glottisParams,
-		               int numFrames,
-		               int frameStep_samples,
-		               double *audio,
-		               bool enableConsoleOutput,
-		               );
+	int vtlSynthBlock(
+		double *tractParams,
+		double *glottisParams,
+		int numFrames,
+		int frameStep_samples,
+		double *audio,
+		bool enableConsoleOutput,
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-	int vtlTractSequenceToAudio( const char *tractSequenceFileName,
-		                         const char *wavFileName,
-		                         double *audio,
-		                         int *numSamples,
-		                         );
+	int vtlTractSequenceToAudio(
+		const char *tractSequenceFileName,
+		const char *wavFileName,
+		double *audio,
+		int *numSamples,
+		);
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 	int vtlTractToTube(
 		double *tractParams,
@@ -248,7 +262,22 @@ cdef extern from "VocalTractLabApi.h":
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # 		Single core functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def automatic_calculation_of_TRX_and_TRY( bool automatic_calculation = True ):
+def automatic_calculation_of_TRX_and_TRY(
+	bool automatic_calculation = True
+	):
+	'''
+	A function to set the automatic calculation of the VTL tongue-root parameters TRX and TRY.
+
+	Parameters
+	----------
+	automatic_calculation: bool
+		Sets the automatic calculation of TRX and TRY to True or False.
+
+	Returns
+	-------
+
+
+	'''
 	cdef bool automaticCalculation = automatic_calculation
 	value = vtlCalcTongueRootAutomatically( automaticCalculation )
 	#print( value )
@@ -258,27 +287,54 @@ def automatic_calculation_of_TRX_and_TRY( bool automatic_calculation = True ):
 	return
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_version():
+	'''
+	A function to get the internal VTL-backend version string.
+
+	Parameters
+	----------
+	
+
+	Returns
+	-------
+	version: str
+		String that contains the VTL-backend version and compile date.
+
+
+	'''
 	cdef char version[32]
 	vtlGetVersion( version )
 	log.info( 'Compile date of the library: {}'.format( version.decode() ) )
-	#if self.params.verbose == True:
-	#	log.info( 'Compile date of the library: "%s"' % version.decode() )
 	return version.decode()
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def get_constants():
+	'''
+	A function to get important synthesis-related constants from the VTL-backend.
+
+	Parameters
+	----------
+	
+
+	Returns
+	-------
+	constants: dict
+		Dictionary that contains important synthesis-related VTL constants.
+
+
+	'''
 	cdef int audioSamplingRate = -1
 	cdef int numTubeSections = -1
 	cdef int numVocalTractParams = -1
 	cdef int numGlottisParams = -1
 	cdef int numAudioSamplesPerTractState = -1
 	cdef double internalSamplingRate = -1.0
-	value = vtlGetConstants( &audioSamplingRate,
-		                     &numTubeSections,
-		                     &numVocalTractParams,
-		                     &numGlottisParams,
-		                     &numAudioSamplesPerTractState,
-		                     &internalSamplingRate,
-	                         )
+	value = vtlGetConstants(
+		&audioSamplingRate,
+		&numTubeSections,
+		&numVocalTractParams,
+		&numGlottisParams,
+		&numAudioSamplesPerTractState,
+		&internalSamplingRate,
+		)
 	if value != 0:
 		raise ValueError('VTL API function vtlGetConstants returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
 	constants = {
@@ -427,316 +483,6 @@ def get_gestural_score_audio_duration( str ges_file_path, return_samples = True 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # 		User mp enabled functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-def change_gestural_score(
-	in_ges_file_path_list,
-	out_ges_file_path_list,
-	modification_kwargs,
-	workers: bool = False,
-	):
-	
-	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def gestural_score_to_audio(	ges_file_path_list,
-								audio_file_path_list = None,
-								save_file: bool = True,
-								normalize_audio: int = None,
-								sr: int = None,
-								return_data: bool = False,
-								workers: int = None,
-								verbose: bool = False,
-							):
-	ges_file_path_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ ges_file_path_list, audio_file_path_list ], 
-                                                                                  [ str, ( str, type(None) ) ],
-	                                                                            )
-	args =  [ [ges_file_path, audio_file_path, save_file, normalize_audio, sr, verbose]
-		for ges_file_path, audio_file_path in itertools.zip_longest( ges_file_path_list, audio_file_path_list ) ]
-	if len( args ) == 1:
-		audio_data_list = _gestural_score_to_audio( args[ 0 ] )
-	else:
-		audio_data_list = _run_multiprocessing( _gestural_score_to_audio, args, return_data, workers )
-	return audio_data_list
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def gestural_score_to_tract_sequence(	ges_file_path_list,  
-										tract_file_path_list = None, 
-										return_data: bool = False,
-										workers: int = None,
-									):
-	ges_file_path_list, tract_file_path_list = FT.check_if_input_lists_are_valid( [ ges_file_path_list, tract_file_path_list ], 
-	                                                                              [ str, ( str, type(None) ) ],
-	                                                                            )
-	args = [ [ges_file_path, tract_file_path, return_data ]
-		for ges_file_path, tract_file_path in itertools.zip_longest( ges_file_path_list, tract_file_path_list ) ]
-	tract_sequence_list = _run_multiprocessing( _gestural_score_to_tract_sequence, args, return_data, workers )
-	return tract_sequence_list
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def segment_sequence_to_gestural_score( seg_file_path_list,
-	                                    ges_file_path_list = None,
-	                                    workers: int = None,
-	                                    verbose: bool = False,
-	                                    ):
-	seg_file_path_list, ges_file_path_list = FT.check_if_input_lists_are_valid( [ seg_file_path_list, ges_file_path_list ], 
-	                                                                            [ str, ( str, type(None) ) ] 
-	                                                                          )
-	args = [ [ seg_file_path, ges_file_path, verbose ]
-		for seg_file_path, ges_file_path in itertools.zip_longest( seg_file_path_list, ges_file_path_list ) ]
-	_run_multiprocessing( _segment_sequence_to_gestural_score, args, False, workers )
-	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_audio( motor_sequence_list,
-	                         audio_file_path_list = None,
-	                         save_file: bool = True,
-	                         normalize_audio: int = -1,
-	                         sr: int = None,
-	                         return_data: bool = False,
-	                         workers: int = None,
-	                         verbose: bool = False,
-	                         ):
-	motor_sequence_list, audio_file_path_list = FT.check_if_input_lists_are_valid( [ motor_sequence_list, audio_file_path_list ], 
-																		           [ ( str, Motor_Sequence, Motor_Score ),
-	                                                                                 ( str, type(None) ),
-	                                                                               ]
-	                                                                             )
-	args = [ [motor_sequence, audio_file_path, save_file, normalize_audio, sr, verbose]
-		for motor_sequence, audio_file_path in itertools.zip_longest( motor_sequence_list, audio_file_path_list ) ]
-	if len( args ) <= 4:
-		audio_data_list = [ _tract_sequence_to_audio( arg ) for arg in args ]
-	else:
-		audio_data_list = _run_multiprocessing( _tract_sequence_to_audio, args, return_data, workers )
-	return audio_data_list
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def motor_sequence_to_spectrogram(
-	motor_sequence_list,
-	audio_file_path_list = None,
-	spectrogram_file_path_list = None,
-	save_file: bool = True,
-	normalize_audio: int = -1,
-	sr: int = 16000,
-	spectrogram_kwargs = AT.standard_16kHz_spectrogram_kwargs,
-	return_data: bool = True,
-	workers: int = None,
-	verbose: bool = False,
-	):
-	motor_sequence_list, audio_file_path_list, spectrogram_file_path_list = FT.check_if_input_lists_are_valid(
-		[ motor_sequence_list, audio_file_path_list, spectrogram_file_path_list ], 
-		[ ( str, Motor_Sequence, Motor_Score ), ( str, type(None) ), ( str, type(None) ), ]
-	)
-	args = [ [
-		motor_sequence,
-		audio_file_path,
-		spectrogram_file_path,
-		save_file,
-		normalize_audio,
-		sr,
-		spectrogram_kwargs,
-		verbose,
-		] for motor_sequence, audio_file_path, spectrogram_file_path in itertools.zip_longest(
-			motor_sequence_list,
-			audio_file_path_list,
-			spectrogram_file_path_list,
-		)
-	]
-	audio_data_list = _run_multiprocessing( _motor_sequence_to_spectrogram, args, return_data, workers )
-	return audio_data_list
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def motor_sequence_to_melspectrogram(
-	motor_sequence_list,
-	audio_file_path_list = None,
-	spectrogram_file_path_list = None,
-	save_file: bool = True,
-	normalize_audio: int = -1,
-	sr: int = 16000,
-	log_scale = True,
-	spectrogram_kwargs = AT.standard_16kHz_spectrogram_kwargs,
-	melspectrogram_kwargs = AT.standard_16kHz_melspectrogram_80_kwargs,
-	return_data: bool = True,
-	workers: int = None,
-	verbose: bool = False,
-	):
-	motor_sequence_list, audio_file_path_list, spectrogram_file_path_list = FT.check_if_input_lists_are_valid(
-		[ motor_sequence_list, audio_file_path_list, spectrogram_file_path_list ], 
-		[ ( str, Motor_Sequence, Motor_Score ), ( str, type(None) ), ( str, type(None) ), ]
-	)
-	args = [ [
-		motor_sequence,
-		audio_file_path,
-		spectrogram_file_path,
-		save_file,
-		normalize_audio,
-		sr,
-		log_scale,
-		spectrogram_kwargs,
-		melspectrogram_kwargs,
-		verbose,
-		] for motor_sequence, audio_file_path, spectrogram_file_path in itertools.zip_longest(
-			motor_sequence_list,
-			audio_file_path_list,
-			spectrogram_file_path_list,
-		)
-	]
-	audio_data_list = _run_multiprocessing( _motor_sequence_to_melspectrogram, args, return_data, workers )
-	return audio_data_list
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_limited_tract_sequence( motor_sequence,
-	                                          workers: int = None, 
-	                                        ):
-	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
-	tract_param_data = []
-	args = [ state for state in motor_sequence.states.to_numpy() ]
-	tract_param_data = _run_multiprocessing( _tract_state_to_limited_tract_state, args, True, workers )
-	limited_supra_glottal_sequence = Supra_Glottal_Sequence( np.array( tract_param_data ) )
-	if isinstance( motor_sequence,  Motor_Sequence ):
-		return Motor_Sequence( tract_states = limited_supra_glottal_sequence, glottis_states = motor_sequence.to_sub_glottal_sequence() )
-	else:
-		return limited_supra_glottal_sequence
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_svg( motor_sequence_list,
-	                       svg_dir_list = None,
-	                       fps: int = 60,
-	                       save_video = False,
-	                       workers: int = None,
-	                       ):
-	motor_sequence_list, svg_dir_list = FT.check_if_input_lists_are_valid( [ motor_sequence_list, svg_dir_list ],
-	                                                                       [ ( str, Motor_Sequence ),
-	                                                                         ( str, type(None) ),
-	                                                                       ]
-	                                                                     )
-	args = [ [motor_sequence, svg_dir, fps ]
-	for motor_sequence, svg_dir in itertools.zip_longest( motor_sequence_list, svg_dir_list ) ]
-	_run_multiprocessing( _tract_sequence_to_svg, args, False, workers )
-	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def supra_glottal_sequence_to_svg(
-	supra_glottal_sequence,
-	output_directory = None,
-	fps: int = 60,
-	#save_video = False,
-	workers: int = None,
-	verbose = True,
-	):
-	if not isinstance( supra_glottal_sequence, ( Supra_Glottal_Sequence ) ): # could also be motor seq or str
-		raise ValueError( 'motor_sequence argument must be Motor_Sequence, not {}'.format( type( supra_glottal_sequence ) ) )
-	if fps is None:
-		if output_directory is None:
-			args = [
-				( supra_glottal_state, None )
-				for supra_glottal_state in supra_glottal_sequence.states.to_numpy()
-				]
-		else:
-			args = [ 
-				( supra_glottal_state, os.path.join( output_directory, '{}.svg'.format( index ) ) )
-				for index, supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() )
-				]
-	else:
-		resampled_index = [ round( index * (44100 / 110) / fps ) for index in range( 0, supra_glottal_sequence.length ) ]
-		resampled_tract_states = [
-			supra_glottal_state for supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() ) if index in resampled_index
-			]
-		if output_directory is None:
-			args = [
-				( supra_glottal_state, None )
-				for supra_glottal_state in resampled_tract_states
-				]
-		else:
-			args = [ 
-				( supra_glottal_state, os.path.join( output_directory, '{}.svg'.format( index ) ) )
-				for index, supra_glottal_state in enumerate( resampled_tract_states )
-				]
-	multiprocess(
-		_supra_glottal_state_to_svg,
-		args,
-		return_data = False,
-		verbose = verbose,
-		workers = workers,
-		)
-	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def supra_glottal_sequence_to_svg_str(
-	supra_glottal_sequence,
-	fps: int = 60,
-	#save_video = False,
-	workers: int = None,
-	verbose = True,
-	):
-	if not isinstance( supra_glottal_sequence, ( Supra_Glottal_Sequence ) ): # could also be motor seq or str
-		raise ValueError( 'motor_sequence argument must be Motor_Sequence, not {}'.format( type( supra_glottal_sequence ) ) )
-	if fps is None:
-		args = [
-			( supra_glottal_state )
-			for supra_glottal_state in supra_glottal_sequence.states.to_numpy()
-			]
-	else:
-		resampled_index = [ round( index * (44100 / 110) / fps ) for index in range( 0, supra_glottal_sequence.length ) ]
-		resampled_tract_states = [
-			supra_glottal_state for supra_glottal_state in enumerate( supra_glottal_sequence.states.to_numpy() ) if index in resampled_index
-			]
-		args = [
-			( supra_glottal_state )
-			for supra_glottal_state in resampled_tract_states
-			]
-	data = multiprocess(
-		_supra_glottal_state_to_svg_str,
-		args,
-		return_data = True,
-		verbose = verbose,
-		workers = workers,
-		)
-	return data
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_transfer_functions( motor_sequence,
-	                                      n_spectrum_samples: int = 8192,
-	                                      save_magnitude_spectrum: bool = True,
-	                                      save_phase_spectrum: bool = True,
-	                                      workers: int = None,
-	                                    ):
-	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
-	if isinstance( motor_sequence, Motor_Sequence ):
-		motor_sequence = motor_sequence.to_supra_glottal_sequence()
-	tract_param_data = []
-	args = [ [ state,
-	           n_spectrum_samples,
-	           save_magnitude_spectrum,
-	           save_phase_spectrum ] 
-		for state in motor_sequence.states.to_numpy() ]
-	transfer_functions = _run_multiprocessing( _tract_state_to_transfer_function, args, True, workers )
-	return transfer_functions
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def tract_sequence_to_tube_states(
-	motor_sequence,
-	save_tube_length: bool = True,
-	save_tube_area: bool = True,
-	save_tube_articulator: bool = True,
-	save_incisor_position: bool = True,
-	save_tongue_tip_side_elevation: bool = True,
-	save_velum_opening: bool = True,
-	fast_calculation = True,
-	workers: int = None,
-	):
-	if not isinstance( motor_sequence, ( Motor_Sequence, Supra_Glottal_Sequence ) ):
-		raise ValueError( 'motor_sequence argument must be Motor_Sequence or Supra_Glottal_Sequence, not {}'.format( type( motor_sequence ) ) )
-	if isinstance( motor_sequence, Motor_Sequence ):
-		motor_sequence = motor_sequence.to_supra_glottal_sequence()
-	tract_param_data = []
-	args = [
-		[
-			state,
-			save_tube_length,
-			save_tube_area,
-			save_tube_articulator,
-			save_incisor_position,
-			save_tongue_tip_side_elevation,
-			save_velum_opening,
-			fast_calculation,
-			] 
-		for state in motor_sequence.states.to_numpy() ]
-	if len( args ) <= 4:
-		tube_states = [ _tract_state_to_tube_state( arg ) for arg in args ]
-	else:
-		tube_states = _run_multiprocessing( _tract_state_to_tube_state, args, True, workers )
-	return tube_states
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-#####################################################################################################################################################
 
 
 
@@ -774,38 +520,7 @@ def _close():
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 # 		multiprocessing worker functions
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
-#def _export_tract_svg( args ):
-#	tract_state, out_file_path = args
-#	cdef np.ndarray[ np.float64_t, ndim=1 ] tractParams = tract_state
-#	fileName = out_file_path.encode()
-#	constants = get_constants()
-#	value = vtlExportTractSvg( &tractParams[0], fileName )
-#	if value != 0:
-#		raise ValueError('VTL API function vtlExportTractSvg returned the Errorcode: {}  (See API doc for info.)'.format( value ) )
-#	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def _modify_gestural_score( args ):
-	in_ges_file_path, out_ges_file_path = args
-	ges_file = open( in_ges_file_path ).read()
-	ges_soup = BeautifulSoup( ges_file, 'html.parser' )
-	#do manipulations here
-	f = open( out_ges_file_path, "w" )
-	f.write( ges_soup.prettify( formatter = None ) )
-	f.close()
-	return
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def _gestural_score_change_voice_quality( args ):
-	gestural_score_soup, voice_quality_new, voice_quality_old = args
-	for element in gestural_score_soup.gestural_score.find( 'gesture_sequence', {'type': 'glottal-shape-gestures'} ):
-		try:
-			if element.value == voice_quality_old:
-				element.value = voice_quality_new
-		except Exception: 
-			ValueError( 'Error at element: {}, element.value: {}, vq old: {}, vq new: {}'.format( element, element.value, voice_quality_old, voice_quality_new ) )
-	return gestural_score_soup
-#---------------------------------------------------------------------------------------------------------------------------------------------------#
-def _gestural_score_change_duration():
-	return
+
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 def _gestural_score_to_audio( args ):
 	# Note that returning the number of samples via numSamples is deprecated, use getGesturalScoreAudioDuration instead!
@@ -1218,7 +933,13 @@ def _worker( args ):
 
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 atexit.register( _close )
-_initialize( os.path.join( os.path.dirname(__file__), 'speaker/JD3.speaker' ) )
+_initialize(
+	os.path.join(
+		os.path.dirname(__file__),
+		'speaker',
+		'JD3.speaker'
+		)
+	)
 #---------------------------------------------------------------------------------------------------------------------------------------------------#
 
 

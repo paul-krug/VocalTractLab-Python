@@ -25,6 +25,7 @@ from VocalTractLab.VocalTractLabApi import get_param_info
 from VocalTractLab.VocalTractLabApi import get_shape
 from VocalTractLab.VocalTractLabApi import get_shapes
 from VocalTractLab.VocalTractLabApi import load_speaker_file
+from VocalTractLab.VocalTractLabApi import load_speaker
 from VocalTractLab.VocalTractLabApi import get_gestural_score_audio_duration
 from VocalTractLab.VocalTractLabApi import gestural_score_to_audio
 from VocalTractLab.VocalTractLabApi import gestural_score_to_tract_sequence
