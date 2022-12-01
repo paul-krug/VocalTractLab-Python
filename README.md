@@ -7,5 +7,5 @@ This software is currently in alpha stage. You may encounter bugs and future upd
 
     pip install vocaltractlab
 
-# Description
+# Description 
 A python module that implements the articulatory synthesizer VocalTractLab.
