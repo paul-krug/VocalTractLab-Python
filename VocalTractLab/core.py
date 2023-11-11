@@ -3,7 +3,9 @@
 Requires:
 - numpy
 - pandas
+- torch
 - torchaudio
+- soundfile
 - vocaltractlab_cython
 - tools_mp
 - whatever
@@ -11,9 +13,10 @@ Requires:
 import os
 import numpy as np
 import pandas as pd
-#import torchaudio
+import torch
+import torchaudio
 from vocaltractlab_cython import get_constants
-from vocaltractlab_cython import gestural_score_to_audio
+from vocaltractlab_cython import gesture_file_to_audio
 from vocaltractlab_cython.VocalTractLabApi import _synth_block
 
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
@@ -21,18 +24,15 @@ from numpy.typing import ArrayLike
 
 from tools_mp import multiprocess
 
-#from whatever import MotorScore, MotorSeries
-class GestureScore:
-    pass
-class MotorScore:
-    pass
-class MotorSeries:
-    pass
+from .utils import make_iterable
+from .dynamics import GestureScore
+from .dynamics import MotorScore
+from .dynamics import MotorSeries
+from .audioprocessing import normalize_audio_amplitude
+from .audioprocessing import resample_like_librosa
 
-def make_iterable( x ):
-    if isinstance( x, str ) or not isinstance( x, Iterable ):
-        return [ x ]
-    return x
+
+
 
 #def make_temporary_file():
 #    
@@ -163,7 +163,7 @@ def gesture_to_motor(
     return
 
 def motor_to_audio(
-        motor_data: Union[ MotorScore, MotorSeries ],
+        motor_data: Union[ MotorScore, MotorSeries, str ],
         audio_files: Optional[ Union[ Iterable[str], str ] ] = None,
         normalize_audio: int = -1,
         sr: int = None,
@@ -171,12 +171,11 @@ def motor_to_audio(
         workers: int = None,
         verbose: bool = True,
         ) -> np.ndarray:
-    if not isinstance( motor_data, Iterable ):
-        motor_data = [ motor_data ]
+    motor_data = make_iterable( motor_data )
     if audio_files is None:
         audio_files = [ None ] * len( motor_data )
-    elif not isinstance( audio_files, Iterable ):
-        audio_files = [ audio_files ]
+    else:
+        audio_files = make_iterable( audio_files )
     if len( audio_files ) != len( motor_data ):
         raise ValueError(
             f"""
@@ -203,7 +202,7 @@ def motor_to_audio(
         return_data = return_data,
         workers = workers,
         verbose = verbose,
-        mp_threshold = 4,
+        #mp_threshold = 4,
         )
     return audio_data
 
@@ -212,6 +211,7 @@ def _motor_to_audio(
         audio_file_path,
         normalize_audio,
         sr,
+        state_samples = None,
         ):
     if isinstance( motor_data, str ):
         if not os.path.exists( motor_data ):
@@ -239,21 +239,33 @@ def _motor_to_audio(
     vtl_constants = get_constants()
     if state_samples is None:
         state_samples = vtl_constants[ 'n_samples_per_state' ]
+
+    print( motor_series.to_numpy( part='tract' ) )
+
+    tract_params = motor_series.to_numpy( part='tract' )
+    glottal_params = motor_series.to_numpy( part='glottis' )
+    print( tract_params.shape )
+    print( glottal_params.shape )
+    print( state_samples )
+
     
     audio = _synth_block(
-        tract_params = motor_series.supra_glottal_series.to_numpy(),
-        glottal_params = motor_series.glottal_series.to_numpy(),
+        tract_parameters = tract_params,
+        glottis_parameters = glottal_params,
         state_samples = state_samples,
         verbose_api = False,
         )
     
+    audio = torch.tensor( audio ).unsqueeze( 0 )
+    print( 'audio shape: ', audio.shape )
+    
     if sr is None:
-        sr = vtl_constants[ 'sampling_rate' ]
-    elif sr != vtl_constants[ 'sampling_rate' ]:
-        audio = resample( audio, sr, vtl_constants[ 'sampling_rate' ] )
+        sr = vtl_constants[ 'sr_audio' ]
+    elif sr != vtl_constants[ 'sr_audio' ]:
+        audio = resample_like_librosa( audio, sr, vtl_constants[ 'sr_audio' ] )
     
     if normalize_audio is not None:
-        audio = normalize( audio, normalize_audio )
+        audio = normalize_audio_amplitude( audio, normalize_audio )
 
     if audio_file_path is not None:
         torchaudio.save( audio_file_path, audio, sr )
