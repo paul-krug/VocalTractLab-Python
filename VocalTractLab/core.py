@@ -171,6 +171,78 @@ def motor_to_audio(
         workers: int = None,
         verbose: bool = True,
         ) -> np.ndarray:
+    """
+    Convert motor data into audio signals.
+
+    Parameters
+    ----------
+    motor_data : Union[MotorScore, MotorSeries, str]
+        Input data representing motor scores or series.
+        Can be a MotorScore object, MotorSeries object, or a path to a file.
+
+    audio_files : Optional[Union[Iterable[str], str]], optional
+        Path or list of paths to store the generated audio files.
+        If None, audio files will not be saved. Default is None.
+
+    normalize_audio : int, optional
+        Amplitude normalization factor.
+        -1 indicates no normalization. Default is -1.
+
+    sr : int, optional
+        Sampling rate of the output audio.
+        If None, defaults to the system's default audio sampling rate.
+
+    return_data : bool, optional
+        Flag indicating whether to return the generated audio data.
+        Default is False.
+
+    workers : int, optional
+        Number of worker processes for parallel processing.
+        If None, uses the system's default number of CPU cores.
+        Default is None.
+
+    verbose : bool, optional
+        Verbosity mode. If True, displays progress information.
+        Default is True.
+
+    Returns
+    -------
+    np.ndarray
+        If 'return_data' is True, returns a NumPy array of the generated audio data.
+
+    Raises
+    ------
+    ValueError
+        If the number of audio file paths doesn't match the number of motor data.
+
+    FileNotFoundError
+        If the specified motor file path does not exist.
+
+    TypeError
+        If the specified motor data type is not supported.
+        Supported types include str, MotorScore, and MotorSeries.
+
+    Notes
+    -----
+    This function converts motor data into audio signals using the VocalTractLab synthesizer.
+    It processes the motor parameters and generates corresponding audio signals.
+
+    Examples
+    --------
+    # Example 1: Convert MotorScore object to audio without saving files
+    >>> motor_data = MotorScore(...)  # Replace '...' with actual MotorScore data
+    >>> audio_data = motor_to_audio(motor_data)
+
+    # Example 2: Convert MotorSeries object to audio and save the files
+    >>> motor_series = MotorSeries(...)  # Replace '...' with actual MotorSeries data
+    >>> audio_files = ['audio1.wav', 'audio2.wav']  # List of paths to save audio files
+    >>> motor_to_audio(motor_series, audio_files=audio_files, return_data=False)
+
+    # Example 3: Convert motor data from a file to audio with normalization
+    >>> motor_file_path = 'path/to/motor_data.csv'  # Replace with the actual file path
+    >>> audio_data = motor_to_audio(motor_file_path, normalize_audio=0.5, return_data=True)
+    """
+
     motor_data = make_iterable( motor_data )
     if audio_files is None:
         audio_files = [ None ] * len( motor_data )
@@ -213,6 +285,63 @@ def _motor_to_audio(
         sr,
         state_samples = None,
         ):
+    """
+    Generate audio from motor data.
+
+    Parameters
+    ----------
+    motor_data : Union[MotorScore, MotorSeries, str]
+        Input data representing motor scores or series.
+        Can be a MotorScore object, MotorSeries object, or a path to a file.
+
+    audio_file_path : Optional[str]
+        Path to store the generated audio file. If None, audio will not be saved.
+
+    normalize_audio : int
+        Amplitude normalization factor. Use -1 for no normalization.
+
+    sr : int
+        Sampling rate of the output audio.
+
+    state_samples : int, optional
+        Number of samples for state duration.
+        If None, defaults to a predefined constant value.
+
+    Returns
+    -------
+    torch.Tensor
+        A tensor representing the generated audio.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the specified motor file path does not exist.
+
+    TypeError
+        If the specified motor data type is not supported.
+        Supported types include str, MotorScore, and MotorSeries.
+
+    Notes
+    -----
+    This function generates audio signals from motor data using the VocalTractLab synthesizer.
+    It processes the motor parameters and synthesizes corresponding audio signals.
+
+    Examples
+    --------
+    # Example 1: Generate audio from MotorScore object without saving the file
+    >>> motor_data = MotorScore(...)  # Replace '...' with actual MotorScore data
+    >>> audio_tensor = _motor_to_audio(motor_data, audio_file_path=None, normalize_audio=0, sr=44100)
+
+    # Example 2: Generate audio from MotorSeries object and save the audio file
+    >>> motor_series = MotorSeries(...)  # Replace '...' with actual MotorSeries data
+    >>> audio_path = 'output_audio.wav'  # Path to save the audio file
+    >>> _motor_to_audio(motor_series, audio_file_path=audio_path, normalize_audio=-1, sr=22050)
+
+    # Example 3: Generate audio from a file containing motor data with custom state samples
+    >>> motor_file_path = 'path/to/motor_data.csv'  # Replace with the actual file path
+    >>> audio_tensor = _motor_to_audio(motor_file_path, audio_file_path=None, normalize_audio=0.8, sr=44100, state_samples=120)
+    """
+
     if isinstance( motor_data, str ):
         if not os.path.exists( motor_data ):
             raise FileNotFoundError( 
