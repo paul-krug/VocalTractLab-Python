@@ -1,8 +1,8 @@
 import unittest
 import os
-from vocaltractlab_cython import motor_file_to_audio_file, VtlApiError
+from vocaltractlab.core import motor_to_audio
 
-class TestMotorFileToAudioFile(unittest.TestCase):
+class TestMotorToAudio(unittest.TestCase):
 
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
@@ -37,7 +37,7 @@ class TestMotorFileToAudioFile(unittest.TestCase):
     def test_valid_conversion(self):
         try:
             # Convert the motor file to an audio file
-            motor_file_to_audio_file(
+            motor_to_audio(
                 self.valid_motor_file,
                 self.valid_audio_file,
                 )

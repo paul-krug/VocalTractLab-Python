@@ -1,23 +1,13 @@
 
-'''
-Requires:
-- numpy
-- pandas
-- torch
-- torchaudio
-- soundfile
-- vocaltractlab_cython
-- tools_mp
-- whatever
-'''
+
+
 import os
 import numpy as np
-import pandas as pd
-import torch
-import torchaudio
+
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
-from vocaltractlab_cython.VocalTractLabApi import _synth_block
+from vocaltractlab_cython import synth_block
+from target_approximation.vocaltractlab import MotorSequence, MotorSeries
 
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
 from numpy.typing import ArrayLike
@@ -25,21 +15,9 @@ from numpy.typing import ArrayLike
 from tools_mp import multiprocess
 
 from .utils import make_iterable
-from .dynamics import GestureScore
-from .dynamics import MotorScore
-from .dynamics import MotorSeries
-from .audioprocessing import normalize_audio_amplitude
-from .audioprocessing import resample_like_librosa
+from .audioprocessing import postprocess
 
-
-
-
-#def make_temporary_file():
-#    
-
-#gestural_score_to_audio(
-#        ges_file_path: str,
-#        audio_file_path: str = None,
+          
 
 def gesture_to_audio(
         gesture_data: Union[ Iterable[ str ], str ],
@@ -66,6 +44,8 @@ def gesture_to_audio(
             gesture_data = gd,
             audio_file_path = audio_file_path,
             verbose_api = False,
+            normalize_audio = normalize_audio,
+            sr = sr,
             )
         for gd, audio_file_path in zip(
             gesture_data,
@@ -80,48 +60,43 @@ def gesture_to_audio(
         verbose = verbose,
         mp_threshold = 4,
         )
-    return
+    return audio_data
 
 def _gesture_to_audio(
         gesture_data,
         audio_file_path,
         verbose_api,
-        normalize_audio: int = -1,
-        sr: int = None,
+        normalize_audio,
+        sr,
         ) -> np.ndarray:
-    if isinstance( gesture_data, GestureScore ):
-        gesture_file = gesture_data.to_gesture_file( file_path = None )
-    elif isinstance( gesture_data, str ):
+    if isinstance( gesture_data, str ):
+        #gesture_file = gesture_data.to_gesture_file( file_path = None )
         gesture_file = gesture_data
     else:
         raise TypeError(
             f"""
-            The specified motor data type: '{type(motor_data)}'
+            The specified gesture data type: '{type(gesture_data)}'
             is not supported. Type must be one of the following:
             - str
-            - MotorScore
-            - MotorSeries
             """
             )
-    audio = gestural_score_to_audio(
+    audio = gesture_file_to_audio(
         ges_file_path = gesture_file,
         audio_file_path = None,
         verbose_api = verbose_api,
     )
     
-    if sr is not None:
-        vtl_constants = get_constants()
-        audio = resample( audio, sr, vtl_constants[ 'sampling_rate' ] )
-    
-    if normalize_audio is not None:
-        audio = normalize( audio, normalize_audio )
-
-    if audio_file_path is not None:
-        torchaudio.save( audio_file_path, audio, sr )
+    audio = postprocess(
+        x = audio,
+        sr_out = sr,
+        dBFS = normalize_audio,
+        file_path = audio_file_path,
+        to_numpy = True,
+        )
     
     return audio
     
-
+'''
 def gesture_to_motor(
         gesture_files: Union[ Iterable[ str ], str ],
         motor_files: Optional[ Union[ Iterable[ str ], str ] ],
@@ -161,9 +136,10 @@ def gesture_to_motor(
         mp_threshold = 4,
         )
     return
+'''
 
 def motor_to_audio(
-        motor_data: Union[ MotorScore, MotorSeries, str ],
+        motor_data: Union[ MotorSequence, MotorSeries, str ],
         audio_files: Optional[ Union[ Iterable[str], str ] ] = None,
         normalize_audio: int = -1,
         sr: int = None,
@@ -350,9 +326,14 @@ def _motor_to_audio(
                 does not exist.
                 """
             )
-        motor_series = MotorSeries.from_motor_file( motor_data )
-    elif isinstance( motor_data, MotorScore ):
-        motor_series = motor_data.to_motor_series()
+        motor_series = MotorSeries.load(
+            motor_data,
+            sr = 441,
+            )
+    elif isinstance( motor_data, MotorSequence ):
+        motor_series = motor_data.to_series(
+            sr = 441,
+        )
     elif isinstance( motor_data, MotorSeries ):
         motor_series = motor_data
     else:
@@ -361,63 +342,59 @@ def _motor_to_audio(
             The specified motor data type: '{type(motor_data)}'
             is not supported. Type must be one of the following:
             - str
-            - MotorScore
+            - MotorSequence
             - MotorSeries
             """
             )
     vtl_constants = get_constants()
     if state_samples is None:
-        state_samples = vtl_constants[ 'n_samples_per_state' ]
+        #state_samples = vtl_constants[ 'n_samples_per_state' ]
+        state_samples = int(
+            vtl_constants[ 'sr_audio' ] / motor_series.sr
+        )
+        
 
-    print( motor_series.to_numpy( part='tract' ) )
+    #print( motor_series.to_numpy( part='tract' ) )
 
-    tract_params = motor_series.to_numpy( part='tract' )
-    glottal_params = motor_series.to_numpy( part='glottis' )
-    print( tract_params.shape )
-    print( glottal_params.shape )
-    print( state_samples )
+    tract_params = motor_series.tract().to_numpy( transpose = False )
+    glottal_params = motor_series.glottis().to_numpy( transpose = False )
+    #print( tract_params.shape )
+    #print( glottal_params.shape )
+    #print( state_samples )
 
     
-    audio = _synth_block(
+    audio = synth_block(
         tract_parameters = tract_params,
         glottis_parameters = glottal_params,
         state_samples = state_samples,
         verbose_api = False,
         )
     
-    audio = torch.tensor( audio ).unsqueeze( 0 )
-    print( 'audio shape: ', audio.shape )
-    
-    if sr is None:
-        sr = vtl_constants[ 'sr_audio' ]
-    elif sr != vtl_constants[ 'sr_audio' ]:
-        audio = resample_like_librosa( audio, sr, vtl_constants[ 'sr_audio' ] )
-    
-    if normalize_audio is not None:
-        audio = normalize_audio_amplitude( audio, normalize_audio )
-
-    if audio_file_path is not None:
-        torchaudio.save( audio_file_path, audio, sr )
+    audio = postprocess(
+        x = audio,
+        sr_out = sr,
+        dBFS = normalize_audio,
+        file_path = audio_file_path,
+        to_numpy = True,
+        )
     
     return audio
 
 def phoneme_to_gesture(
         phoneme: str,
         ) -> np.ndarray:
-    vtl_constants = get_constants()
-    return vtl_constants[ 'phonemes' ][ phoneme ]
+    return
 
 def _phoneme_to_gesture(
         phoneme: str,
         ) -> np.ndarray:
-    vtl_constants = get_constants()
-    return vtl_constants[ 'phonemes' ][ phoneme ]
+    return
 
 def phoneme_to_motor():
-    pass
+    return
 
 def _phoneme_to_motor():
-    pass
+    return
 
 
 #def _supra_glottal_state_to_svg_str( args ):
@@ -434,12 +411,3 @@ def _phoneme_to_motor():
 #        svgStr,
 #        )
 #    return svgStr.decode()
-
-
-
-if __name__ == '__main__':
-    gesture_to_motor(
-        gesture_files='test_1.csv',
-
-        motor_files= 'deine_mudda',
-    )
