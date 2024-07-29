@@ -4,6 +4,7 @@
 import os
 import numpy as np
 
+from vocaltractlab_cython import _close
 from vocaltractlab_cython import _initialize
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
@@ -26,6 +27,7 @@ def load_speaker(
         ) -> None:
     if not speaker.endswith( '.speaker' ):
         speaker = f"{speaker}.speaker"
+    _close()
     try:
         _initialize( speaker )
     except VTLAPIError:
