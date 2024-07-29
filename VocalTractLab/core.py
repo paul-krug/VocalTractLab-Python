@@ -4,9 +4,11 @@
 import os
 import numpy as np
 
+from vocaltractlab_cython import _initialize
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
 from vocaltractlab_cython import synth_block
+from vocaltractlab_cython.exceptions import VTLAPIError
 from target_approximation.vocaltractlab import MotorSequence, MotorSeries
 
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
@@ -18,6 +20,34 @@ from .utils import make_iterable
 from .audioprocessing import postprocess
 
           
+
+def load_speaker(
+        speaker: str,
+        ) -> None:
+    if not speaker.endswith( '.speaker' ):
+        speaker = f"{speaker}.speaker"
+    try:
+        _initialize( speaker )
+    except VTLAPIError:
+        speaker_path = os.path.join(
+            os.path.dirname( __file__ ),
+            'speaker',
+            speaker,
+            )
+        _initialize( speaker_path )
+    return
+
+def speakers() -> List[ str ]:
+    speaker_dir = os.path.join(
+        os.path.dirname( __file__ ),
+        'speaker',
+        )
+    speakers = [
+        os.path.basename(f)
+        for f in os.listdir( speaker_dir )
+        if f.endswith( '.speaker' )
+        ]
+    return speakers
 
 def gesture_to_audio(
         gesture_data: Union[ Iterable[ str ], str ],
