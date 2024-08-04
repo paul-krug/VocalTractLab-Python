@@ -4,13 +4,19 @@
 import os
 import numpy as np
 
-from vocaltractlab_cython import _close
-from vocaltractlab_cython import _initialize
+from vocaltractlab_cython.VocalTractLabApi import _close
+from vocaltractlab_cython.VocalTractLabApi import _initialize
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
 from vocaltractlab_cython import synth_block
-from vocaltractlab_cython.exceptions import VTLAPIError
-from target_approximation.vocaltractlab import MotorSequence, MotorSeries
+from vocaltractlab_cython import tract_state_to_limited_tract_state
+from vocaltractlab_cython import tract_state_to_transfer_function
+from vocaltractlab_cython import tract_state_to_tube_state
+#from vocaltractlab_cython.exceptions import VTLAPIError
+from target_approximation.vocaltractlab import MotorSequence
+from target_approximation.vocaltractlab import MotorSeries
+from target_approximation.vocaltractlab import SupraGlottalSequence
+from target_approximation.vocaltractlab import SupraGlottalSeries
 
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
 from numpy.typing import ArrayLike
@@ -19,8 +25,70 @@ from tools_mp import multiprocess
 
 from .utils import make_iterable
 from .audioprocessing import postprocess
+from .frequency_domain import TransferFunction
+from .tube_state import TubeState
 
-          
+
+
+def limit(
+        x: Union[
+            #MotorSequence,
+            MotorSeries,
+            #SupraGlottalSequence,
+            SupraGlottalSeries,
+            str,
+            ],
+        workers: int = None,
+        verbose: bool = True,
+        ):
+    if isinstance( x, MotorSequence ):
+        ms = x.to_series()
+        sgs = ms.tract()
+    elif isinstance( x, MotorSeries ):
+        sgs = x.tract()
+    elif isinstance( x, SupraGlottalSequence ):
+        sgs = x.to_series()
+    elif isinstance( x, str ):
+        sgs = SupraGlottalSeries.load( x )
+    elif isinstance( x, SupraGlottalSeries ):
+        sgs = x
+    else:
+        raise TypeError(
+            f"""
+            The specified data type: '{type(x)}'
+            is not supported. Type must be one of the following:
+            - MotorSequence
+            - MotorSeries
+            - SupraGlottalSequence
+            - SupraGlottalSeries
+            - str
+            """
+            )
+    
+    args = [
+        dict(
+            tract_state = ts,
+            )
+        for ts in sgs.to_numpy( transpose = False )
+        ]
+    
+    states = multiprocess(
+        tract_state_to_limited_tract_state,
+        args = args,
+        return_data = True,
+        workers = workers,
+        verbose = verbose,
+        #mp_threshold = 4, # TODO: not implemented yet
+        )
+    
+    states = np.array( states )
+    lim = SupraGlottalSeries( states )
+    if isinstance( x, MotorSeries ):
+        lim = MotorSeries( lim & states.glottis() )
+    
+    return lim
+    
+    return
 
 def load_speaker(
         speaker: str,
@@ -28,15 +96,23 @@ def load_speaker(
     if not speaker.endswith( '.speaker' ):
         speaker = f"{speaker}.speaker"
     _close()
-    try:
-        _initialize( speaker )
-    except VTLAPIError:
+    # check if speaker is a valid file path
+    if os.path.exists( speaker ):
+        speaker_path = speaker
+    else:
         speaker_path = os.path.join(
             os.path.dirname( __file__ ),
             'speaker',
             speaker,
             )
-        _initialize( speaker_path )
+        if not os.path.exists( speaker_path ):
+            raise FileNotFoundError(
+                f"""
+                The specified speaker file path: '{speaker}'
+                does not exist.
+                """
+                )
+    _initialize( speaker_path )
     return
 
 def speakers() -> List[ str ]:
@@ -411,6 +487,142 @@ def _motor_to_audio(
         )
     
     return audio
+
+def motor_to_transfer_function(
+        x: Union[
+            MotorSequence,
+            MotorSeries,
+            SupraGlottalSequence,
+            SupraGlottalSeries,
+            str,
+            ],
+        n_spectrum_samples: int = 8192,
+        save_magnitude_spectrum: bool = True,
+        save_phase_spectrum: bool = True,
+        workers: int = None,
+        verbose: bool = True,
+        ):
+    if isinstance( x, MotorSequence ):
+        ms = x.to_series()
+        sgs = ms.glottis()
+    elif isinstance( x, MotorSeries ):
+        sgs = x.glottis()
+    elif isinstance( x, SupraGlottalSequence ):
+        sgs = x.to_series()
+    elif isinstance( x, str ):
+        sgs = SupraGlottalSeries.load( x )
+    elif isinstance( x, SupraGlottalSeries ):
+        sgs = x
+    else:
+        raise TypeError(
+            f"""
+            The specified data type: '{type(x)}'
+            is not supported. Type must be one of the following:
+            - MotorSequence
+            - MotorSeries
+            - SupraGlottalSequence
+            - SupraGlottalSeries
+            - str
+            """
+            )
+    args = [
+        dict(
+            tract_state = ts,
+            n_spectrum_samples = n_spectrum_samples,
+            save_magnitude_spectrum = save_magnitude_spectrum,
+            save_phase_spectrum = save_phase_spectrum,
+            )
+        for ts in sgs.to_numpy( transpose = False )
+        ]
+    
+    trf_data = multiprocess(
+        _motor_to_transfer_function,
+        args = args,
+        return_data = True,
+        workers = workers,
+        verbose = verbose,
+        #mp_threshold = 4, # TODO: not implemented yet
+        )
+    
+    return trf_data
+
+def _motor_to_transfer_function( **kwargs ):
+    x = tract_state_to_transfer_function( **kwargs )
+    x[ 'tract_state' ] = kwargs[ 'tract_state' ]
+    return TransferFunction.from_dict( x )
+
+def motor_to_tube(
+        x: Union[
+            MotorSequence,
+            MotorSeries,
+            SupraGlottalSequence,
+            SupraGlottalSeries,
+            str,
+            ],
+	    save_tube_length: bool = True,
+	    save_tube_area: bool = True,
+	    save_tube_articulator: bool = True,
+	    save_incisor_position: bool = True,
+	    save_tongue_tip_side_elevation: bool = True,
+	    save_velum_opening: bool = True,
+	    fast_calculation = True,
+	    workers: int = None,
+        verbose: bool = True,
+        ) -> np.ndarray:
+    
+    if isinstance( x, MotorSequence ):
+        ms = x.to_series()
+        sgs = ms.glottis()
+    elif isinstance( x, MotorSeries ):
+        sgs = x.glottis()
+    elif isinstance( x, SupraGlottalSequence ):
+        sgs = x.to_series()
+    elif isinstance( x, str ):
+        sgs = SupraGlottalSeries.load( x )
+    elif isinstance( x, SupraGlottalSeries ):
+        sgs = x
+    else:
+        raise TypeError(
+            f"""
+            The specified data type: '{type(x)}'
+            is not supported. Type must be one of the following:
+            - MotorSequence
+            - MotorSeries
+            - SupraGlottalSequence
+            - SupraGlottalSeries
+            - str
+            """
+            )
+    
+    args = [
+        dict(
+            tract_state = ts,
+            fast_calculation = fast_calculation,
+            save_tube_length = save_tube_length,
+            save_tube_area = save_tube_area,
+            save_tube_articulator = save_tube_articulator,
+            save_incisor_position = save_incisor_position,
+            save_tongue_tip_side_elevation = save_tongue_tip_side_elevation,
+            save_velum_opening = save_velum_opening,
+            )
+        for ts in sgs.to_numpy( transpose = False )
+        ]
+    
+    tube_data = multiprocess(
+        _motor_to_tube,
+        args = args,
+        return_data = True,
+        workers = workers,
+        verbose = verbose,
+        #mp_threshold = 4, # TODO: not implemented yet
+        )
+    
+    return tube_data
+
+def _motor_to_tube( **kwargs ):
+    x = tract_state_to_tube_state( **kwargs )
+    x[ 'tract_state' ] = kwargs[ 'tract_state' ]
+    return TubeState.from_dict( x )
 
 def phoneme_to_gesture(
         phoneme: str,

@@ -1,25 +1,29 @@
 
 
 
-import VocalTractLab.VocalTractLabApi as vtl
-import VocalTractLab.plotting_tools as PT
-from VocalTractLab.plotting_tools import finalize_plot
-from VocalTractLab.plotting_tools import get_plot
-from VocalTractLab.plotting_tools import get_plot_limits
-import librosa
+from vocaltractlab_cython import get_constants
+#import target_approximation.utils as PT
+from target_approximation.utils import finalize_plot
+from target_approximation.utils import get_plot
+from target_approximation.utils import get_plot_limits
+#import librosa
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
+
+from VocalTractLab.utils import multiple_formatter
+from VocalTractLab.audioprocessing import amplitude_to_db
 
 
 
 class TransferFunction():
     def __init__(
             self, 
+            tract_state: np.ndarray,
             magnitude_spectrum: np.ndarray,
             phase_spectrum: np.ndarray,
             n_spectrum_samples: int,
-            name: str = 'transfer_function'
+            #name: str = 'transfer_function'
             ):
         if not isinstance( n_spectrum_samples, int ):
             raise ValueError(
@@ -29,8 +33,9 @@ class TransferFunction():
                 {n_spectrum_samples}
                 """
                 )
-        self.constants = vtl.get_constants()
-        self.delta_frequency = self.constants[ 'samplerate_audio' ] / n_spectrum_samples
+        self.constants = get_constants()
+        self.tract_state = tract_state
+        self.delta_frequency = self.constants[ 'sr_audio' ] / n_spectrum_samples
         max_bin = round( n_spectrum_samples / self.delta_frequency )
         self.n_spectrum_samples = n_spectrum_samples
         if isinstance( magnitude_spectrum, np.ndarray ):
@@ -48,6 +53,18 @@ class TransferFunction():
         self.formants = self.get_formants()
         self.f1, self.f2, self.f3, self.f4 = self.formants
         return
+    
+    @classmethod
+    def from_dict(
+            cls,
+            x,
+            ):
+        return cls(
+            tract_state = x[ 'tract_state' ],
+            magnitude_spectrum = x[ 'magnitude_spectrum' ],
+            phase_spectrum = x[ 'phase_spectrum' ],
+            n_spectrum_samples = x[ 'n_spectrum_samples' ],
+            )
 
     def get_formants(
             self,
@@ -83,7 +100,7 @@ class TransferFunction():
         figure, axs = get_plot( n_rows = len( parameters ), axs = axs )
         for index, parameter in enumerate( parameters ):
             if parameter == 'frequency':
-                y = librosa.amplitude_to_db( self.data[ parameter ] )
+                y = amplitude_to_db( self.data[ parameter ] )
                 continuities = [ slice( 0, len(y) ) ]
                 y_title = 'Intensity [dB]'
                 #_min = np.min( y )

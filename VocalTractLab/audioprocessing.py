@@ -158,3 +158,32 @@ def st_to_hz(
         reference = 1.0,
     ):
     return reference*pow( 2, frequency_st / 12.0 )
+
+def power_to_db(
+    x: np.ndarray,  
+    ref: float = 1.0,
+    eps: float = 1e-10,
+    ) -> np.ndarray:
+
+    x = np.asarray(x)
+
+    if eps <= 0:
+        raise ValueError(
+            "Arg eps must be positive"
+            )
+
+    ref_value = np.abs(ref)
+
+    db = 10.0 * np.log10(np.maximum(eps, x))
+    db -= 10.0 * np.log10(np.maximum(eps, ref_value))
+
+    return db
+
+def amplitude_to_db(
+    x: np.ndarray,
+    **kwargs,
+    ) -> np.ndarray:
+    return power_to_db(
+        np.abs(x) ** 2,
+        **kwargs,
+        )

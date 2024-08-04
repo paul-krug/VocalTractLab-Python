@@ -1,9 +1,9 @@
 
 
 
-from VocalTractLab.plotting_tools import finalize_plot
-from VocalTractLab.plotting_tools import get_plot
-from VocalTractLab.plotting_tools import get_plot_limits
+from target_approximation.utils import finalize_plot
+from target_approximation.utils import get_plot
+from target_approximation.utils import get_plot_limits
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 
 class TubeState():
     def __init__(
-            self, 
+            self,
+            tract_state,
             tube_length,
             tube_area,
             tube_articulator,
@@ -19,6 +20,7 @@ class TubeState():
             tongue_tip_side_elevation,
             velum_opening,
             ):
+        self.tract_state = tract_state
         self.tube_length = tube_length
         self.tube_area = tube_area
         self.tube_articulator = tube_articulator
@@ -27,28 +29,45 @@ class TubeState():
         self.velum_opening = velum_opening
         self.open_limit = 0.3  # 0.3 cm^2 for open tracts
         self.tight_limit = 0.001 # above 0.001 tight, below or equal closed # actual value is 0.0001 however
-        self.constriction = self.get_constriction()
+        self.constriction = self.get_constriction_class(
+            tube_area = np.min( tube_area ),
+            )
         self.constriction_data = self.get_constriction_threshold_crossings()
         return
+    
+    @classmethod
+    def from_dict(
+            cls,
+            x,
+            ):
+        return cls(
+            tract_state = x[ 'tract_state' ],
+            tube_length = x[ 'tube_length' ],
+            tube_area = x[ 'tube_area' ],
+            tube_articulator = x[ 'tube_articulator' ],
+            incisor_position = x[ 'incisor_position' ],
+            tongue_tip_side_elevation = x[ 'tongue_tip_side_elevation' ],
+            velum_opening = x[ 'velum_opening' ],
+            )
 
-    def get_constriction( self, return_str = False ):
-        constriction_strings = [ 'open', 'tight', 'closed' ]
-        min_area = np.min( self.tube_area )
-        constriction = None
-        if min_area >= self.open_limit:
-            constriction = 0
-        elif np.isclose( min_area, 0.15 ):
-            constriction = 3
-        elif np.isclose( min_area, 0.25 ):
-            constriction = 4
-        elif min_area > self.tight_limit:
-            constriction = 1
-        elif np.isclose( min_area, 0.0001 ):
-            constriction = 2
-        if not return_str:
-            return constriction
-        else:
-            return constriction_strings[ constriction ]
+    #def get_constriction( self, return_str = False ):
+    #    constriction_strings = [ 'open', 'tight', 'closed' ]
+    #    min_area = np.min( self.tube_area )
+    #    constriction = None
+    #    if min_area >= self.open_limit:
+    #        constriction = 0
+    #    elif np.isclose( min_area, 0.15 ):
+    #        constriction = 3
+    #    elif np.isclose( min_area, 0.25 ):
+    #        constriction = 4
+    #    elif min_area > self.tight_limit:
+    #        constriction = 1
+    #    elif np.isclose( min_area, 0.0001 ):
+    #        constriction = 2
+    #    if not return_str:
+    #        return constriction
+    #    else:
+    #        return constriction_strings[ constriction ]
 
     def get_constriction_class(
         self,
