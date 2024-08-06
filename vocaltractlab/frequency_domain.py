@@ -11,8 +11,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 
-from VocalTractLab.utils import multiple_formatter
-from VocalTractLab.audioprocessing import amplitude_to_db
+from vocaltractlab.utils import multiple_formatter
+from vocaltractlab.audioprocessing import amplitude_to_db
 
 
 

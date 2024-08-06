@@ -8,6 +8,8 @@ from vocaltractlab_cython.VocalTractLabApi import _close
 from vocaltractlab_cython.VocalTractLabApi import _initialize
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
+from vocaltractlab_cython import gesture_file_to_motor_file
+from vocaltractlab_cython import phoneme_file_to_gesture_file
 from vocaltractlab_cython import synth_block
 from vocaltractlab_cython import tract_state_to_limited_tract_state
 from vocaltractlab_cython import tract_state_to_transfer_function
@@ -128,7 +130,7 @@ def speakers() -> List[ str ]:
     return speakers
 
 def gesture_to_audio(
-        gesture_data: Union[ Iterable[ str ], str ],
+        x: Union[ Iterable[ str ], str ],
         audio_files: Optional[ Union[ Iterable[ str ], str ] ],
         normalize_audio: int = -1,
         sr: int = None,
@@ -137,26 +139,26 @@ def gesture_to_audio(
         verbose: bool = True,
         ) -> None:
 
-    gesture_data = make_iterable( gesture_data )
+    gesture_files = make_iterable( x )
     audio_files = make_iterable( audio_files )
-    if len( gesture_data ) != len( audio_files ):
+    if len( gesture_files ) != len( audio_files ):
         raise ValueError(
             f"""
-            The number of gesture file paths: {len(gesture_data)}
+            The number of gesture file paths: {len(gesture_files)}
             does not match the number of audio file paths: {len(audio_files)}.
             """
             )
     
     args = [
         dict(
-            gesture_data = gd,
-            audio_file_path = audio_file_path,
+            gesture_data = gf,
+            audio_file_path = af,
             verbose_api = False,
             normalize_audio = normalize_audio,
             sr = sr,
             )
-        for gd, audio_file_path in zip(
-            gesture_data,
+        for gf, af in zip(
+            gesture_files,
             audio_files,
             )
         ]
@@ -166,7 +168,7 @@ def gesture_to_audio(
         return_data = return_data,
         workers = workers,
         verbose = verbose,
-        mp_threshold = 4,
+        #mp_threshold = 4,
         )
     return audio_data
 
@@ -203,12 +205,10 @@ def _gesture_to_audio(
         )
     
     return audio
-    
-'''
+
 def gesture_to_motor(
         gesture_files: Union[ Iterable[ str ], str ],
         motor_files: Optional[ Union[ Iterable[ str ], str ] ],
-        return_data: bool = False,
         workers: int = None,
         verbose: bool = True,
         ) -> None:
@@ -225,26 +225,23 @@ def gesture_to_motor(
     
     args = [
         dict(
-            motor_data = md,
-            audio_file_path = audio_file_path,
-            normalize_audio = normalize_audio,
-            sr = sr,
+            gesture_file = gf,
+            motor_file = mf,
             )
-        for md, audio_file_path in zip(
-            motor_data,
-            audio_file_path_list,
+        for gf, mf in zip(
+            gesture_files,
+            motor_files,
             )
         ]
-    audio_data = multiprocess(
-        _motor_to_audio,
+    multiprocess(
+        gesture_file_to_motor_file,
         args = args,
-        return_data = return_data,
+        return_data = False,
         workers = workers,
         verbose = verbose,
-        mp_threshold = 4,
+        #mp_threshold = 4,
         )
     return
-'''
 
 def motor_to_audio(
         motor_data: Union[ MotorSequence, MotorSeries, str ],
@@ -454,6 +451,15 @@ def _motor_to_audio(
             - MotorSeries
             """
             )
+    if motor_series.sr is None:
+        raise ValueError(
+            f"""
+            The specified motor series has no asociated sampling
+            rate and thus, cannot be used for audio generation.
+            Please ensure that the sampling rate is set before
+            generating audio.
+            """
+            )
     vtl_constants = get_constants()
     if state_samples is None:
         #state_samples = vtl_constants[ 'n_samples_per_state' ]
@@ -624,21 +630,203 @@ def _motor_to_tube( **kwargs ):
     x[ 'tract_state' ] = kwargs[ 'tract_state' ]
     return TubeState.from_dict( x )
 
+def phoneme_to_audio(
+        x: List[ str ],
+        gesture_files: List[ str ],
+        motor_files: List[ str ],
+        f0_files: Optional[ List[ str ] ] = None,
+        motor_f0_files: Optional[ List[ str ] ] = None,
+        audio_files: Optional[ List[ str ] ] = None,
+        normalize_audio = -1,
+        sr = None,
+        return_data = False,
+        workers: int = None,
+        verbose: bool = True,
+        ):
+    
+    phoneme_to_motor(
+        x = x,
+        gesture_files = gesture_files,
+        motor_files = motor_files,
+        workers = workers,
+        verbose = verbose,
+        )
+    
+    if f0_files is not None:
+        if motor_f0_files is None:
+            ms_data = augment_motor_f0(
+                motor_files = motor_files,
+                f0_files = f0_files,
+                out_files = motor_f0_files,
+                return_data = True,
+                workers = workers,
+                verbose = verbose,
+                )
+        else:
+            augment_motor_f0(
+                motor_files = motor_files,
+                f0_files = f0_files,
+                out_files = motor_f0_files,
+                return_data = False,
+                workers = workers,
+                verbose = verbose,
+                )
+            ms_data = motor_f0_files
+
+    else:
+        ms_data = motor_files
+
+    audio_data = motor_to_audio(
+        motor_data = ms_data,
+        audio_files = audio_files,
+        normalize_audio = normalize_audio,
+        sr = sr,
+        return_data = return_data,
+        workers = workers,
+        verbose = verbose,
+        )
+    
+    return audio_data
+
 def phoneme_to_gesture(
-        phoneme: str,
+        x: List[ str ],
+        gesture_files: List[ str ],
+        workers: int = None,
+        verbose: bool = True,
         ) -> np.ndarray:
+    phoneme_files = make_iterable( x )
+    # TODO: implement phn sequence to phn file
+    gesture_files = make_iterable( gesture_files )
+    if len( phoneme_files ) != len( gesture_files ):
+        raise ValueError(
+            f"""
+            The number of phoneme file paths: {len(phoneme_files)}
+            does not match the number of gesture file paths: {len(gesture_files)}.
+            """
+            )
+    
+    args = [
+        dict(
+            phoneme_file = pf,
+            gesture_file = gf,
+            verbose_api = False,
+            )
+        for pf, gf in zip(
+            phoneme_files,
+            gesture_files,
+            )
+        ]
+    multiprocess(
+        phoneme_file_to_gesture_file,
+        args = args,
+        return_data = False,
+        workers = workers,
+        verbose = verbose,
+        #mp_threshold = 4,
+        )
     return
 
-def _phoneme_to_gesture(
-        phoneme: str,
-        ) -> np.ndarray:
+def phoneme_to_motor(
+        x: List[ str ],
+        gesture_files: List[ str ],
+        motor_files: List[ str ],
+        workers: int = None,
+        verbose: bool = True,
+        ):
+    
+    phoneme_to_gesture(
+        x = x,
+        gesture_files = gesture_files,
+        workers = workers,
+        verbose = verbose,
+        )
+    
+    gesture_to_motor(
+        gesture_files = gesture_files,
+        motor_files = motor_files,
+        workers = workers,
+        verbose = verbose,
+        )
+    
     return
 
-def phoneme_to_motor():
-    return
+def augment_motor_f0(
+        motor_files: Union[ Iterable[ str ], str ],
+        f0_files: Union[ Iterable[ str ], str ],
+        out_files: Optional[ Union[ Iterable[ str ], str ] ] = None,
+        return_data: bool = False,
+        workers: int = None,
+        verbose: bool = True,
+        ):
+    motor_files = make_iterable( motor_files )
+    f0_files = make_iterable( f0_files )
+    if len( motor_files ) != len( f0_files ):
+        raise ValueError(
+            f"""
+            The number of motor file paths: {len(motor_files)}
+            does not match the number of f0 file paths: {len(f0_files)}.
+            """
+            )
+    if out_files is not None:
+        out_files = make_iterable( out_files )
+        if len( motor_files ) != len( out_files ):
+            raise ValueError(
+                f"""
+                The number of motor file paths: {len(motor_files)}
+                does not match the number of output file paths: {len(out_files)}.
+                """
+                )
+    
+    args = [
+        dict(
+            motor_file = mf,
+            f0_file = ff,
+            out_file = of,
+            )
+        for mf, ff, of in zip(
+            motor_files,
+            f0_files,
+            out_files,
+            )
+        ]
+    
+    ms_data = multiprocess(
+        _augment_motor_f0,
+        args = args,
+        return_data = return_data,
+        workers = workers,
+        verbose = verbose,
+        #mp_threshold = 4,
+        )
+    return ms_data
 
-def _phoneme_to_motor():
-    return
+def _augment_motor_f0(
+        motor_file,
+        f0_file,
+        out_file = None,
+        ):
+    ms = MotorSeries.load( motor_file )
+    ms.resample( target_sr = 441 )
+
+    f0 = get_f0( file_path )
+    f0 = resample_f0( f0, self.sr )
+    # check if f0 has the same length as the series
+    # if smaller, constant pad with last value of f0
+    # if larger, truncate
+    if len( f0 ) < len( ms ):
+        f0 = np.pad(
+            f0,
+            ( 0, len( ms ) - len( f0 ) ),
+            mode = 'constant',
+            constant_values = f0[ -1 ],
+            )
+    elif len( f0 ) > len( ms ):
+        f0 = f0[ : len( ms ) ]
+    ms[ 'f0' ] = f0
+
+    if out_file is not None:
+        ms.save( out_file )
+    return ms
 
 
 #def _supra_glottal_state_to_svg_str( args ):
