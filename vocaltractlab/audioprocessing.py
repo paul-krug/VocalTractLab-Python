@@ -190,7 +190,7 @@ def amplitude_to_db(
         **kwargs,
         )
 
-def f0(
+def audio_to_f0(
         x: Union[str, torch.Tensor, ArrayLike],
         sr_in: int = None,
         upper_f0_limit: int = 400,

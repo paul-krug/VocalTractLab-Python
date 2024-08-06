@@ -15,6 +15,7 @@ from vocaltractlab_cython import tract_state_to_limited_tract_state
 from vocaltractlab_cython import tract_state_to_transfer_function
 from vocaltractlab_cython import tract_state_to_tube_state
 #from vocaltractlab_cython.exceptions import VTLAPIError
+from target_approximation import TargetSeries
 from target_approximation.vocaltractlab import MotorSequence
 from target_approximation.vocaltractlab import MotorSeries
 from target_approximation.vocaltractlab import SupraGlottalSequence
@@ -26,6 +27,7 @@ from numpy.typing import ArrayLike
 from tools_mp import multiprocess
 
 from .utils import make_iterable
+from .audioprocessing import audio_to_f0
 from .audioprocessing import postprocess
 from .frequency_domain import TransferFunction
 from .tube_state import TubeState
@@ -754,6 +756,7 @@ def augment_motor_f0(
         motor_files: Union[ Iterable[ str ], str ],
         f0_files: Union[ Iterable[ str ], str ],
         out_files: Optional[ Union[ Iterable[ str ], str ] ] = None,
+        target_sr: int = 441,
         return_data: bool = False,
         workers: int = None,
         verbose: bool = True,
@@ -782,6 +785,7 @@ def augment_motor_f0(
             motor_file = mf,
             f0_file = ff,
             out_file = of,
+            target_sr = target_sr,
             )
         for mf, ff, of in zip(
             motor_files,
@@ -803,26 +807,21 @@ def augment_motor_f0(
 def _augment_motor_f0(
         motor_file,
         f0_file,
-        out_file = None,
+        out_file,
+        target_sr,
         ):
     ms = MotorSeries.load( motor_file )
-    ms.resample( target_sr = 441 )
+    ms.resample( target_sr = target_sr )
 
-    f0 = get_f0( file_path )
-    f0 = resample_f0( f0, self.sr )
-    # check if f0 has the same length as the series
-    # if smaller, constant pad with last value of f0
-    # if larger, truncate
-    if len( f0 ) < len( ms ):
-        f0 = np.pad(
-            f0,
-            ( 0, len( ms ) - len( f0 ) ),
-            mode = 'constant',
-            constant_values = f0[ -1 ],
-            )
-    elif len( f0 ) > len( ms ):
-        f0 = f0[ : len( ms ) ]
-    ms[ 'f0' ] = f0
+    _, feature = audio_to_f0( f0_file )
+    f0 = feature[ :, 0 ]
+    tgss = TargetSeries(
+        series = f0,
+        sr = 100,
+        tiers = [ 'F0' ],
+        )
+    tgss.resample( target_sr = target_sr )
+    ms = ms & tgss
 
     if out_file is not None:
         ms.save( out_file )
