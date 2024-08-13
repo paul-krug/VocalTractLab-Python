@@ -760,6 +760,7 @@ def augment_motor_f0(
         return_data: bool = False,
         workers: int = None,
         verbose: bool = True,
+        **kwargs,
         ):
     motor_files = make_iterable( motor_files )
     f0_files = make_iterable( f0_files )
@@ -786,6 +787,7 @@ def augment_motor_f0(
             f0_file = ff,
             out_file = of,
             target_sr = target_sr,
+            **kwargs,
             )
         for mf, ff, of in zip(
             motor_files,
@@ -809,6 +811,7 @@ def _augment_motor_f0(
         f0_file,
         out_file,
         target_sr,
+        **kwargs,
         ):
     ms = MotorSeries.load( motor_file )
     ms.resample( target_sr = target_sr )
@@ -824,7 +827,7 @@ def _augment_motor_f0(
     ms = ms & tgss
 
     if out_file is not None:
-        ms.save( out_file )
+        ms.save( out_file, **kwargs )
     return ms
 
 
