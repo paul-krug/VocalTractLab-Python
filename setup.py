@@ -7,7 +7,7 @@ from setuptools import setup
 
 install_requires = [
     'numpy',
-    'target-approximation==0.04',
+    'target-approximation>=0.0.4',
     'tools-mp',
     'torch',
     'torchaudio',
@@ -37,7 +37,7 @@ install_requires = [
 
 setup_args = dict(
     name='VocalTractLab',
-    version='0.5.1',
+    version='0.5.2',
     description='High-performance articulatory speech synthesis in Python',
     long_description_content_type='text/markdown',
     long_description=open('README.md').read(),
