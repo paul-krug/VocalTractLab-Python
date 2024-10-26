@@ -523,9 +523,9 @@ def motor_to_transfer_function(
         ):
     if isinstance( x, MotorSequence ):
         ms = x.to_series()
-        sgs = ms.glottis()
+        sgs = ms.tract()
     elif isinstance( x, MotorSeries ):
-        sgs = x.glottis()
+        sgs = x.tract()
     elif isinstance( x, SupraGlottalSequence ):
         sgs = x.to_series()
     elif isinstance( x, str ):
@@ -593,9 +593,9 @@ def motor_to_tube(
     
     if isinstance( x, MotorSequence ):
         ms = x.to_series()
-        sgs = ms.glottis()
+        sgs = ms.tract()
     elif isinstance( x, MotorSeries ):
-        sgs = x.glottis()
+        sgs = x.tract()
     elif isinstance( x, SupraGlottalSequence ):
         sgs = x.to_series()
     elif isinstance( x, str ):
