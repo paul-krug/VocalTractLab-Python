@@ -35,6 +35,8 @@ from .frequency_domain import TransferFunction
 from .tube_state import TubeState
 
 
+def active_speaker() -> str:
+    return cyvtl.active_speaker()
 
 def limit(
         x: Union[
