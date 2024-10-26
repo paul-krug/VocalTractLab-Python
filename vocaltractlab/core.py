@@ -4,8 +4,10 @@
 import os
 import numpy as np
 
+import vocaltractlab_cython as cyvtl
 from vocaltractlab_cython.VocalTractLabApi import _close
 from vocaltractlab_cython.VocalTractLabApi import _initialize
+#from vocaltractlab_cython import calculate_tongueroot_automatically
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
 from vocaltractlab_cython import gesture_file_to_motor_file
@@ -24,7 +26,10 @@ from target_approximation.vocaltractlab import SupraGlottalSeries
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
 from numpy.typing import ArrayLike
 
-from tools_mp import multiprocess
+#from tools_mp import multiprocess
+from .process import multiprocess
+from .process import process
+#from .process import OLD_multiprocess as multiprocess
 
 from .utils import make_iterable
 from .audioprocessing import audio_to_f0
@@ -32,7 +37,19 @@ from .audioprocessing import postprocess
 from .frequency_domain import TransferFunction
 from .tube_state import TubeState
 
+#print( 'VocalTractLab API loaded' )
 
+ACTIVE_SPEAKER = 'JD3'
+AUTO_TONGUE_ROOT = True
+
+def get_active_speaker() -> str:
+    return ACTIVE_SPEAKER
+
+def calculate_tongueroot_automatically( auto: bool ):
+    cyvtl.calculate_tongueroot_automatically( auto )
+    global AUTO_TONGUE_ROOT
+    AUTO_TONGUE_ROOT = auto
+    return
 
 def limit(
         x: Union[
@@ -79,6 +96,8 @@ def limit(
     states = multiprocess(
         tract_state_to_limited_tract_state,
         args = args,
+        initializer=load_speaker,
+        initargs=(ACTIVE_SPEAKER, AUTO_TONGUE_ROOT),
         return_data = True,
         workers = workers,
         verbose = verbose,
@@ -91,11 +110,10 @@ def limit(
         lim = MotorSeries( lim & states.glottis() )
     
     return lim
-    
-    return
 
 def load_speaker(
         speaker: str,
+        auto_tongue_root: Optional[ bool ] = None,
         ) -> None:
     if not speaker.endswith( '.speaker' ):
         speaker = f"{speaker}.speaker"
@@ -117,6 +135,10 @@ def load_speaker(
                 """
                 )
     _initialize( speaker_path )
+    global ACTIVE_SPEAKER
+    ACTIVE_SPEAKER = speaker
+    if auto_tongue_root is not None:
+        calculate_tongueroot_automatically( auto_tongue_root )
     return
 
 def speakers() -> List[ str ]:
@@ -351,9 +373,11 @@ def motor_to_audio(
             audio_files,
             )
         ]
-    audio_data = multiprocess(
+    audio_data = process(
         _motor_to_audio,
         args = args,
+        initializer=load_speaker,
+        initargs=(ACTIVE_SPEAKER, AUTO_TONGUE_ROOT),
         return_data = return_data,
         workers = workers,
         verbose = verbose,
@@ -546,6 +570,8 @@ def motor_to_transfer_function(
     trf_data = multiprocess(
         _motor_to_transfer_function,
         args = args,
+        initializer=load_speaker,
+        initargs=(ACTIVE_SPEAKER, AUTO_TONGUE_ROOT),
         return_data = True,
         workers = workers,
         verbose = verbose,
@@ -619,6 +645,8 @@ def motor_to_tube(
     tube_data = multiprocess(
         _motor_to_tube,
         args = args,
+        initializer=load_speaker,
+        initargs=(ACTIVE_SPEAKER, AUTO_TONGUE_ROOT),
         return_data = True,
         workers = workers,
         verbose = verbose,
