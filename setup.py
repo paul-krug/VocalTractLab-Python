@@ -7,11 +7,11 @@ from setuptools import setup
 
 install_requires = [
     'numpy',
-    'target-approximation==0.04',
-    'tools-mp',
+    'target-approximation==0.0.4',
+    'tools-mp==0.2.0',
     'torch',
     'torchaudio',
-    'vocaltractlab-cython==0.0.13',
+    'vocaltractlab-cython==0.0.14.dev1',
     ]
 
 

@@ -4,8 +4,10 @@
 import os
 import numpy as np
 
+import vocaltractlab_cython as cyvtl
 from vocaltractlab_cython.VocalTractLabApi import _close
 from vocaltractlab_cython.VocalTractLabApi import _initialize
+#from vocaltractlab_cython import active_speaker
 from vocaltractlab_cython import get_constants
 from vocaltractlab_cython import gesture_file_to_audio
 from vocaltractlab_cython import gesture_file_to_motor_file
@@ -24,7 +26,7 @@ from target_approximation.vocaltractlab import SupraGlottalSeries
 from typing import Union, List, Tuple, Dict, Any, Optional, Callable, Iterable, Sequence
 from numpy.typing import ArrayLike
 
-from tools_mp import multiprocess
+from tools_mp import process
 
 from .utils import make_iterable
 from .audioprocessing import audio_to_f0
@@ -33,6 +35,8 @@ from .frequency_domain import TransferFunction
 from .tube_state import TubeState
 
 
+def active_speaker() -> str:
+    return cyvtl.active_speaker()
 
 def limit(
         x: Union[
@@ -76,13 +80,15 @@ def limit(
         for ts in sgs.to_numpy( transpose = False )
         ]
     
-    states = multiprocess(
+    states = process(
         tract_state_to_limited_tract_state,
         args = args,
         return_data = True,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4, # TODO: not implemented yet
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     
     states = np.array( states )
@@ -91,15 +97,13 @@ def limit(
         lim = MotorSeries( lim & states.glottis() )
     
     return lim
-    
-    return
 
 def load_speaker(
         speaker: str,
         ) -> None:
     if not speaker.endswith( '.speaker' ):
         speaker = f"{speaker}.speaker"
-    _close()
+
     # check if speaker is a valid file path
     if os.path.exists( speaker ):
         speaker_path = speaker
@@ -116,6 +120,7 @@ def load_speaker(
                 does not exist.
                 """
                 )
+    _close()
     _initialize( speaker_path )
     return
 
@@ -164,13 +169,15 @@ def gesture_to_audio(
             audio_files,
             )
         ]
-    audio_data = multiprocess(
+    audio_data = process(
         _gesture_to_audio,
         args = args,
         return_data = return_data,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4,
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     return audio_data
 
@@ -235,13 +242,15 @@ def gesture_to_motor(
             motor_files,
             )
         ]
-    multiprocess(
+    process(
         gesture_file_to_motor_file,
         args = args,
         return_data = False,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4,
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     return
 
@@ -351,13 +360,15 @@ def motor_to_audio(
             audio_files,
             )
         ]
-    audio_data = multiprocess(
+    audio_data = process(
         _motor_to_audio,
         args = args,
         return_data = return_data,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4,
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     return audio_data
 
@@ -543,13 +554,15 @@ def motor_to_transfer_function(
         for ts in sgs.to_numpy( transpose = False )
         ]
     
-    trf_data = multiprocess(
+    trf_data = process(
         _motor_to_transfer_function,
         args = args,
         return_data = True,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4, # TODO: not implemented yet
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     
     return trf_data
@@ -616,13 +629,15 @@ def motor_to_tube(
         for ts in sgs.to_numpy( transpose = False )
         ]
     
-    tube_data = multiprocess(
+    tube_data = process(
         _motor_to_tube,
         args = args,
         return_data = True,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4, # TODO: not implemented yet
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     
     return tube_data
@@ -718,13 +733,15 @@ def phoneme_to_gesture(
             gesture_files,
             )
         ]
-    multiprocess(
+    process(
         phoneme_file_to_gesture_file,
         args = args,
         return_data = False,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4,
+        mp_threshold = 4,
+        initializer = load_speaker,
+        initargs = ( cyvtl.active_speaker(), ),
         )
     return
 
@@ -796,13 +813,15 @@ def augment_motor_f0(
             )
         ]
     
-    ms_data = multiprocess(
+    ms_data = process(
         _augment_motor_f0,
         args = args,
         return_data = return_data,
         workers = workers,
         verbose = verbose,
-        #mp_threshold = 4,
+        mp_threshold = 4,
+        # Don't need to load the speaker for this function
+        # Function does not use the VocalTractLab API
         )
     return ms_data
 
