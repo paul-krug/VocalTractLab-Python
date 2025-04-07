@@ -6,6 +6,7 @@ import numpy as np
 import tempfile
 import subprocess
 import torchaudio
+import warnings
 
 import vocaltractlab_cython as cyvtl
 from vocaltractlab_cython.VocalTractLabApi import _close
@@ -107,6 +108,7 @@ def limit(
 
 def load_speaker(
         speaker: str,
+        auto_tongue_root: Optional[ bool ] = None,
         ) -> None:
     if not speaker.endswith( '.speaker' ):
         speaker = f"{speaker}.speaker"
@@ -129,6 +131,9 @@ def load_speaker(
                 )
     _close()
     _initialize( speaker_path )
+
+    if auto_tongue_root is not None:
+        cyvtl.calculate_tongueroot_automatically( auto_tongue_root )
     return
 
 def speakers() -> List[ str ]:
@@ -560,9 +565,12 @@ def motor_to_contour(
                 )
             audio = audio_file
     else:
-        audio = None
+        if audio_file is None:
+            audio = None
+        else:
+            audio = audio_file
     
-    def _plot_and_export( path_data, image_dir, video_file, audio ):
+    def _plot_and_export( path_data, image_dir, video_file, audio, fps ):
         image_files = [
             os.path.join( image_dir, f"input_{i}.png" )
             for i in range( len( path_data ) )
@@ -582,7 +590,8 @@ def motor_to_contour(
             audio_args = [
                 "-i", audio_file,       # Input audio
                 "-c:v", "copy",         # Copy video codec (no re-encoding)
-                "-c:a", "mp3",          # Set audio codec to AAC
+                "-c:a", "mp3",          # Set audio codec to MP3
+                #"-c:a", "aac",          # Set audio codec to AAC
                 "-strict", "experimental",  # Allow experimental AAC codec
                 "-b:a", "192k",         # Audio bitrate
                 "-shortest", 
@@ -591,15 +600,24 @@ def motor_to_contour(
             audio_args = [
                 "-i", audio,            # Input audio
                 "-c:v", "copy",         # Copy video codec (no re-encoding)
-                "-c:a", "mp3",          # Set audio codec to AAC
+                "-c:a", "mp3",          # Set audio codec to MP3
+                #"-c:a", "aac",          # Set audio codec to AAC
                 "-strict", "experimental",  # Allow experimental AAC codec
                 "-b:a", "192k",         # Audio bitrate
                 "-shortest", 
             ]
-        elif audio is None:
+        else:# audio is None:
             audio_args = []
 
         if video_file is not None:
+            if fps is None:
+                warnings.warn(
+                    f"""
+                    Video should be generated, but no frame rate was specified.
+                    Using default frame rate of 30 fps.
+                    """
+                )
+                fps = 30
             subprocess.run([
                 'ffmpeg',
                 '-framerate', str(fps),
@@ -608,6 +626,9 @@ def motor_to_contour(
                 '-vf', f'crop=trunc(iw/2)*2:trunc(ih/2)*2',
                 '-pix_fmt', 'yuv420p',
                 '-vcodec', 'libx264',
+                #'-vcodec', 'x264',
+                #'-vcodec', 'mpeg4',
+                #'-vcodec', 'libxvid',
                 #'-preset', 'ultrafast',
                 '-r', str(fps),
                 '-crf', '17',
@@ -624,10 +645,10 @@ def motor_to_contour(
         )
     
     if image_dir is not None:
-        _plot_and_export( path_data, image_dir, video_file, audio )
+        _plot_and_export( path_data, image_dir, video_file, audio, fps )
     else:
         with tempfile.TemporaryDirectory() as temp_dir:
-            _plot_and_export( path_data, temp_dir, video_file, audio )
+            _plot_and_export( path_data, temp_dir, video_file, audio, fps )
 
     return path_data
 

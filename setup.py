@@ -37,7 +37,7 @@ install_requires = [
 
 setup_args = dict(
     name='VocalTractLab',
-    version='0.5.3.dev0',
+    version='0.5.4.dev0',
     description='High-performance articulatory speech synthesis in Python',
     long_description_content_type='text/markdown',
     long_description=open('README.md').read(),
