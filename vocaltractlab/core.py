@@ -590,8 +590,8 @@ def motor_to_contour(
             audio_args = [
                 "-i", audio_file,       # Input audio
                 "-c:v", "copy",         # Copy video codec (no re-encoding)
-                "-c:a", "mp3",          # Set audio codec to MP3
-                #"-c:a", "aac",          # Set audio codec to AAC
+                #"-c:a", "mp3",          # Set audio codec to MP3
+                "-c:a", "aac",          # Set audio codec to AAC
                 "-strict", "experimental",  # Allow experimental AAC codec
                 "-b:a", "192k",         # Audio bitrate
                 "-shortest", 
@@ -600,8 +600,8 @@ def motor_to_contour(
             audio_args = [
                 "-i", audio,            # Input audio
                 "-c:v", "copy",         # Copy video codec (no re-encoding)
-                "-c:a", "mp3",          # Set audio codec to MP3
-                #"-c:a", "aac",          # Set audio codec to AAC
+                #"-c:a", "mp3",          # Set audio codec to MP3
+                "-c:a", "aac",          # Set audio codec to AAC
                 "-strict", "experimental",  # Allow experimental AAC codec
                 "-b:a", "192k",         # Audio bitrate
                 "-shortest", 
