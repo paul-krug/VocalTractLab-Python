@@ -2,6 +2,7 @@
 
 
 from setuptools import setup
+from setuptools import find_packages
 
 
 
@@ -53,7 +54,7 @@ setup_args = dict(
         'speech production',
         'vocoder',
         ],
-    packages=['vocaltractlab'],
+    packages=find_packages(include=["vocaltractlab", "vocaltractlab.*"]),
     install_requires=install_requires
 )
 
