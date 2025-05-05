@@ -4,6 +4,7 @@ import pandas as pd
 from target_approximation.vocaltractlab import SupraGlottalSeries
 import yaml
 from vocaltractlab_cython import get_param_info
+from importlib.metadata import version
 
 from .. import core as vtl
 
@@ -28,7 +29,7 @@ def get_occurences(
             min_state.shape[0],
             ),
         )
-    sgs = SupraGlottalSeries( candidates )
+    sgs = SupraGlottalSeries( candidates, series_type = 'vtl' )
     sgs[ 'VO' ] = -0.1
     tbs = vtl.motor_to_tube( sgs , verbose=verbose )
 
@@ -55,8 +56,8 @@ def get_occurences(
     return constriction_occurences
 
 def get_parameter_space(
-        speaker,
-        auto_tongue_root: bool,
+        speaker: str,
+        auto_tongue_root: Optional[ bool ] = None,
         ):
 
     vtl.load_speaker(
@@ -101,11 +102,11 @@ def get_parameter_space(
     return ps
 
 def get_valid_parameter_space(
-        speaker,
-        auto_tongue_root: bool,
-        sample_size = 100000,
-        extend_below = 2.0,
-        extend_above = 0.0,
+        speaker: str,
+        auto_tongue_root: Optional[ bool ] = None,
+        sample_size: int = 100000,
+        extend_below: float = 2.0,
+        extend_above: float = 0.0,
         ):
     # speaker is set in get_parameter_space
     ps = get_parameter_space(
@@ -123,7 +124,7 @@ def get_valid_parameter_space(
         high = ext_range_max,
         size = ( sample_size, ext_range_min.shape[0] ),
         )
-    sgs = SupraGlottalSeries( candidates )
+    sgs = SupraGlottalSeries( candidates, series_type = 'vtl' )
     #axs = sgs.plot_distributions( show = False )
     sgs_lim = vtl.limit( sgs )
     #sgs_lim.plot_distributions( axs = axs )
@@ -148,7 +149,7 @@ def get_valid_parameter_space(
         min = min_state,
         max = max_state,
     )
-    ps = ParameterSpace(
+    ps_valid = ParameterSpace(
         speaker = speaker,
         space = pd.DataFrame(
             search_space,
@@ -157,7 +158,7 @@ def get_valid_parameter_space(
         occurences = occurences,
         auto_tongue_root=auto_tongue_root,
         )
-    return ps
+    return ps_valid, ps, sgs_lim, sgs
 
 class ParameterSpace():
     def __init__(
@@ -183,10 +184,14 @@ class ParameterSpace():
             cls,
             x: dict,
             ):
-        speaker = x[ 'speaker' ]
-        space = pd.DataFrame( x[ 'space' ] )
-        occurences = x[ 'occurences' ]
-        auto_tongue_root = x[ 'auto_tongue_root' ]
+        if 'data' in x.keys():
+            data = x[ 'data' ]
+        else:
+            data = x
+        speaker = data[ 'speaker' ]
+        space = pd.DataFrame( data[ 'space' ] )
+        occurences = data[ 'occurences' ]
+        auto_tongue_root = data[ 'auto_tongue_root' ]
         return cls(
             speaker = speaker,
             space = space,
@@ -233,11 +238,18 @@ class ParameterSpace():
     def to_dict(
             self,
             ):
-        x = dict(
+        data = dict(
             speaker = self.speaker,
             space = self.space.to_dict(),
             occurences = self.occurences,
             auto_tongue_root = self.auto_tongue_root,
+            )
+        x = dict(
+            meta_data = dict(
+                file_type = str( type( self ) ),
+                file_version = f'vocaltractlab-python: {version( "vocaltractlab" )}',
+                ),
+            data = data,
             )
         return x
     

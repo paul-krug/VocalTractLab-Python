@@ -7,6 +7,7 @@ from tools_mp import process
 #from target_approximation.vocaltractlab import SupraGlottalSeries as SGS
 import uuid
 import yaml
+from importlib.metadata import version
 
 
 from .sample import get_hull, get_formant_data
@@ -52,6 +53,7 @@ class State():
             x = x[ 'x' ],
             poa = x[ 'poa' ],
             parent = x[ 'parent' ],
+            id = x[ 'id' ],
             group = x[ 'group' ],
             )
         return s
@@ -122,18 +124,35 @@ class PhonemeInventory():
             )
     
     @classmethod
+    def from_dict(
+            cls,
+            x: dict,
+            ):
+        if 'data' in x.keys():
+            data = x[ 'data' ]
+        else:
+            data = x
+        ps = ParameterSpace.from_dict( data[ 'parameter_space' ] )
+        s = {}
+        for k, v in data[ 'states' ].items():
+            v[ 'id' ] = k
+            s[k] = State.from_dict( v )
+        #state_dict = data[ 'states' ]
+        #state
+        #s = { k: State.from_dict( v ) for k, v in data[ 'states' ].items() }
+        return cls(
+            parameter_space = ps,
+            states = s,
+            )
+    
+    @classmethod
     def from_yaml(
             cls,
             file_path: str,
             ):
         with open( file_path, 'r' ) as f:
             x = yaml.load( f, Loader = yaml.FullLoader )
-        ps = ParameterSpace.from_dict( x[ 'parameter_space' ] )
-        s = { k: State( **v ) for k, v in x[ 'states' ].items() }
-        return cls(
-            parameter_space = ps,
-            states = s,
-            )
+        return cls.from_dict( x )
     
     def _sample_consonants(
             self,
@@ -415,10 +434,17 @@ class PhonemeInventory():
         return x
     
     def to_dict(self):
-        x = dict(
+        data = dict(
             parameter_space = self.parameter_space.to_dict(),
             states = { k: v.to_dict() for k, v in self.states.items() },
             )
+        x = dict(
+            meta_data = dict(
+                file_type = str( type( self ) ),
+                file_version = f'vocaltractlab-python: {version( "vocaltractlab" )}',
+            ),
+            data = data,
+        )
         return x
     
     def to_yaml(

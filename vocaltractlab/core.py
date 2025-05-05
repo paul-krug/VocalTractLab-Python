@@ -100,9 +100,15 @@ def limit(
         )
     
     states = np.array( states )
-    lim = SupraGlottalSeries( states )
+    lim = SupraGlottalSeries(
+        states,
+        series_type = 'vtl',
+        )
     if isinstance( x, MotorSeries ):
-        lim = MotorSeries( lim & states.glottis() )
+        lim = MotorSeries(
+            lim & states.glottis(),
+            series_type = 'vtl',
+            )
     
     return lim
 

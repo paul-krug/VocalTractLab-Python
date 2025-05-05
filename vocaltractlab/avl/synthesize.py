@@ -229,7 +229,7 @@ class MonteCarloGenerator():
                         return_type = 'numpy',
                         )
                     )
-                sgs = SGS( state )
+                sgs = SGS( state, series_type = 'vtl' )
                 #print( sgs )
                 #sto
                 if poa in self.poa_ts3:
@@ -261,7 +261,10 @@ class MonteCarloGenerator():
                     sgs.to_numpy().squeeze()
                     )
                 
-        sgs = SGS( np.array( sgs_states ) )
+        sgs = SGS(
+            np.array( sgs_states ),
+            series_type = 'vtl',
+            )
 
         return sgs
     
@@ -412,7 +415,10 @@ class MonteCarloGenerator():
         modal_shape = [ 1.200000e+02,  8.000000e+03,  1.020000e-02,  2.035000e-02,
         5.000000e-02,  1.222044e+00,  1.000000e+00,  5.000000e-02,
         0.000000e+00,  2.500000e+01, -1.000000e+01]
-        g_series = GlottalSeries( np.array( [ modal_shape for _ in voicings ] ) )
+        g_series = GlottalSeries(
+            np.array( [ modal_shape for _ in voicings ] ),
+            series_type = 'vtl',
+            )
 
         for voicing_idx, voicing in enumerate( voicings ):
             if voicing == 'unvoiced':
@@ -483,6 +489,7 @@ class MonteCarloGenerator():
             b = sg_states.to_numpy(),
             tau = sg_tau,
             duration = sg_durations,
+            sequence_type = 'vtl',
         )
 
         # For debugging and sanity check (should never happen)
@@ -498,9 +505,13 @@ class MonteCarloGenerator():
             b = g_states.to_numpy(),
             tau = g_tau,
             duration = g_durations,
+            sequence_type = 'vtl',
         )
 
-        ms = MotorSequence( sgs & gs & f0_tgs & pr_tgs )
+        ms = MotorSequence(
+            sgs & gs & f0_tgs & pr_tgs,
+            sequence_type = 'vtl',
+            )
         
         return ms
     

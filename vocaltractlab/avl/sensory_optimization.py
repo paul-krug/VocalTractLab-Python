@@ -35,6 +35,7 @@ def get_mask(
             query.to_numpy(transpose=False),
             dtype = bool,
             ),
+        series_type = 'vtl',
         )
     for p in opt_params:
         mask[ p ] = False
@@ -45,7 +46,7 @@ def state_to_dict(
         state: SGS,
         ) -> dict:
     x = {
-        k: v[0] for k,v in state.to_dict()[ 'series' ].items()
+        k: v[0] for k,v in state.to_dict()[ 'data' ][ 'series' ].items()
         }
     return x
 
@@ -72,7 +73,7 @@ class Agent():
 
         # Reference state
         self.reference_state = reference_state
-        self.sgs_r = SGS( reference_state )
+        self.sgs_r = SGS( reference_state, series_type = 'vtl' )
 
         # Parameter space
         self.optimization_parameters = optimization_parameters
@@ -359,7 +360,7 @@ class Agent():
         return loss
 
     def get_query_state( self, parameters_queries ):
-        sgs = SGS( self.reference_state )
+        sgs = SGS( self.reference_state, series_type = 'vtl' )
         for opt_p, p in zip( parameters_queries, self.optimization_parameters ):
             sgs[ p ] = opt_p
         return sgs

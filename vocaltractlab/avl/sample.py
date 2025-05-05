@@ -17,7 +17,7 @@ from typing import List
 
 
 def get_formant_data( states ):
-    sgs = SupraGlottalSeries( states )
+    sgs = SupraGlottalSeries( states, series_type = 'vtl' )
     trf = vtl.motor_to_transfer_function( sgs )
     formant_data = np.array( [
         [ x.f1 for x in trf ],
@@ -169,7 +169,7 @@ def sample_v(
             high = max_state,
             size = ( sampling_batch_size, min_state.shape[0] ),
             )
-        sgs = SupraGlottalSeries( candidates )
+        sgs = SupraGlottalSeries( candidates, series_type = 'vtl' )
         sgs[ 'VO' ] = -0.1
 
         tbs = vtl.motor_to_tube( sgs , verbose=verbose )
