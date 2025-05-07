@@ -22,6 +22,7 @@ from vocaltractlab_cython import tract_state_to_svg
 from vocaltractlab_cython import tract_state_to_transfer_function
 from vocaltractlab_cython import tract_state_to_tube_state
 #from vocaltractlab_cython.exceptions import VTLAPIError
+import target_approximation as ta
 from target_approximation import TargetSeries
 from target_approximation.vocaltractlab import MotorSequence
 from target_approximation.vocaltractlab import MotorSeries
@@ -462,11 +463,9 @@ def _motor_to_audio(
                 does not exist.
                 """
             )
-        motor_series = MotorSeries.load(
-            motor_data,
-            sr = 441,
-            )
-    elif isinstance( motor_data, MotorSequence ):
+        motor_data = ta.load(motor_data)
+
+    if isinstance( motor_data, MotorSequence ):
         motor_series = motor_data.to_series(
             sr = 441,
         )
